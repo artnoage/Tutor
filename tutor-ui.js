@@ -1,4 +1,4 @@
-import { tutorController, monitorSound } from './tutor-core.js';
+import { tutorController } from './tutor-core.js';
 import { languageOptions } from './languages.js';
 
 // DOM elements
@@ -16,16 +16,15 @@ const interventionLevelSelect = document.getElementById('interventionLevelSelect
 const tutorsVoiceSelect = document.getElementById('tutorsVoiceSelect');
 const partnersVoiceSelect = document.getElementById('partnersVoiceSelect');
 const infoWindow = document.getElementById('infoWindow');
-
-// Audio context
-let audioContext;
+const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
+const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
+const summaryDisplay = document.getElementById('summaryDisplay');
 
 // Event listeners
 startTutorButton.addEventListener('click', () => {
     tutorController.start();
     startTutorButton.disabled = true;
     stopTutorButton.disabled = false;
-    statusDisplay.textContent = "Starting monitoring...";
 });
 
 stopTutorButton.addEventListener('click', () => {
@@ -41,6 +40,7 @@ tutorsLanguageSelect.addEventListener('change', updateTutorsLanguage);
 interventionLevelSelect.addEventListener('change', updateInterventionLevel);
 tutorsVoiceSelect.addEventListener('change', updateTutorsVoice);
 partnersVoiceSelect.addEventListener('change', updatePartnersVoice);
+microphoneSelect.addEventListener('change', updateMicrophone);
 
 function resetButtons() {
     startTutorButton.disabled = false;
@@ -48,11 +48,16 @@ function resetButtons() {
 }
 
 function updateSoundLevelDisplay(average, isSilent) {
-    soundLevelDisplay.textContent = `Sound Level: ${average.toFixed(2)} - ${isSilent ? 'Silent' : 'Not Silent'}`;
-    if (isRecording) {
-        statusDisplay.textContent = `Recording... ${isSilent ? 'Silent' : 'Not Silent'}`;
+    if (average === null || isSilent === null) {
+        soundLevelDisplay.textContent = "Sound Level: N/A";
+        statusDisplay.textContent = "Tutor inactive";
     } else {
-        statusDisplay.textContent = `Monitoring... ${isSilent ? 'Silent' : 'Sound Detected'}`;
+        soundLevelDisplay.textContent = `Sound Level: ${average.toFixed(2)} - ${isSilent ? 'Silent' : 'Not Silent'}`;
+        if (tutorController.isRecording) {
+            statusDisplay.textContent = `Recording... ${isSilent ? 'Silent' : 'Not Silent'}`;
+        } else {
+            statusDisplay.textContent = `Monitoring... ${isSilent ? 'Silent' : 'Sound Detected'}`;
+        }
     }
 }
 
@@ -93,6 +98,12 @@ function updatePartnersVoice() {
     updateInfoWindow(`Selected Partner's Voice: ${selectedVoice}`);
 }
 
+function updateMicrophone() {
+    const selectedMicrophoneId = microphoneSelect.value;
+    tutorController.setMicrophone(selectedMicrophoneId);
+    updateInfoWindow(`Selected Microphone: ${microphoneSelect.options[microphoneSelect.selectedIndex].text}`);
+}
+
 function updateInfoWindow(message) {
     const newInfo = document.createElement('p');
     newInfo.textContent = message;
@@ -111,6 +122,7 @@ function populateMicrophoneSelect() {
                 option.text = device.label || `Microphone ${microphoneSelect.length + 1}`;
                 microphoneSelect.appendChild(option);
             });
+            updateMicrophone(); // Set initial microphone
         })
         .catch(err => {
             console.error("Error enumerating devices:", err);
@@ -131,6 +143,32 @@ function populateLanguageSelects() {
     });
 }
 
+function updateChatDisplay(chatObject) {
+    // Update chat history
+    chatHistoryDisplay.innerHTML = '';
+    chatObject.chat_history.forEach((message, index) => {
+        const messageElement = document.createElement('p');
+        messageElement.textContent = `${index + 1}. ${message}`;
+        chatHistoryDisplay.appendChild(messageElement);
+    });
+
+    // Update tutor's comments
+    tutorsCommentsDisplay.innerHTML = '';
+    chatObject.tutors_comments.forEach((comment, index) => {
+        const commentElement = document.createElement('p');
+        commentElement.textContent = `${index + 1}. ${comment}`;
+        tutorsCommentsDisplay.appendChild(commentElement);
+    });
+
+    // Update summary
+    summaryDisplay.innerHTML = '';
+    chatObject.summary.forEach((item, index) => {
+        const summaryElement = document.createElement('p');
+        summaryElement.textContent = `${index + 1}. ${item}`;
+        summaryDisplay.appendChild(summaryElement);
+    });
+}
+
 function initializeUI() {
     populateMicrophoneSelect();
     populateLanguageSelects();
@@ -141,132 +179,55 @@ function initializeUI() {
     updateInterventionLevel();
     updateTutorsVoice();
     updatePartnersVoice();
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-}
 
-async function processAndPlayAudio(audioBlob) {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
-    
-    const audioData = {
-        motherTongue: motherTongueSelect.value,
-        tutoringLanguage: tutoringLanguageSelect.value,
-        tutorsLanguage: tutorsLanguageSelect.value,
-        tutorsVoice: tutorsVoiceSelect.value,
-        partnersVoice: partnersVoiceSelect.value,
-        interventionLevel: interventionLevelSelect.value
-    };
-    
-    formData.append('data', JSON.stringify(audioData));
+    // Set up form elements for tutorController
+    tutorController.setFormElements({
+        motherTongueSelect,
+        tutoringLanguageSelect,
+        tutorsLanguageSelect,
+        tutorsVoiceSelect,
+        partnersVoiceSelect,
+        interventionLevelSelect,
+        playbackSpeedSlider
+    });
 
-    try {
-        statusDisplay.textContent = "Processing audio...";
-        console.time('serverProcessing');
-        const response = await fetch('http://localhost:8000/process_audio', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // Set up UI callbacks for tutorController
+    tutorController.setUICallbacks({
+        onMonitoringStart: () => {
+            statusDisplay.textContent = "Starting monitoring...";
+        },
+        onProcessingStart: () => {
+            statusDisplay.textContent = "Processing audio...";
+        },
+        onTranscriptionReceived: (transcription) => {
+            statusDisplay.textContent = "Displaying transcription and preparing audio...";
+            updateInfoWindow(`Transcription: ${transcription}`);
+        },
+        onAudioPlayStart: () => {
+            statusDisplay.textContent = "Playing audio...";
+        },
+        onRecordingDiscarded: (reason) => {
+            statusDisplay.textContent = `Recording discarded: ${reason}. Restarting...`;
+            updateInfoWindow(`Recording discarded: ${reason}`);
+        },
+        onSoundLevelUpdate: updateSoundLevelDisplay,
+        onError: (errorMessage) => {
+            statusDisplay.textContent = "Error: " + errorMessage;
+        },
+        onAPIResponseReceived: (result) => {
+            updateChatDisplay(result.chatObject);
+            statusDisplay.textContent = "Updated chat display with API response";
         }
-
-        const result = await response.json();
-        console.timeEnd('serverProcessing');
-
-        console.time('clientProcessing');
-        
-        // Display transcription immediately
-        statusDisplay.textContent = "Displaying transcription and preparing audio...";
-        updateInfoWindow(`Transcription: ${result.transcription}`);
-        
-        // Decode audio data
-        const audioBuffer = await decodeAudioData(audioContext, result.audio_base64);
-        
-        // Play audio
-        statusDisplay.textContent = "Playing audio...";
-        await playDecodedAudio(audioContext, audioBuffer);
-        
-        console.timeEnd('clientProcessing');
-        
-        // Resume monitoring after audio playback
-        if (tutorController.isActive) {
-            tutorController.startMonitoring();
-        }
-    } catch (error) {
-        console.error('Error processing or playing audio:', error);
-        statusDisplay.textContent = "Error: " + error.message;
-    }
-}
-
-function decodeAudioData(audioContext, base64Audio) {
-    return new Promise((resolve, reject) => {
-        console.time('audioDecode');
-        const binaryString = atob(base64Audio);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        audioContext.decodeAudioData(bytes.buffer, 
-            (decodedData) => {
-                console.timeEnd('audioDecode');
-                resolve(decodedData);
-            }, 
-            (error) => {
-                console.timeEnd('audioDecode');
-                reject(error);
-            }
-        );
     });
 }
-
-function playDecodedAudio(audioContext, audioBuffer) {
-    return new Promise((resolve) => {
-        console.time('audioPlayback');
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        
-        // Apply playback speed
-        const playbackSpeed = 0.9 + (parseFloat(playbackSpeedSlider.value) * 0.1);
-        source.playbackRate.value = playbackSpeed;
-
-        source.connect(audioContext.destination);
-        source.onended = () => {
-            console.timeEnd('audioPlayback');
-            resolve();
-        };
-        source.start(0);
-    });
-}
-
-// Override tutorController methods to update UI
-const originalStart = tutorController.start;
-tutorController.start = function() {
-    originalStart.call(this);
-    statusDisplay.textContent = "Listening for sound...";
-};
-
-tutorController.onRecordingComplete = function(result) {
-    if (result.discarded) {
-        statusDisplay.textContent = `Recording discarded: ${result.reason}. Restarting...`;
-        updateInfoWindow(`Recording discarded: ${result.reason}`);
-        this.startMonitoring();
-    } else {
-        processAndPlayAudio(result.audioBlob);
-    }
-};
 
 // Start monitoring sound levels
-let isRecording = false;
-setInterval(() => {
-    const { average, isSilent } = monitorSound();
-    updateSoundLevelDisplay(average, isSilent);
-    if (isRecording !== tutorController.isRecording) {
-        isRecording = tutorController.isRecording;
-        statusDisplay.textContent = isRecording ? "Recording..." : "Monitoring...";
-    }
-}, 72); // Decreased to 90% of 80ms
+const monitoringInterval = tutorController.startMonitoringInterval();
+
+// Clean up the interval when the page is unloaded
+window.addEventListener('unload', () => {
+    clearInterval(monitoringInterval);
+});
 
 // Initialize UI when the page loads
 initializeUI();

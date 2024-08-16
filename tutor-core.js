@@ -1,3 +1,6 @@
+import { sendAudioToServer } from './api-service.js';
+import { trimSilence, bufferToWave } from './audio-utils.js';
+
 // Global variables
 let audioContext;
 let analyser;
@@ -16,23 +19,44 @@ const SOUND_DETECTION_DURATION = 72; // Decreased to 90% of 80ms
 const SILENCE_DURATION_TO_STOP = 1000;
 const MIN_VALID_DURATION = 3 * SOUND_DETECTION_DURATION / 1000; // Changed to 3 times the sampling interval
 
-// Controller
 const tutorController = {
     isActive: false,
+    isRecording: false,
+    selectedMicrophoneId: null,
+    formElements: null,
+    uiCallbacks: null,
+    chatObject: null,
+
+    setFormElements: function(elements) {
+        this.formElements = elements;
+    },
+
+    setUICallbacks: function(callbacks) {
+        this.uiCallbacks = callbacks;
+    },
+
     start: function() {
         this.isActive = true;
+        this.chatObject = {
+            chat_history: [],
+            tutors_comments: [],
+            summary: []
+        };
         this.startMonitoring();
     },
+
     stop: function() {
         this.isActive = false;
+        this.chatObject = null;
         stopTutor();
     },
+
     startMonitoring: function() {
         soundDetectedTime = null;
         
         const constraints = {
             audio: {
-                deviceId: microphoneSelect.value ? {exact: microphoneSelect.value} : undefined
+                deviceId: this.selectedMicrophoneId ? {exact: this.selectedMicrophoneId} : undefined
             }
         };
 
@@ -41,25 +65,109 @@ const tutorController = {
                 stream = str;
                 setupAudioContext();
                 startMonitoring();
+                if (this.uiCallbacks.onMonitoringStart) {
+                    this.uiCallbacks.onMonitoringStart();
+                }
             })
             .catch(err => {
                 console.error("Error accessing microphone:", err);
                 this.stop();
+                if (this.uiCallbacks.onError) {
+                    this.uiCallbacks.onError("Error accessing microphone: " + err.message);
+                }
             });
     },
-    handleRecordingComplete: function(result) {
-        if (this.onRecordingComplete) {
-            this.onRecordingComplete(result);
+
+    setMicrophone: function(deviceId) {
+        this.selectedMicrophoneId = deviceId;
+    },
+
+    async processAndPlayAudio(audioBlob) {
+        try {
+            if (this.uiCallbacks.onProcessingStart) {
+                this.uiCallbacks.onProcessingStart();
+            }
+
+            const formElementsWithChat = {
+                ...this.formElements,
+                chatObject: this.chatObject
+            };
+
+            const result = await sendAudioToServer(audioBlob, formElementsWithChat);
+            
+            console.time('clientProcessing');
+            
+            if (this.uiCallbacks.onTranscriptionReceived) {
+                this.uiCallbacks.onTranscriptionReceived(result.transcription);
+            }
+            
+            // Update chatObject with the response from the server
+            this.chatObject = result.chatObject;
+            
+            if (this.uiCallbacks.onAPIResponseReceived) {
+                this.uiCallbacks.onAPIResponseReceived(result);
+            }
+            
+            // Decode audio data
+            const audioBuffer = await decodeAudioData(result.audio_base64);
+            
+            // Play audio
+            if (this.uiCallbacks.onAudioPlayStart) {
+                this.uiCallbacks.onAudioPlayStart();
+            }
+            const playbackSpeed = 0.9 + (parseFloat(this.formElements.playbackSpeedSlider.value) * 0.1);
+            await playDecodedAudio(audioBuffer, playbackSpeed);
+            
+            console.timeEnd('clientProcessing');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error processing or playing audio:', error);
+            if (this.uiCallbacks.onError) {
+                this.uiCallbacks.onError("Error processing or playing audio: " + error.message);
+            }
+            return { success: false, error: error.message };
         }
     },
-    onRecordingComplete: null // This will be set in tutor-ui.js
+
+    async onRecordingComplete(result) {
+        if (result.discarded) {
+            if (this.uiCallbacks.onRecordingDiscarded) {
+                this.uiCallbacks.onRecordingDiscarded(result.reason);
+            }
+            this.startMonitoring();
+        } else {
+            const processResult = await this.processAndPlayAudio(result.audioBlob);
+            
+            if (processResult.success) {
+                // Resume monitoring after successful audio playback
+                if (this.isActive) {
+                    this.startMonitoring();
+                }
+            }
+        }
+    },
+
+    startMonitoringInterval: function() {
+        return setInterval(() => {
+            if (this.isActive) {
+                const { average, isSilent } = monitorSound();
+                if (this.uiCallbacks.onSoundLevelUpdate) {
+                    this.uiCallbacks.onSoundLevelUpdate(average, isSilent);
+                }
+            } else {
+                if (this.uiCallbacks.onSoundLevelUpdate) {
+                    this.uiCallbacks.onSoundLevelUpdate(null, null);
+                }
+            }
+        }, 72); // Decreased to 90% of 80ms
+    }
 };
 
 function setupAudioContext() {
-    if (audioContext) {
-        audioContext.close();
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
     const source = audioContext.createMediaStreamSource(stream);
     source.connect(analyser);
@@ -75,7 +183,9 @@ function startMonitoring() {
 }
 
 function monitorSound() {
-    if (!isMonitoring) return;
+    if (!isMonitoring || !analyser || !dataArray) {
+        return { average: 0, isSilent: true };
+    }
 
     analyser.getByteFrequencyData(dataArray);
 
@@ -88,9 +198,6 @@ function monitorSound() {
         handleRecordingState(isSilent);
     }
 
-    // Call monitorSound again as soon as possible
-    requestAnimationFrame(monitorSound);
-    
     return { average, isSilent };
 }
 
@@ -112,7 +219,7 @@ function handleRecordingState(isSilent) {
             silenceStartTime = Date.now();
         } else if (Date.now() - silenceStartTime >= SILENCE_DURATION_TO_STOP) {
             stopRecording().then(result => {
-                tutorController.handleRecordingComplete(result);
+                tutorController.onRecordingComplete(result);
             });
         }
     } else {
@@ -122,6 +229,7 @@ function handleRecordingState(isSilent) {
 
 function startRecording() {
     isRecording = true;
+    tutorController.isRecording = true;
     audioChunks = [];
     mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.ondataavailable = event => {
@@ -131,114 +239,22 @@ function startRecording() {
     silenceStartTime = null;
 }
 
-async function trimSilence(audioBlob) {
-    const audioBuffer = await audioBlob.arrayBuffer()
-        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer));
-
-    const numberOfChannels = audioBuffer.numberOfChannels;
-    const sampleRate = audioBuffer.sampleRate;
-    const silenceDuration = SILENCE_DURATION_TO_STOP / 1000; // Convert to seconds
-    const trimmedLength = audioBuffer.length - sampleRate * silenceDuration;
-
-    // Check if the trimmed audio is too short
-    if (trimmedLength / sampleRate <= MIN_VALID_DURATION) {
-        return null; // Return null for too short recordings
-    }
-
-    const trimmedBuffer = audioContext.createBuffer(
-        numberOfChannels,
-        trimmedLength,
-        sampleRate
-    );
-
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-        const channelData = audioBuffer.getChannelData(channel);
-        trimmedBuffer.copyToChannel(channelData.slice(0, trimmedLength), channel);
-    }
-
-    return new Promise(resolve => {
-        const offlineContext = new OfflineAudioContext(
-            numberOfChannels,
-            trimmedLength,
-            sampleRate
-        );
-        const source = offlineContext.createBufferSource();
-        source.buffer = trimmedBuffer;
-        source.connect(offlineContext.destination);
-        source.start();
-        offlineContext.startRendering().then(renderedBuffer => {
-            const trimmedBlob = bufferToWave(renderedBuffer, trimmedLength);
-            resolve(trimmedBlob);
-        });
-    });
-}
-
-function bufferToWave(abuffer, len) {
-    const numOfChan = abuffer.numberOfChannels;
-    const length = len * numOfChan * 2 + 44;
-    const buffer = new ArrayBuffer(length);
-    const view = new DataView(buffer);
-    const channels = [];
-    let i;
-    let sample;
-    let offset = 0;
-    let pos = 0;
-
-    // write WAVE header
-    setUint32(0x46464952);                         // "RIFF"
-    setUint32(length - 8);                         // file length - 8
-    setUint32(0x45564157);                         // "WAVE"
-
-    setUint32(0x20746d66);                         // "fmt " chunk
-    setUint32(16);                                 // length = 16
-    setUint16(1);                                  // PCM (uncompressed)
-    setUint16(numOfChan);
-    setUint32(abuffer.sampleRate);
-    setUint32(abuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
-    setUint16(numOfChan * 2);                      // block-align
-    setUint16(16);                                 // 16-bit (hardcoded in this demo)
-
-    setUint32(0x61746164);                         // "data" - chunk
-    setUint32(length - pos - 4);                   // chunk length
-
-    // write interleaved data
-    for(i = 0; i < abuffer.numberOfChannels; i++)
-        channels.push(abuffer.getChannelData(i));
-
-    while(pos < length) {
-        for(i = 0; i < numOfChan; i++) {             // interleave channels
-            sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
-            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0; // scale to 16-bit signed int
-            view.setInt16(pos, sample, true);        // write 16-bit sample
-            pos += 2;
-        }
-        offset++; // next source sample
-    }
-
-    // create Blob
-    return new Blob([buffer], {type: "audio/wav"});
-
-    function setUint16(data) {
-        view.setUint16(pos, data, true);
-        pos += 2;
-    }
-
-    function setUint32(data) {
-        view.setUint32(pos, data, true);
-        pos += 4;
-    }
-}
-
-function stopRecording() {
+async function stopRecording() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
         isRecording = false;
+        tutorController.isRecording = false;
         stopMonitoring();
         
         return new Promise((resolve) => {
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
-                const trimmedBlob = await trimSilence(audioBlob);
+                const trimmedBlob = await trimSilence(
+                    audioBlob, 
+                    audioContext, 
+                    SILENCE_DURATION_TO_STOP / 1000, 
+                    MIN_VALID_DURATION
+                );
                 if (trimmedBlob === null) {
                     resolve({ discarded: true, reason: "Recording too short" });
                 } else {
@@ -255,13 +271,41 @@ function stopMonitoring() {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
     }
-    if (audioContext) {
-        audioContext.close();
-    }
 }
 
 function stopTutor() {
     stopMonitoring();
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
 }
 
-export { tutorController, monitorSound, startRecording, stopRecording, stopTutor };
+function decodeAudioData(base64Audio) {
+    return new Promise((resolve, reject) => {
+        const binaryString = atob(base64Audio);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        audioContext.decodeAudioData(bytes.buffer, resolve, reject);
+    });
+}
+
+function playDecodedAudio(audioBuffer, playbackSpeed) {
+    return new Promise((resolve) => {
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.playbackRate.value = playbackSpeed;
+        source.connect(audioContext.destination);
+        source.onended = resolve;
+        source.start(0);
+    });
+}
+
+export { 
+    tutorController, 
+    decodeAudioData, 
+    playDecodedAudio
+};
