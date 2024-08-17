@@ -25,25 +25,51 @@
             <div id="soundLevelDisplay" class="text-lg">Sound Level: N/A</div>
         </div>
 
-        <div class="mb-4">
-            <label for="playbackSpeedSlider">Playback Speed: </label>
-            <input type="range" id="playbackSpeedSlider" min="0" max="1" step="0.1" value="1" class="range range-xs">
-            <span id="playbackSpeedDisplay">100%</span>
+        <!-- Language Selects Group -->
+        <div class="flex space-x-4 mb-4">
+            <div class="flex-1">
+                <label for="motherTongueSelect">Mother Tongue:</label>
+                <select id="motherTongueSelect" class="select select-bordered w-full"></select>
+            </div>
+            <div class="flex-1">
+                <label for="tutoringLanguageSelect">Tutoring Language:</label>
+                <select id="tutoringLanguageSelect" class="select select-bordered w-full"></select>
+            </div>
+            <div class="flex-1">
+                <label for="tutorsLanguageSelect">Tutor's Language:</label>
+                <select id="tutorsLanguageSelect" class="select select-bordered w-full"></select>
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label for="motherTongueSelect">Mother Tongue:</label>
-            <select id="motherTongueSelect" class="select select-bordered w-full max-w-xs"></select>
-        </div>
-
-        <div class="mb-4">
-            <label for="tutoringLanguageSelect">Tutoring Language:</label>
-            <select id="tutoringLanguageSelect" class="select select-bordered w-full max-w-xs"></select>
-        </div>
-
-        <div class="mb-4">
-            <label for="tutorsLanguageSelect">Tutor's Language:</label>
-            <select id="tutorsLanguageSelect" class="select select-bordered w-full max-w-xs"></select>
+        <!-- Voices and Playback Speed Group -->
+        <div class="flex space-x-4 mb-4">
+            <div class="flex-1">
+                <label for="tutorsVoiceSelect">Tutor's Voice:</label>
+                <select id="tutorsVoiceSelect" class="select select-bordered w-full">
+                    <option value="alloy">Alloy</option>
+                    <option value="echo">Echo</option>
+                    <option value="fable">Fable</option>
+                    <option value="onyx">Onyx</option>
+                    <option value="nova">Nova</option>
+                    <option value="shimmer">Shimmer</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="partnersVoiceSelect">Partner's Voice:</label>
+                <select id="partnersVoiceSelect" class="select select-bordered w-full">
+                    <option value="nova">Nova</option>
+                    <option value="alloy">Alloy</option>
+                    <option value="echo">Echo</option>
+                    <option value="fable">Fable</option>
+                    <option value="onyx">Onyx</option>
+                    <option value="shimmer">Shimmer</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="playbackSpeedSlider">Playback Speed: </label>
+                <input type="range" id="playbackSpeedSlider" min="0" max="1" step="0.1" value="1" class="range range-xs w-full">
+                <span id="playbackSpeedDisplay">100%</span>
+            </div>
         </div>
 
         <div class="mb-4">
@@ -55,48 +81,30 @@
             </select>
         </div>
 
-        <div class="mb-4">
-            <label for="tutorsVoiceSelect">Tutor's Voice:</label>
-            <select id="tutorsVoiceSelect" class="select select-bordered w-full max-w-xs">
-                <option value="alloy">Alloy</option>
-                <option value="echo">Echo</option>
-                <option value="fable">Fable</option>
-                <option value="onyx">Onyx</option>
-                <option value="nova">Nova</option>
-                <option value="shimmer">Shimmer</option>
-            </select>
+        <!-- Upper row: Chat History and Tutor's Comments -->
+        <div class="flex space-x-4 mb-4">
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-2">Chat History</h3>
+                <div id="chatHistoryDisplay" class="bg-base-200 p-4 rounded-lg h-64 overflow-y-auto"></div>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-2">Tutor's Comments</h3>
+                <div id="tutorsCommentsDisplay" class="bg-base-200 p-4 rounded-lg h-64 overflow-y-auto"></div>
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label for="partnersVoiceSelect">Partner's Voice:</label>
-            <select id="partnersVoiceSelect" class="select select-bordered w-full max-w-xs">
-                <option value="alloy">Alloy</option>
-                <option value="echo">Echo</option>
-                <option value="fable">Fable</option>
-                <option value="onyx">Onyx</option>
-                <option value="nova">Nova</option>
-                <option value="shimmer">Shimmer</option>
-            </select>
-        </div>
-
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold mb-2">Info Window</h3>
-            <div id="infoWindow" class="bg-base-200 p-4 rounded-lg h-40 overflow-y-auto"></div>
-        </div>
-
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold mb-2">Chat History</h3>
-            <div id="chatHistoryDisplay" class="bg-base-200 p-4 rounded-lg h-40 overflow-y-auto"></div>
-        </div>
-
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold mb-2">Tutor's Comments</h3>
-            <div id="tutorsCommentsDisplay" class="bg-base-200 p-4 rounded-lg h-40 overflow-y-auto"></div>
-        </div>
-
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold mb-2">Summary</h3>
-            <div id="summaryDisplay" class="bg-base-200 p-4 rounded-lg h-40 overflow-y-auto"></div>
+        <!-- Lower row: Info Window and Summary -->
+        <div class="flex space-x-4 mb-4">
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-2">Info Window</h3>
+                <div id="infoWindow" class="bg-base-200 p-4 rounded-lg h-64 overflow-y-auto">
+                    Just press start tutor and have a conversation with the tutor... there is a slight delay, be patient.
+                </div>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-2">Summary</h3>
+                <div id="summaryDisplay" class="bg-base-200 p-4 rounded-lg h-64 overflow-y-auto"></div>
+            </div>
         </div>
     </div>
 

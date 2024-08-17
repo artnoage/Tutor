@@ -1,5 +1,5 @@
 import { tutorController } from './tutor-core.js';
-import { languageOptions } from './languages.js';
+import { motherTongueOptions, tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
 // DOM elements
 const startTutorButton = document.getElementById('startTutorButton');
@@ -131,26 +131,47 @@ function populateMicrophoneSelect() {
 }
 
 function populateLanguageSelects() {
-    const languages = languageOptions.split(',');
-    [motherTongueSelect, tutoringLanguageSelect, tutorsLanguageSelect].forEach(select => {
+    const languageSets = [
+        { select: motherTongueSelect, options: motherTongueOptions },
+        { select: tutoringLanguageSelect, options: tutoringLanguageOptions },
+        { select: tutorsLanguageSelect, options: tutorsLanguageOptions }
+    ];
+
+    languageSets.forEach(({ select, options }) => {
+        const languages = options.split(',');
         select.innerHTML = ''; // Clear existing options
-        languages.forEach(language => {
+        languages.forEach((language, index) => {
             const option = document.createElement('option');
             option.value = language;
             option.text = language;
+            option.setAttribute('data-order', index); // Set a custom order attribute
             select.appendChild(option);
         });
+        // Sort the options based on the custom order
+        Array.from(select.options)
+            .sort((a, b) => a.getAttribute('data-order') - b.getAttribute('data-order'))
+            .forEach(option => select.appendChild(option));
     });
 }
-
 function updateChatDisplay(chatObject) {
     // Update chat history
-    chatHistoryDisplay.innerHTML = '';
-    chatObject.chat_history.forEach((message, index) => {
-        const messageElement = document.createElement('p');
-        messageElement.textContent = `${index + 1}. ${message}`;
-        chatHistoryDisplay.appendChild(messageElement);
-    });
+chatHistoryDisplay.innerHTML = '';
+chatObject.chat_history.forEach((message, index) => {
+    const messageElement = document.createElement('p');
+    let prefix;
+    switch (message.type) {
+        case 'HumanMessage':
+            prefix = 'You: ';
+            break;
+        case 'AIMessage':
+            prefix = 'Bot: ';
+            break;
+        default:
+            prefix = `${message.type}: `;  // For any other types, we'll still show the type
+    }
+    messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
+    chatHistoryDisplay.appendChild(messageElement);
+});
 
     // Update tutor's comments
     tutorsCommentsDisplay.innerHTML = '';
@@ -199,9 +220,15 @@ function initializeUI() {
         onProcessingStart: () => {
             statusDisplay.textContent = "Processing audio...";
         },
-        onTranscriptionReceived: (transcription) => {
-            statusDisplay.textContent = "Displaying transcription and preparing audio...";
-            updateInfoWindow(`Transcription: ${transcription}`);
+        onChatHistoryReceived: (chatHistory) => {
+            statusDisplay.textContent = "Displaying chat history and preparing audio...";
+            chatHistoryDisplay.textContent = chatHistory;
+        },
+        onTutorsFeedbackReceived: (feedback) => {
+            tutorsCommentsDisplay.textContent = feedback;
+        },
+        onSummaryUpdated: (summary) => {
+            summaryDisplay.textContent = summary;
         },
         onAudioPlayStart: () => {
             statusDisplay.textContent = "Playing audio...";

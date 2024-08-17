@@ -26,7 +26,13 @@ async function sendAudioToServer(audioBlob, formElements) {
 
         const result = await response.json();
         console.timeEnd('serverProcessing');
-        return result;
+        return {
+            chat_history: result.chat_history,
+            audio_base64: result.audio_base64,
+            chatObject: result.chatObject,
+            tutors_feedback: result.tutors_feedback,
+            updated_summary: result.updated_summary
+        };
     } catch (error) {
         console.error('Error sending audio to server:', error);
         throw error;

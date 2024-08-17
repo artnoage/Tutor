@@ -87,18 +87,18 @@ const tutorController = {
             if (this.uiCallbacks.onProcessingStart) {
                 this.uiCallbacks.onProcessingStart();
             }
-
+    
             const formElementsWithChat = {
                 ...this.formElements,
                 chatObject: this.chatObject
             };
-
+    
             const result = await sendAudioToServer(audioBlob, formElementsWithChat);
             
             console.time('clientProcessing');
             
-            if (this.uiCallbacks.onTranscriptionReceived) {
-                this.uiCallbacks.onTranscriptionReceived(result.transcription);
+            if (this.uiCallbacks.onChatHistoryReceived) {
+                this.uiCallbacks.onChatHistoryReceived(result.chat);
             }
             
             // Update chatObject with the response from the server
@@ -106,6 +106,16 @@ const tutorController = {
             
             if (this.uiCallbacks.onAPIResponseReceived) {
                 this.uiCallbacks.onAPIResponseReceived(result);
+            }
+            
+            // Display tutor's feedback
+            if (this.uiCallbacks.onTutorsFeedbackReceived) {
+                this.uiCallbacks.onTutorsFeedbackReceived(result.tutors_feedback);
+            }
+            
+            // Display updated summary
+            if (this.uiCallbacks.onSummaryUpdated) {
+                this.uiCallbacks.onSummaryUpdated(result.updated_summary);
             }
             
             // Decode audio data
@@ -127,6 +137,11 @@ const tutorController = {
                 this.uiCallbacks.onError("Error processing or playing audio: " + error.message);
             }
             return { success: false, error: error.message };
+        } finally {
+            // Ensure monitoring restarts regardless of success or failure
+            if (this.isActive) {
+                this.startMonitoring();
+            }
         }
     },
 
