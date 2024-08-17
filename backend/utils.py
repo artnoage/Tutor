@@ -7,22 +7,13 @@ import logging
 from pydantic import BaseModel
 from typing import List
 from dotenv import load_dotenv
+
+
+
 logger = logging.getLogger(__name__)
 
 
-class ChatObject(BaseModel):
-    chat_history: List[str]
-    tutors_comments: List[str]
-    summary: List[str]
-
-def process_chat_object(chat_object: ChatObject, transcription: str) -> ChatObject:
-    for key in chat_object:
-    # Append 'hello' to the list corresponding to the current key
-        chat_object[key].append(str(key)+": "+transcription)
-    return chat_object
-
-
-def transcribe_audio(audio_content, api_key=None):
+def transcribe_audio(audio_content, language, api_key=None):
     load_dotenv()
     groq_api_key = api_key or os.getenv("GROQ_API_KEY")
     if not groq_api_key:
@@ -39,6 +30,7 @@ def transcribe_audio(audio_content, api_key=None):
             "file": ("audio.wav", io.BytesIO(audio_content), "audio/wav")
         }
         data = {
+            "language": language,
             "model": "whisper-large-v3",
             "response_format": "text"
         }
@@ -74,3 +66,23 @@ def generate_tts(text, api_key=None, voice="onyx"):
     except Exception as e:
         logger.error(f"Error in OpenAI TTS API call: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error in OpenAI TTS API call: {str(e)}")
+    
+def language_to_code(language_name):
+    language_map = {
+        "German": "de",
+        "English": "en",
+        "Spanish": "es",
+        "French": "fr",
+        "Italian": "it",
+        "Portuguese": "pt",
+        "Russian": "ru",
+        "Chinese": "zh",
+        "Japanese": "ja",
+        "Korean": "ko",
+        "Arabic": "ar",
+        "Hindi": "hi",
+        "Turkish": "tr",
+        "Greek": "el"
+    }
+    
+    return language_map.get(language_name, "en") 
