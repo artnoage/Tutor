@@ -14,10 +14,10 @@ let silenceStartTime = null;
 let soundDetectedTime = null;
 
 // Constants for sound detection
-const SILENCE_THRESHOLD = 20;
-const SOUND_DETECTION_DURATION = 72; // Decreased to 90% of 80ms
+const SILENCE_THRESHOLD = 22;
+const SOUND_DETECTION_DURATION = 20; // Decreased to 90% of 80ms
 const SILENCE_DURATION_TO_STOP = 1000;
-const MIN_VALID_DURATION = 3 * SOUND_DETECTION_DURATION / 1000; // Changed to 3 times the sampling interval
+const MIN_VALID_DURATION = 3 * SOUND_DETECTION_DURATION/100; // Changed to 3 times the sampling interval
 
 const tutorController = {
     isActive: false,

@@ -1,0 +1,18 @@
+{
+  "name": "tutor",
+  "version": "1.0.0",
+  "description": "A web application to learn german",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tailwindcss -i ./styles.css -o ./output.css --minify",
+    "watch": "tailwindcss -i ./styles.css -o ./output.css --watch"
+  },
+  "author": "Metaskepsis",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10"
+  }
+}

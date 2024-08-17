@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-midnight-background text-midnight-foreground;
+  }
+  h1 {
+    @apply text-4xl font-bold text-midnight-cyan mb-4;
+  }
+  h2 {
+    @apply text-3xl font-semibold text-midnight-purple mb-3;
+  }
+  h3 {
+    @apply text-2xl font-semibold text-midnight-orange mb-2;
+  }
+  a {
+    @apply text-midnight-orange hover:text-midnight-yellow transition-colors duration-200;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply py-2 px-4 rounded font-bold transition-colors duration-200;
+  }
+  .btn-primary {
+    @apply bg-midnight-purple text-midnight-foreground hover:bg-midnight-pink;
+  }
+  .btn-secondary {
+    @apply bg-midnight-cyan text-midnight-background hover:bg-midnight-green;
+  }
+  .card {
+    @apply bg-midnight-currentLine rounded-lg shadow-md p-6;
+  }
+  .navbar {
+    @apply flex items-center justify-between bg-midnight-currentLine p-4;
+  }
+  .navbar-item {
+    @apply text-midnight-foreground hover:text-midnight-cyan px-3 py-2 transition-colors duration-200;
+  }
+  .form-input {
+    @apply bg-midnight-background border border-midnight-comment rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-midnight-purple;
+  }
+  
+  /* Dropdown styles */
+  .dropdown {
+    @apply relative inline-block;
+  }
+  .dropdown-content {
+    @apply hidden absolute z-10 bg-midnight-currentLine border border-midnight-comment rounded shadow-lg;
+    min-width: 160px;
+  }
+  .dropdown:hover .dropdown-content {
+    @apply block;
+  }
+  .dropdown-item {
+    @apply block px-4 py-2 text-midnight-foreground hover:bg-midnight-background hover:text-midnight-cyan;
+  }
+  
+  /* Select element styles */
+  select {
+    @apply bg-midnight-currentLine text-midnight-foreground border border-midnight-comment rounded px-3 py-2 appearance-none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(1em + 2px),
+                         calc(100% - 15px) calc(1em + 2px);
+    background-size: 5px 5px,
+                     5px 5px;
+    background-repeat: no-repeat;
+  }
+  select:focus {
+    @apply outline-none ring-2 ring-midnight-purple;
+  }
+  select option {
+    @apply bg-midnight-currentLine text-midnight-foreground;
+  }
+  select option:hover,
+  select option:focus,
+  select option:active {
+    @apply bg-midnight-background text-midnight-cyan;
+  }
+
+  /* Bordered container styles */
+  .container-bordered {
+    @apply border border-black rounded-lg p-4;
+  }
+  .bg-base-200 {
+    @apply border border-black;
+  }
+  .info-window {
+    @apply bg-midnight-currentLine border border-black p-4 rounded-lg overflow-y-auto;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+  .border-glow {
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+  .gradient-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-midnight-purple to-midnight-pink;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    @apply flex-col;
+  }
+}
