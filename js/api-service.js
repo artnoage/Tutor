@@ -15,7 +15,7 @@ async function sendAudioToServer(audioBlob, formElements) {
 
     try {
         console.time('serverProcessing');
-        const response = await fetch('http://localhost:8000/process_audio', {
+        const response = await fetch('https://fastapi.metaskepsis.com/process_audio', {
             method: 'POST',
             body: formData
         });
