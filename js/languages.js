@@ -1,2 +1,2 @@
 // languages.js
-export const languageOptions = "English,Spanish,French,German,Italian,Portuguese,Russian,Chinese,Japanese,Korean,Arabic,Hindi,Turkish,Greek";
+export const languageOptions = "German,English,Spanish,French,Italian,Portuguese,Russian,Chinese,Japanese,Korean,Arabic,Hindi,Turkish,Greek";
