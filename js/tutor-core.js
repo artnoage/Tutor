@@ -16,7 +16,6 @@ let soundDetectedTime = null;
 // Constants for sound detection
 const SILENCE_THRESHOLD = 22;
 const SOUND_DETECTION_DURATION = 20; // Decreased to 90% of 80ms
-const SILENCE_DURATION_TO_STOP = 1000;
 const MIN_VALID_DURATION = 3 * SOUND_DETECTION_DURATION/100; // Changed to 3 times the sampling interval
 
 const tutorController = {
@@ -26,6 +25,7 @@ const tutorController = {
     formElements: null,
     uiCallbacks: null,
     chatObject: null,
+    pauseTime: 5, // Default pause time in seconds
 
     setFormElements: function(elements) {
         this.formElements = elements;
@@ -80,6 +80,22 @@ const tutorController = {
 
     setMicrophone: function(deviceId) {
         this.selectedMicrophoneId = deviceId;
+    },
+
+    setPauseTime: function(time) {
+        this.pauseTime = time;
+    },
+
+    manualStop: function() {
+        this.isRecording = false;
+        stopMonitoring();
+        if (this.uiCallbacks.onProcessingStart) {
+            this.uiCallbacks.onProcessingStart();
+        }
+        
+        setTimeout(() => {
+            this.processAndSendAudio();
+        }, this.pauseTime * 1000); // Use the pause time set by the user
     },
 
     async processAndPlayAudio(audioBlob) {
@@ -176,6 +192,19 @@ const tutorController = {
                 }
             }
         }, 72); // Decreased to 90% of 80ms
+    },
+
+    processAndSendAudio: async function() {
+        const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
+        await this.processAndPlayAudio(audioBlob);
+        
+        // Reset for next recording
+        if (this.isActive) {
+            this.startMonitoring();
+            if (this.uiCallbacks.onMonitoringStart) {
+                this.uiCallbacks.onMonitoringStart();
+            }
+        }
     }
 };
 
@@ -232,7 +261,7 @@ function handleRecordingState(isSilent) {
     if (isSilent) {
         if (!silenceStartTime) {
             silenceStartTime = Date.now();
-        } else if (Date.now() - silenceStartTime >= SILENCE_DURATION_TO_STOP) {
+        } else if (Date.now() - silenceStartTime >= tutorController.pauseTime * 1000) {
             stopRecording().then(result => {
                 tutorController.onRecordingComplete(result);
             });
@@ -267,7 +296,7 @@ async function stopRecording() {
                 const trimmedBlob = await trimSilence(
                     audioBlob, 
                     audioContext, 
-                    SILENCE_DURATION_TO_STOP / 1000, 
+                    tutorController.pauseTime, 
                     MIN_VALID_DURATION
                 );
                 if (trimmedBlob === null) {

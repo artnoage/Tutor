@@ -671,6 +671,44 @@ a:hover {
   background-color: rgb(92 219 149 / var(--tw-bg-opacity));
 }
 
+.btn-success {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 107 107 / var(--tw-bg-opacity));
+  --tw-text-opacity: 1;
+  color: rgb(230 242 255 / var(--tw-text-opacity));
+}
+
+.btn-success:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(57 197 187 / var(--tw-bg-opacity));
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s ease infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none;
+}
+
 /* Dropdown styles */
 
 /* Select element styles */
@@ -751,8 +789,12 @@ select option:hover,
   display: flex;
 }
 
-.h-40 {
-  height: 10rem;
+.hidden {
+  display: none;
+}
+
+.h-64 {
+  height: 16rem;
 }
 
 .w-full {

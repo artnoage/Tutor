@@ -4,11 +4,14 @@ import { motherTongueOptions, tutoringLanguageOptions, tutorsLanguageOptions } f
 // DOM elements
 const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
+const sendButton = document.getElementById('sendButton');
 const statusDisplay = document.getElementById('statusDisplay');
 const microphoneSelect = document.getElementById('microphoneSelect');
 const soundLevelDisplay = document.getElementById('soundLevelDisplay');
 const playbackSpeedSlider = document.getElementById('playbackSpeedSlider');
 const playbackSpeedDisplay = document.getElementById('playbackSpeedDisplay');
+const pauseTimeSlider = document.getElementById('pauseTimeSlider');
+const pauseTimeDisplay = document.getElementById('pauseTimeDisplay');
 const motherTongueSelect = document.getElementById('motherTongueSelect');
 const tutoringLanguageSelect = document.getElementById('tutoringLanguageSelect');
 const tutorsLanguageSelect = document.getElementById('tutorsLanguageSelect');
@@ -19,12 +22,14 @@ const infoWindow = document.getElementById('infoWindow');
 const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
 const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
 const summaryDisplay = document.getElementById('summaryDisplay');
+const thinkingSpinner = document.getElementById('thinkingSpinner');
 
 // Event listeners
 startTutorButton.addEventListener('click', () => {
     tutorController.start();
     startTutorButton.disabled = true;
     stopTutorButton.disabled = false;
+    sendButton.disabled = false;
 });
 
 stopTutorButton.addEventListener('click', () => {
@@ -33,7 +38,9 @@ stopTutorButton.addEventListener('click', () => {
     statusDisplay.textContent = "Stopped";
 });
 
+sendButton.addEventListener('click', manualSend);
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
+pauseTimeSlider.addEventListener('input', updatePauseTime);
 motherTongueSelect.addEventListener('change', updateMotherTongue);
 tutoringLanguageSelect.addEventListener('change', updateTutoringLanguage);
 tutorsLanguageSelect.addEventListener('change', updateTutorsLanguage);
@@ -45,6 +52,25 @@ microphoneSelect.addEventListener('change', updateMicrophone);
 function resetButtons() {
     startTutorButton.disabled = false;
     stopTutorButton.disabled = true;
+    sendButton.disabled = true;
+}
+
+function manualSend() {
+    if (tutorController.isActive) {
+        tutorController.manualStop();
+        sendButton.disabled = true;
+        showProcessingState();
+    }
+}
+
+function showProcessingState() {
+    statusDisplay.textContent = "Processing...";
+    thinkingSpinner.classList.remove('hidden');
+}
+
+function hideProcessingState() {
+    thinkingSpinner.classList.add('hidden');
+    sendButton.disabled = false;
 }
 
 function updateSoundLevelDisplay(average, isSilent) {
@@ -68,40 +94,45 @@ function updatePlaybackSpeed() {
     playbackSpeedDisplay.textContent = `${displayPercentage}%`;
 }
 
+function updatePauseTime() {
+    const pauseTime = parseInt(pauseTimeSlider.value);
+    pauseTimeDisplay.textContent = pauseTime + " sec";
+    tutorController.setPauseTime(pauseTime);
+}
+
 function updateMotherTongue() {
     const selectedLanguage = motherTongueSelect.value;
-    updateInfoWindow(`Selected Mother Tongue: ${selectedLanguage}`);
+    // Value is set, but no longer updating info window
 }
 
 function updateTutoringLanguage() {
     const selectedLanguage = tutoringLanguageSelect.value;
-    updateInfoWindow(`Selected Tutoring Language: ${selectedLanguage}`);
+    // Value is set, but no longer updating info window
 }
 
 function updateTutorsLanguage() {
     const selectedLanguage = tutorsLanguageSelect.value;
-    updateInfoWindow(`Selected Tutor's Language: ${selectedLanguage}`);
+    // Value is set, but no longer updating info window
 }
 
 function updateInterventionLevel() {
     const selectedLevel = interventionLevelSelect.value;
-    updateInfoWindow(`Selected Tutor's Intervention Level: ${selectedLevel}`);
+    // Value is set, but no longer updating info window
 }
 
 function updateTutorsVoice() {
     const selectedVoice = tutorsVoiceSelect.value;
-    updateInfoWindow(`Selected Tutor's Voice: ${selectedVoice}`);
+    // Value is set, but no longer updating info window
 }
 
 function updatePartnersVoice() {
     const selectedVoice = partnersVoiceSelect.value;
-    updateInfoWindow(`Selected Partner's Voice: ${selectedVoice}`);
+    // Value is set, but no longer updating info window
 }
 
 function updateMicrophone() {
     const selectedMicrophoneId = microphoneSelect.value;
     tutorController.setMicrophone(selectedMicrophoneId);
-    updateInfoWindow(`Selected Microphone: ${microphoneSelect.options[microphoneSelect.selectedIndex].text}`);
 }
 
 function updateInfoWindow(message) {
@@ -153,25 +184,26 @@ function populateLanguageSelects() {
             .forEach(option => select.appendChild(option));
     });
 }
+
 function updateChatDisplay(chatObject) {
     // Update chat history
-chatHistoryDisplay.innerHTML = '';
-chatObject.chat_history.forEach((message, index) => {
-    const messageElement = document.createElement('p');
-    let prefix;
-    switch (message.type) {
-        case 'HumanMessage':
-            prefix = 'You: ';
-            break;
-        case 'AIMessage':
-            prefix = 'Bot: ';
-            break;
-        default:
-            prefix = `${message.type}: `;  // For any other types, we'll still show the type
-    }
-    messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
-    chatHistoryDisplay.appendChild(messageElement);
-});
+    chatHistoryDisplay.innerHTML = '';
+    chatObject.chat_history.forEach((message, index) => {
+        const messageElement = document.createElement('p');
+        let prefix;
+        switch (message.type) {
+            case 'HumanMessage':
+                prefix = 'You: ';
+                break;
+            case 'AIMessage':
+                prefix = 'Bot: ';
+                break;
+            default:
+                prefix = `${message.type}: `;  // For any other types, we'll still show the type
+        }
+        messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
+        chatHistoryDisplay.appendChild(messageElement);
+    });
 
     // Update tutor's comments
     tutorsCommentsDisplay.innerHTML = '';
@@ -201,6 +233,16 @@ function initializeUI() {
     updateTutorsVoice();
     updatePartnersVoice();
 
+    // Set up pause time slider
+    pauseTimeSlider.min = 1;
+    pauseTimeSlider.max = 10;
+    pauseTimeSlider.value = 5; // Default to 5 seconds
+    pauseTimeSlider.step = 1; // Ensure it moves in whole number increments
+    updatePauseTime(); // Initialize display
+
+    // Ensure spinner is hidden initially
+    thinkingSpinner.classList.add('hidden');
+
     // Set up form elements for tutorController
     tutorController.setFormElements({
         motherTongueSelect,
@@ -209,7 +251,8 @@ function initializeUI() {
         tutorsVoiceSelect,
         partnersVoiceSelect,
         interventionLevelSelect,
-        playbackSpeedSlider
+        playbackSpeedSlider,
+        pauseTimeSlider
     });
 
     // Set up UI callbacks for tutorController
@@ -218,7 +261,7 @@ function initializeUI() {
             statusDisplay.textContent = "Starting monitoring...";
         },
         onProcessingStart: () => {
-            statusDisplay.textContent = "Processing audio...";
+            showProcessingState();
         },
         onChatHistoryReceived: (chatHistory) => {
             statusDisplay.textContent = "Displaying chat history and preparing audio...";
@@ -236,14 +279,17 @@ function initializeUI() {
         onRecordingDiscarded: (reason) => {
             statusDisplay.textContent = `Recording discarded: ${reason}. Restarting...`;
             updateInfoWindow(`Recording discarded: ${reason}`);
+            hideProcessingState();
         },
         onSoundLevelUpdate: updateSoundLevelDisplay,
         onError: (errorMessage) => {
             statusDisplay.textContent = "Error: " + errorMessage;
+            hideProcessingState();
         },
         onAPIResponseReceived: (result) => {
             updateChatDisplay(result.chatObject);
             statusDisplay.textContent = "Updated chat display with API response";
+            hideProcessingState();
         }
     });
 }
