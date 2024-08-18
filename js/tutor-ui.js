@@ -236,7 +236,7 @@ function initializeUI() {
     // Set up pause time slider
     pauseTimeSlider.min = 1;
     pauseTimeSlider.max = 10;
-    pauseTimeSlider.value = 5; // Default to 5 seconds
+    pauseTimeSlider.value = 1; // Default to 5 seconds
     pauseTimeSlider.step = 1; // Ensure it moves in whole number increments
     updatePauseTime(); // Initialize display
 
