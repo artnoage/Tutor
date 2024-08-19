@@ -1,4 +1,5 @@
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
@@ -69,9 +70,16 @@ async def tutor_chat(tutoring_language, tutors_language, intervention_level, cha
         if not isinstance(chat_history, list) or len(chat_history) == 0:
             raise ValueError("Chat history must be a non-empty list")
 
-        llm = ChatGroq(
-            model="llama3-groq-70b-8192-tool-use-preview",
-            temperature=0.1,
+        #llm = ChatGroq(
+        #    model="llama3-groq-70b-8192-tool-use-preview",
+        #    temperature=0.1,
+        #    max_tokens=None,
+        #    timeout=None,
+        #    max_retries=2,
+        #)
+        llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            temperature=0,
             max_tokens=None,
             timeout=None,
             max_retries=2,
@@ -105,8 +113,8 @@ async def tutor_chat(tutoring_language, tutors_language, intervention_level, cha
         # Get the last three messages from the chat history, or all if less than three
         last_messages = chat_history[-3:] if len(chat_history) > 3 else chat_history
         
-        system_template = f"""You are a language tutor. Your task is to analyze the last few messages in a conversation, 
-        focusing on the last thing the Human said. Based on the intervention level ({intervention_level}), decide whether to intervene.
+        system_template = f"""You are a language tutor. Your task is to analyze the last few messages in a conversation between a user and a bot, 
+        focusing on the very last thing the Human said. Based on the intervention level ({intervention_level}), decide whether to intervene.
         If you intervene, provide comments on the user's language use in {tutors_language}, and suggest the correct way to express 
         the idea in {tutoring_language}.
 
