@@ -1,7 +1,6 @@
 import { tutorController } from './tutor-core.js';
 import { motherTongueOptions, tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
-// DOM elements
 const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
 const sendButton = document.getElementById('sendButton');
@@ -24,18 +23,21 @@ const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
 const summaryDisplay = document.getElementById('summaryDisplay');
 const thinkingSpinner = document.getElementById('thinkingSpinner');
 
-// Event listeners
 startTutorButton.addEventListener('click', () => {
+    console.log('Start button clicked');
     tutorController.start();
-    startTutorButton.disabled = true;
-    stopTutorButton.disabled = false;
-    sendButton.disabled = false;
+    updateUIState(true);
 });
 
-stopTutorButton.addEventListener('click', () => {
-    tutorController.stop();
-    resetButtons();
-    statusDisplay.textContent = "Stopped";
+stopTutorButton.addEventListener('click', async () => {
+    try {
+        await tutorController.stop();
+        updateUIState(false);
+        statusDisplay.textContent = "Stopped";
+    } catch (error) {
+        console.error("Error stopping tutor:", error);
+        statusDisplay.textContent = "Error: Failed to stop tutor";
+    }
 });
 
 sendButton.addEventListener('click', manualSend);
@@ -49,10 +51,13 @@ tutorsVoiceSelect.addEventListener('change', updateTutorsVoice);
 partnersVoiceSelect.addEventListener('change', updatePartnersVoice);
 microphoneSelect.addEventListener('change', updateMicrophone);
 
-function resetButtons() {
-    startTutorButton.disabled = false;
-    stopTutorButton.disabled = true;
-    sendButton.disabled = true;
+function updateUIState(isActive) {
+    startTutorButton.disabled = isActive;
+    stopTutorButton.disabled = !isActive;
+    sendButton.disabled = !isActive;
+    if (!isActive) {
+        hideProcessingState();
+    }
 }
 
 function manualSend() {
@@ -89,7 +94,7 @@ function updateSoundLevelDisplay(average, isSilent) {
 
 function updatePlaybackSpeed() {
     const sliderValue = parseFloat(playbackSpeedSlider.value);
-    const playbackSpeed = 0.9 + (sliderValue * 0.1); // Map 0-1 to 0.9-1
+    const playbackSpeed = 0.9 + (sliderValue * 0.1);
     const displayPercentage = Math.round(playbackSpeed * 100);
     playbackSpeedDisplay.textContent = `${displayPercentage}%`;
 }
@@ -102,32 +107,26 @@ function updatePauseTime() {
 
 function updateMotherTongue() {
     const selectedLanguage = motherTongueSelect.value;
-    // Value is set, but no longer updating info window
 }
 
 function updateTutoringLanguage() {
     const selectedLanguage = tutoringLanguageSelect.value;
-    // Value is set, but no longer updating info window
 }
 
 function updateTutorsLanguage() {
     const selectedLanguage = tutorsLanguageSelect.value;
-    // Value is set, but no longer updating info window
 }
 
 function updateInterventionLevel() {
     const selectedLevel = interventionLevelSelect.value;
-    // Value is set, but no longer updating info window
 }
 
 function updateTutorsVoice() {
     const selectedVoice = tutorsVoiceSelect.value;
-    // Value is set, but no longer updating info window
 }
 
 function updatePartnersVoice() {
     const selectedVoice = partnersVoiceSelect.value;
-    // Value is set, but no longer updating info window
 }
 
 function updateMicrophone() {
@@ -146,14 +145,14 @@ function populateMicrophoneSelect() {
     navigator.mediaDevices.enumerateDevices()
         .then(devices => {
             const audioInputDevices = devices.filter(device => device.kind === 'audioinput');
-            microphoneSelect.innerHTML = ''; // Clear existing options
+            microphoneSelect.innerHTML = '';
             audioInputDevices.forEach(device => {
                 const option = document.createElement('option');
                 option.value = device.deviceId;
                 option.text = device.label || `Microphone ${microphoneSelect.length + 1}`;
                 microphoneSelect.appendChild(option);
             });
-            updateMicrophone(); // Set initial microphone
+            updateMicrophone();
         })
         .catch(err => {
             console.error("Error enumerating devices:", err);
@@ -170,15 +169,14 @@ function populateLanguageSelects() {
 
     languageSets.forEach(({ select, options }) => {
         const languages = options.split(',');
-        select.innerHTML = ''; // Clear existing options
+        select.innerHTML = '';
         languages.forEach((language, index) => {
             const option = document.createElement('option');
             option.value = language;
             option.text = language;
-            option.setAttribute('data-order', index); // Set a custom order attribute
+            option.setAttribute('data-order', index);
             select.appendChild(option);
         });
-        // Sort the options based on the custom order
         Array.from(select.options)
             .sort((a, b) => a.getAttribute('data-order') - b.getAttribute('data-order'))
             .forEach(option => select.appendChild(option));
@@ -186,7 +184,6 @@ function populateLanguageSelects() {
 }
 
 function updateChatDisplay(chatObject) {
-    // Update chat history
     chatHistoryDisplay.innerHTML = '';
     chatObject.chat_history.forEach((message, index) => {
         const messageElement = document.createElement('p');
@@ -199,13 +196,12 @@ function updateChatDisplay(chatObject) {
                 prefix = 'Bot: ';
                 break;
             default:
-                prefix = `${message.type}: `;  // For any other types, we'll still show the type
+                prefix = `${message.type}: `;
         }
         messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
         chatHistoryDisplay.appendChild(messageElement);
     });
 
-    // Update tutor's comments
     tutorsCommentsDisplay.innerHTML = '';
     chatObject.tutors_comments.forEach((comment, index) => {
         const commentElement = document.createElement('p');
@@ -213,7 +209,6 @@ function updateChatDisplay(chatObject) {
         tutorsCommentsDisplay.appendChild(commentElement);
     });
 
-    // Update summary
     summaryDisplay.innerHTML = '';
     chatObject.summary.forEach((item, index) => {
         const summaryElement = document.createElement('p');
@@ -233,17 +228,14 @@ function initializeUI() {
     updateTutorsVoice();
     updatePartnersVoice();
 
-    // Set up pause time slider
     pauseTimeSlider.min = 1;
     pauseTimeSlider.max = 10;
-    pauseTimeSlider.value = 1; // Default to 5 seconds
-    pauseTimeSlider.step = 1; // Ensure it moves in whole number increments
-    updatePauseTime(); // Initialize display
+    pauseTimeSlider.value = 1;
+    pauseTimeSlider.step = 1;
+    updatePauseTime();
 
-    // Ensure spinner is hidden initially
     thinkingSpinner.classList.add('hidden');
 
-    // Set up form elements for tutorController
     tutorController.setFormElements({
         motherTongueSelect,
         tutoringLanguageSelect,
@@ -255,9 +247,9 @@ function initializeUI() {
         pauseTimeSlider
     });
 
-    // Set up UI callbacks for tutorController
     tutorController.setUICallbacks({
         onMonitoringStart: () => {
+            console.log('Monitoring started');
             statusDisplay.textContent = "Starting monitoring...";
         },
         onProcessingStart: () => {
@@ -294,13 +286,10 @@ function initializeUI() {
     });
 }
 
-// Start monitoring sound levels
 const monitoringInterval = tutorController.startMonitoringInterval();
 
-// Clean up the interval when the page is unloaded
 window.addEventListener('unload', () => {
     clearInterval(monitoringInterval);
 });
 
-// Initialize UI when the page loads
 initializeUI();

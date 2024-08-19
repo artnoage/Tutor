@@ -12,11 +12,14 @@ let isMonitoring = false;
 let isRecording = false;
 let silenceStartTime = null;
 let soundDetectedTime = null;
+let currentSessionTimestamp = null;
+let isProcessing = false;
 
 // Constants for sound detection
-const SILENCE_THRESHOLD = 22;
-const SOUND_DETECTION_DURATION = 20; // Decreased to 90% of 80ms
-const MIN_VALID_DURATION = 3 * SOUND_DETECTION_DURATION/100; // Changed to 3 times the sampling interval
+const SILENCE_THRESHOLD = 24;
+const SOUND_DETECTION_DURATION = 300; // How long of consecutive sounds before it starts recording
+const MIN_VALID_DURATION = 0.8; // How long the audio should be to be send
+const MONITOR_TIME_INTERVAL = 20;
 
 const tutorController = {
     isActive: false,
@@ -25,7 +28,8 @@ const tutorController = {
     formElements: null,
     uiCallbacks: null,
     chatObject: null,
-    pauseTime: 5, // Default pause time in seconds
+    pauseTime: 1, // Default pause time in seconds
+    pendingProcessingPromise: null,
 
     setFormElements: function(elements) {
         this.formElements = elements;
@@ -36,22 +40,46 @@ const tutorController = {
     },
 
     start: function() {
+        console.log('Tutor start method called');
         this.isActive = true;
+        this.isRecording = false;
+        isProcessing = false;
         this.chatObject = {
             chat_history: [],
             tutors_comments: [],
             summary: []
         };
+        currentSessionTimestamp = Date.now();
         this.startMonitoring();
     },
 
-    stop: function() {
+    stop: async function() {
+        console.log('Tutor stop method called');
+        const previousTimestamp = currentSessionTimestamp;
+        currentSessionTimestamp = null;
         this.isActive = false;
+        this.isRecording = false;
+        isProcessing = false;
+        if (this.isRecording) {
+            await this.stopRecording();
+        }
         this.chatObject = null;
         stopTutor();
+        
+        // Cancel any pending operations
+        if (this.pendingProcessingPromise) {
+            this.pendingProcessingPromise.cancel();
+            this.pendingProcessingPromise = null;
+        }
+
+        // Reset all recording-related variables
+        audioChunks = [];
+        silenceStartTime = null;
+        soundDetectedTime = null;
     },
 
     startMonitoring: function() {
+        console.log('startMonitoring called');
         soundDetectedTime = null;
         
         const constraints = {
@@ -86,8 +114,10 @@ const tutorController = {
         this.pauseTime = time;
     },
 
-    manualStop: function() {
+    manualStop: async function() {
+        console.log('Manual stop called');
         this.isRecording = false;
+        await this.stopRecording();
         stopMonitoring();
         if (this.uiCallbacks.onProcessingStart) {
             this.uiCallbacks.onProcessingStart();
@@ -95,10 +125,30 @@ const tutorController = {
         
         setTimeout(() => {
             this.processAndSendAudio();
-        }, this.pauseTime * 1000); // Use the pause time set by the user
+        }, this.pauseTime * 900); // Use the pause time set by the user
     },
 
-    async processAndPlayAudio(audioBlob) {
+    stopRecording: async function() {
+        console.log('Stop recording called');
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            return new Promise((resolve) => {
+                mediaRecorder.onstop = () => {
+                    this.isRecording = false;
+                    resolve();
+                };
+                mediaRecorder.stop();
+            });
+        }
+        return Promise.resolve();
+    },
+
+    async processAndPlayAudio(audioBlob, sessionTimestamp) {
+        console.log('Process and play audio called');
+        if (sessionTimestamp !== currentSessionTimestamp) {
+            console.log('Ignoring outdated audio processing request');
+            return;
+        }
+
         try {
             if (this.uiCallbacks.onProcessingStart) {
                 this.uiCallbacks.onProcessingStart();
@@ -109,8 +159,16 @@ const tutorController = {
                 chatObject: this.chatObject
             };
     
+            if (sessionTimestamp !== currentSessionTimestamp) {
+                throw new DOMException('Session changed', 'AbortError');
+            }
+
             const result = await sendAudioToServer(audioBlob, formElementsWithChat);
             
+            if (sessionTimestamp !== currentSessionTimestamp) {
+                throw new DOMException('Session changed', 'AbortError');
+            }
+
             console.time('clientProcessing');
             
             if (this.uiCallbacks.onChatHistoryReceived) {
@@ -148,27 +206,26 @@ const tutorController = {
             
             return { success: true };
         } catch (error) {
+            if (error.name === 'AbortError') {
+                throw error; // Re-throw AbortError to be caught in processAndSendAudio
+            }
             console.error('Error processing or playing audio:', error);
             if (this.uiCallbacks.onError) {
                 this.uiCallbacks.onError("Error processing or playing audio: " + error.message);
             }
             return { success: false, error: error.message };
-        } finally {
-            // Ensure monitoring restarts regardless of success or failure
-            if (this.isActive) {
-                this.startMonitoring();
-            }
         }
     },
 
     async onRecordingComplete(result) {
+        console.log('Recording complete called');
         if (result.discarded) {
             if (this.uiCallbacks.onRecordingDiscarded) {
                 this.uiCallbacks.onRecordingDiscarded(result.reason);
             }
             this.startMonitoring();
         } else {
-            const processResult = await this.processAndPlayAudio(result.audioBlob);
+            const processResult = await this.processAndPlayAudio(result.audioBlob, currentSessionTimestamp);
             
             if (processResult.success) {
                 // Resume monitoring after successful audio playback
@@ -191,15 +248,35 @@ const tutorController = {
                     this.uiCallbacks.onSoundLevelUpdate(null, null);
                 }
             }
-        }, 72); // Decreased to 90% of 80ms
+        }, MONITOR_TIME_INTERVAL); 
     },
 
     processAndSendAudio: async function() {
+        console.log('Process and send audio called');
+        if (!this.isActive || isProcessing) {
+            console.log('Skipping audio processing: tutor inactive or already processing');
+            return;
+        }
+
+        isProcessing = true;
+        const sessionTimestamp = currentSessionTimestamp;
         const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
-        await this.processAndPlayAudio(audioBlob);
         
-        // Reset for next recording
-        if (this.isActive) {
+        try {
+            await this.processAndPlayAudio(audioBlob, sessionTimestamp);
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('Audio processing was cancelled');
+            } else {
+                console.error('Error processing audio:', error);
+            }
+        } finally {
+            isProcessing = false;
+            this.pendingProcessingPromise = null;
+        }
+        
+        // Reset for next recording only if the session is still active
+        if (this.isActive && currentSessionTimestamp === sessionTimestamp) {
             this.startMonitoring();
             if (this.uiCallbacks.onMonitoringStart) {
                 this.uiCallbacks.onMonitoringStart();
@@ -209,6 +286,7 @@ const tutorController = {
 };
 
 function setupAudioContext() {
+    console.log('Setting up audio context');
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
@@ -222,6 +300,7 @@ function setupAudioContext() {
 }
 
 function startMonitoring() {
+    console.log('Start monitoring function called');
     isMonitoring = true;
     monitorSound();
 }
@@ -272,6 +351,7 @@ function handleRecordingState(isSilent) {
 }
 
 function startRecording() {
+    console.log('Start recording function called');
     isRecording = true;
     tutorController.isRecording = true;
     audioChunks = [];
@@ -284,6 +364,7 @@ function startRecording() {
 }
 
 async function stopRecording() {
+    console.log('Stop recording function called');
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
         isRecording = false;
@@ -311,6 +392,7 @@ async function stopRecording() {
 }
 
 function stopMonitoring() {
+    console.log('Stop monitoring function called');
     isMonitoring = false;
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -318,11 +400,20 @@ function stopMonitoring() {
 }
 
 function stopTutor() {
+    console.log('Stop tutor function called');
     stopMonitoring();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
     if (audioContext) {
         audioContext.close();
         audioContext = null;
     }
+    isRecording = false;
+    isProcessing = false;
+    audioChunks = [];
+    silenceStartTime = null;
+    soundDetectedTime = null;
 }
 
 function decodeAudioData(base64Audio) {
@@ -347,6 +438,13 @@ function playDecodedAudio(audioBuffer, playbackSpeed) {
         source.start(0);
     });
 }
+
+// Update the Promise polyfill to include a cancel method
+Promise.prototype.cancel = function() {
+    if (this.cancel) {
+        this.cancel();
+    }
+};
 
 export { 
     tutorController, 
