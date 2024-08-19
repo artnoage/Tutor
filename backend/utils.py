@@ -30,7 +30,6 @@ def transcribe_audio(audio_content, language, api_key=None):
             "file": ("audio.wav", io.BytesIO(audio_content), "audio/wav")
         }
         data = {
-            "language": language,
             "model": "whisper-large-v3",
             "response_format": "text"
         }
