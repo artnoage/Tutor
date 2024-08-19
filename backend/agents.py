@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 import json
 import logging
 import traceback
+import os
+import random 
 
 load_dotenv()
 
@@ -17,9 +19,17 @@ async def partner_chat(learning_language, chat_history):
     logger.info("Entering partner_chat function")
     logger.info(f"Learning language: {learning_language}")
     logger.info(f"Chat history: {chat_history}")
+    api_key1 = os.getenv('GROQ_API_KEY')
+    api_key2 = os.getenv('GROQ_API_KEY2')
+
+    # Randomly choose one of the API keys
+    chosen_api_key = random.choice([api_key1, api_key2])
+
+    # Initialize the ChatGroq instance with the randomly chosen API key
     llm = ChatGroq(
-        model="llama3-groq-70b-8192-tool-use-preview",
+        model="llama-3.1-70b-versatile",
         temperature=0,
+        api_key=chosen_api_key,
         max_tokens=None,
         timeout=None,
         max_retries=2,
@@ -70,20 +80,29 @@ async def tutor_chat(tutoring_language, tutors_language, intervention_level, cha
         if not isinstance(chat_history, list) or len(chat_history) == 0:
             raise ValueError("Chat history must be a non-empty list")
 
-        #llm = ChatGroq(
-        #    model="llama3-groq-70b-8192-tool-use-preview",
-        #    temperature=0.1,
-        #    max_tokens=None,
-        #    timeout=None,
-        #    max_retries=2,
-        #)
-        llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        api_key1 = os.getenv('GROQ_API_KEY')
+        api_key2 = os.getenv('GROQ_API_KEY2')
+
+        # Randomly choose one of the API keys
+        chosen_api_key = random.choice([api_key1, api_key2])
+
+        # Initialize the ChatGroq instance with the randomly chosen API key
+        llm = ChatGroq(
+            model="llama-3.1-70b-versatile",
             temperature=0,
+            api_key=chosen_api_key,
             max_tokens=None,
             timeout=None,
             max_retries=2,
         )
+
+        #llm = ChatOpenAI(
+        #    model="gpt-4o-mini",
+        #    temperature=0,
+        #    max_tokens=None,
+        #    timeout=None,
+        #    max_retries=2,
+        #)
 
         # Define the JSON schema for structured output
         json_schema = {
@@ -180,13 +199,23 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     logger.info(f"Tutoring language: {tutoring_language}")
     logger.info(f"Previous summary: {previous_summary}")
 
+    api_key1 = os.getenv('GROQ_API_KEY')
+    api_key2 = os.getenv('GROQ_API_KEY2')
+
+    # Randomly choose one of the API keys
+    chosen_api_key = random.choice([api_key1, api_key2])
+
+    # Initialize the ChatGroq instance with the randomly chosen API key
     llm = ChatGroq(
-        model="llama3-groq-70b-8192-tool-use-preview",
+        model="llama-3.1-70b-versatile",
         temperature=0,
+        api_key=chosen_api_key,
         max_tokens=None,
         timeout=None,
         max_retries=2,
     )
+    
+
 
     # Get the last few messages from the chat history, or all if less than five
     last_messages = chat_history[-5:] if len(chat_history) > 5 else chat_history

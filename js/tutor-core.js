@@ -18,7 +18,7 @@ let isProcessing = false;
 // Constants for sound detection
 const SILENCE_THRESHOLD = 24;
 const SOUND_DETECTION_DURATION = 300; // How long of consecutive sounds before it starts recording
-const MIN_VALID_DURATION = 0.8; // How long the audio should be to be send
+const MIN_VALID_DURATION = 0.6; // How long the audio should be to be send
 const MONITOR_TIME_INTERVAL = 20;
 
 const tutorController = {

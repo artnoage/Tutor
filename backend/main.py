@@ -73,6 +73,10 @@ def dict_to_message(message_dict: Dict) -> BaseMessage:
     else:
         raise ValueError(f"Unknown message type: {message_dict['type']}")
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the audio analysis API"}
+
 @app.post("/process_audio")
 async def process_audio(
     audio: UploadFile = File(...),
@@ -187,4 +191,4 @@ async def process_audio(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
