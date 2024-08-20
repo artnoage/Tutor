@@ -211,7 +211,6 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
             return response.content
 
         async def get_best_expression():
-            openai_api_key = os.getenv('OPENAI_API_KEY')
 
             
             llm = ChatGroq(
@@ -273,12 +272,6 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     logger.info(f"Tutoring language: {tutoring_language}")
     logger.info(f"Previous summary: {previous_summary}")
 
-    # Randomly choose one of the API keys
-
-    # Initialize the ChatGroq instance with the randomly chosen API key
-    #llm = ChatOpenRouter(
-    #model_name="nousresearch/hermes-3-llama-3.1-405b"
-#)
     llm = ChatGroq(
             model="llama-3.1-70b-versatile",
             temperature=0,
@@ -287,13 +280,7 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
             timeout=None,
             max_retries=2,
         )
-
-    #llm = ChatOpenAI(
-    #    model="gpt-4o-mini",
-    #    temperature=0,
-    #    max_tokens=None,
-    #    timeout=None,
-    #    max_retries=2)    
+ 
 
 
     # Get the last few messages from the chat history, or all if less than five
