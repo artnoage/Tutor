@@ -4,6 +4,7 @@ import { motherTongueOptions, tutoringLanguageOptions, tutorsLanguageOptions } f
 const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
 const sendButton = document.getElementById('sendButton');
+const restartChatButton = document.getElementById('restartChatButton');
 const statusDisplay = document.getElementById('statusDisplay');
 const microphoneSelect = document.getElementById('microphoneSelect');
 const soundLevelDisplay = document.getElementById('soundLevelDisplay');
@@ -42,6 +43,11 @@ stopTutorButton.addEventListener('click', async () => {
 });
 
 sendButton.addEventListener('click', manualSend);
+restartChatButton.addEventListener('click', () => {
+    tutorController.restartChat();
+    updateUIState(true);
+    statusDisplay.textContent = "Chat restarted";
+});
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
 pauseTimeSlider.addEventListener('input', updatePauseTime);
 motherTongueSelect.addEventListener('change', updateMotherTongue);
@@ -273,6 +279,11 @@ function initializeUI() {
             updateChatDisplay(result.chatObject);
             statusDisplay.textContent = "Updated chat display with API response";
             hideProcessingState();
+        },
+        onChatRestart: () => {
+            chatHistoryDisplay.innerHTML = '';
+            tutorsCommentsDisplay.innerHTML = '';
+            statusDisplay.textContent = "Chat restarted";
         }
     });
 }

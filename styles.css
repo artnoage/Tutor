@@ -25,13 +25,16 @@
     @apply py-2 px-4 rounded font-bold transition-colors duration-200;
   }
   .btn-primary {
-    @apply bg-midnight-purple text-midnight-foreground hover:bg-midnight-pink;
+    @apply bg-purple-700 text-gray-100 hover:bg-purple-600;
   }
   .btn-secondary {
-    @apply bg-midnight-cyan text-midnight-background hover:bg-midnight-green;
+    @apply bg-gray-600 text-gray-100 hover:bg-gray-500;
   }
   .btn-success {
-    @apply bg-midnight-red text-midnight-foreground hover:bg-midnight-cyan;
+    @apply bg-green-700 text-gray-100 hover:bg-green-600;
+  }
+  .btn-warning {
+    @apply bg-yellow-600 text-gray-100 hover:bg-yellow-500;
   }
   .card {
     @apply bg-midnight-currentLine rounded-lg shadow-md p-6;

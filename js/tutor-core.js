@@ -79,6 +79,18 @@ const tutorController = {
         soundDetectedTime = null;
     },
 
+    restartChat: function() {
+        console.log('Restarting chat');
+        this.chatObject = {
+            chat_history: [],
+            tutors_comments: [],
+            summary: []
+        };
+        if (this.uiCallbacks.onChatRestart) {
+            this.uiCallbacks.onChatRestart();
+        }
+    },
+
     startMonitoring: function() {
         console.log('startMonitoring called');
         soundDetectedTime = null;
