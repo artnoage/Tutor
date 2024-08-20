@@ -160,7 +160,7 @@ async def process_audio(
         # Prepare tutor feedback string
         tutors_comments_string = f"Comment: {tutor_feedback['comments']}\nCorrection: {tutor_feedback['correction']}"
 
-        if not audio_data.disableTutor and tutor_intervention_level >= (3-required_intervention_level):
+        if not audio_data.disableTutor and (3-tutor_intervention_level) < required_intervention_level:
             logger.info(f"Tutor intervention enabled. Level: {tutor_feedback['intervene']}")
             audio_generation_tasks.extend([
                 generate_audio(tutor_feedback["comments"], audio_data.tutorsVoice),

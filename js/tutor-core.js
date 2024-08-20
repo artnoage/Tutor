@@ -81,6 +81,10 @@ const tutorController = {
 
     restartChat: function() {
         console.log('Restarting chat');
+        const wasActive = this.isActive;
+        if (wasActive) {
+            this.stop();
+        }
         this.chatObject = {
             chat_history: [],
             tutors_comments: [],
@@ -88,6 +92,9 @@ const tutorController = {
         };
         if (this.uiCallbacks.onChatRestart) {
             this.uiCallbacks.onChatRestart();
+        }
+        if (wasActive) {
+            this.start();
         }
     },
 

@@ -38,19 +38,18 @@ async def partner_chat(learning_language, chat_history,disable_tutor):
     logger.info("Entering partner_chat function")
     logger.info(f"Learning language: {learning_language}")
     logger.info(f"Chat history: {chat_history}")
-    api_key1 = os.getenv('GROQ_API_KEY')
-    api_key2 = os.getenv('GROQ_API_KEY2')
+
 
 
     if disable_tutor==True:
         llm = ChatOpenRouter(model_name="nousresearch/hermes-3-llama-3.1-405b")
     else:
     # Randomly choose one of the API keys
-        chosen_api_key = random.choice([api_key1, api_key2])
+      
         llm = ChatGroq(
                 model="llama-3.1-70b-versatile",
                 temperature=0,
-                api_key=chosen_api_key,
+                api_key=os.getenv('GROQ_API_KEY4'),
                 max_tokens=None,
                 timeout=None,
                 max_retries=2,
@@ -101,17 +100,16 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
         if not isinstance(chat_history, list) or len(chat_history) == 0:
             raise ValueError("Chat history must be a non-empty list")
 
-        api_key1 = os.getenv('GROQ_API_KEY')
-        api_key2 = os.getenv('GROQ_API_KEY2')
+        last_messages = chat_history[-3:] if len(chat_history) > 3 else chat_history
         openai_api_key = os.getenv('OPENAI_API_KEY')
 
-        last_messages = chat_history[-3:] if len(chat_history) > 3 else chat_history
+        
 
         async def get_tutors_comment():
             llm = ChatGroq(
                 model="llama-3.1-70b-versatile",
                 temperature=0,
-                api_key=random.choice([api_key1, api_key2]),
+                api_key=os.getenv('GROQ_API_KEY2'),
                 max_tokens=None,
                 timeout=None,
                 max_retries=2,
@@ -143,53 +141,67 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
         async def get_intervention_level():
             api_key1 = os.getenv('GROQ_API_KEY')
             api_key2 = os.getenv('GROQ_API_KEY2')
+            api_key3= os.getenv('GROQ_API_KEY3')
             openai_api_key = os.getenv('OPENAI_API_KEY')
-            llm = ChatGroq(
-                model="llama-3.1-70b-versatile",
-                temperature=0,
-                api_key=random.choice([api_key1, api_key2]),
-                max_tokens=None,
-                timeout=None,
-                max_retries=2,
-            )
-            level_template = """Assess the transcribed verbal communication in {tutoring_language}, focusing on the Human's last utterance. Determine the need for intervention based on the following criteria:
+            llm = ChatOpenAI(model="gpt-4o-mini",temperature=0,max_tokens=None,timeout=None,max_retries=2)    
+            level_template = """# {tutoring_language} Tutor Assessment Guidelines
 
-                            Respond with one of these levels:
+                                You are a {tutoring_language} chat tutor. Your task is to assess the need for intervention based on a transcribed verbal communication in {tutoring_language}, focusing on the Human's last utterance. 
 
-                            1. 'no': 
-                            - Near-native or very advanced use of {tutoring_language}
-                            - No noticeable errors or only very minor ones
-                            - Rich vocabulary and complex structures used appropriately
-                            - Clear and effective communication
+                                ## Assessment Levels
 
-                            2. 'low':
-                            - Generally good command of {tutoring_language}
-                            - A few minor grammatical or vocabulary errors that don't impede understanding
-                            - Mostly appropriate use of idioms and colloquialisms
-                            - Occasional hesitations or simple structures, but overall fluent
+                                Evaluate the language use and choose ONE of the following intervention levels:
 
-                            3. 'medium':
-                            - Noticeable grammatical errors or inappropriate word choices
-                            - Limited vocabulary range, relying on basic or repetitive structures
-                            - Some awkward phrasing or literal translations from another language
-                            - Communication is understandable but requires some effort from the listener
-                            - Frequent pauses or filler words indicating language processing difficulties
+                                1. "no"
+                                2. "low"
+                                3. "medium"
+                                4. "high"
 
-                            4. 'high':
-                            - Significant and frequent grammatical errors
-                            - Very limited vocabulary, unable to express complex ideas
-                            - Heavy reliance on simple or incorrect sentence structures
-                            - Communication is difficult and often unclear
-                            - Extensive use of another language or not using {tutoring_language} at all
-                            - Any other weird behavior!
+                                ## Assessment Criteria
 
-                            Additional notes:
-                            - Ignore spelling in transcription
-                            - Don't consider formality unless grossly inappropriate for the context
-                            - Focus on language use patterns rather than isolated mistakes
-                            - Consider fluency and overall communicative effectiveness
-                            
-                            No matter what, your answer should only contain one of the words in this list and nothing else: [no,low,medium,high]."""
+                                Use these guidelines to determine the appropriate level:
+
+                                ### "no"
+                                - Near-native or very advanced use of {tutoring_language}
+                                - No noticeable errors or only very minor ones
+                                - Rich vocabulary and complex structures used appropriately
+                                - Clear and effective communication
+
+                                ### "low"
+                                - Generally good command of {tutoring_language}
+                                - A few minor grammatical or vocabulary errors that don't impede understanding
+                                - Mostly appropriate use of idioms and colloquialisms
+                                - Occasional hesitations or simple structures, but overall fluent
+
+                                ### "medium"
+                                - Noticeable grammatical errors or inappropriate word choices
+                                - Limited vocabulary range, relying on basic or repetitive structures
+                                - Some awkward phrasing or literal translations from another language
+                                - Communication is understandable but requires some effort from the listener
+                                - Frequent pauses or filler words indicating language processing difficulties
+
+                                ### "high"
+                                - Significant and frequent grammatical errors
+                                - Very limited vocabulary, unable to express complex ideas
+                                - Heavy reliance on simple or incorrect sentence structures
+                                - Communication is difficult and often unclear
+                                - Extensive use of another language or not using {tutoring_language} at all
+                                - User speaks in a different language than {tutoring_language}
+                                - Any other unusual language behavior
+
+                                ## Additional Notes
+                                - Ignore spelling in transcription
+                                - Don't consider formality unless grossly inappropriate for the context
+                                - Focus on language use patterns rather than isolated mistakes
+                                - Consider fluency and overall communicative effectiveness
+
+                                ## Response Format
+                                Your response must be ONLY ONE of these words: "no", "low", "medium", or "high".
+
+                                Do not provide any explanation or additional commentary. Simply output the chosen intervention level.
+
+                                ## Transcription """
+            
             level_prompt = ChatPromptTemplate.from_messages([
                 ("system", level_template),
                 MessagesPlaceholder(variable_name="chat_history")
@@ -199,17 +211,17 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
             return response.content
 
         async def get_best_expression():
-            api_key1 = os.getenv('GROQ_API_KEY')
-            api_key2 = os.getenv('GROQ_API_KEY2')
             openai_api_key = os.getenv('OPENAI_API_KEY')
+
+            
             llm = ChatGroq(
                 model="llama-3.1-70b-versatile",
                 temperature=0,
-                api_key=random.choice([api_key1, api_key2]),
+                api_key=os.getenv('GROQ_API_KEY3'),
                 max_tokens=None,
                 timeout=None,
-                max_retries=2,
-            )
+                max_retries=2)
+                
             expression_template = """Instructions for rephrasing in {tutoring_language}:
 
                                 Review the transcribed Human's last utterance.
@@ -261,11 +273,7 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     logger.info(f"Tutoring language: {tutoring_language}")
     logger.info(f"Previous summary: {previous_summary}")
 
-    api_key1 = os.getenv('GROQ_API_KEY')
-    api_key2 = os.getenv('GROQ_API_KEY2')
-
     # Randomly choose one of the API keys
-    chosen_api_key = random.choice([api_key1, api_key2])
 
     # Initialize the ChatGroq instance with the randomly chosen API key
     #llm = ChatOpenRouter(
@@ -274,7 +282,7 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     llm = ChatGroq(
             model="llama-3.1-70b-versatile",
             temperature=0,
-            api_key=chosen_api_key,
+            api_key=os.getenv('GROQ_API_KEY2'),
             max_tokens=None,
             timeout=None,
             max_retries=2,

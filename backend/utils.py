@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def transcribe_audio(audio_content, language, api_key=None):
     load_dotenv()
-    groq_api_key = api_key or os.getenv("GROQ_API_KEY")
+    groq_api_key = api_key or os.getenv("GROQ_API_KEY1")
     if not groq_api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY is not set and not provided")
 
