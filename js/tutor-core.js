@@ -29,6 +29,7 @@ const tutorController = {
     uiCallbacks: null,
     chatObject: null,
     pauseTime: 1, // Default pause time in seconds
+    disableTutor: false, // Tutor enabled by default
     pendingProcessingPromise: null,
 
     setFormElements: function(elements) {
@@ -112,6 +113,10 @@ const tutorController = {
 
     setPauseTime: function(time) {
         this.pauseTime = time;
+    },
+
+    setDisableTutor: function(disable) {
+        this.disableTutor = disable;
     },
 
     manualStop: async function() {

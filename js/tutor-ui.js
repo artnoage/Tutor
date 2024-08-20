@@ -22,6 +22,8 @@ const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
 const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
 const summaryDisplay = document.getElementById('summaryDisplay');
 const thinkingSpinner = document.getElementById('thinkingSpinner');
+const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
+disableTutorCheckbox.addEventListener('change', updateDisableTutor);
 
 startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
@@ -129,6 +131,11 @@ function updatePartnersVoice() {
     const selectedVoice = partnersVoiceSelect.value;
 }
 
+function updateDisableTutor() {
+    const disableTutor = disableTutorCheckbox.checked;
+    tutorController.setDisableTutor(disableTutor);
+}
+
 function updateMicrophone() {
     const selectedMicrophoneId = microphoneSelect.value;
     tutorController.setMicrophone(selectedMicrophoneId);
@@ -227,6 +234,7 @@ function initializeUI() {
     updateInterventionLevel();
     updateTutorsVoice();
     updatePartnersVoice();
+    updateDisableTutor();
 
     pauseTimeSlider.min = 1;
     pauseTimeSlider.max = 10;
@@ -244,7 +252,8 @@ function initializeUI() {
         partnersVoiceSelect,
         interventionLevelSelect,
         playbackSpeedSlider,
-        pauseTimeSlider
+        pauseTimeSlider,
+        disableTutorCheckbox
     });
 
     tutorController.setUICallbacks({
