@@ -85,3 +85,10 @@ def language_to_code(language_name):
     }
     
     return language_map.get(language_name, "en") 
+
+INTERVENTION_LEVEL_MAP = {
+    "no": 0,
+    "low": 1,
+    "medium": 2,
+    "high": 3
+}

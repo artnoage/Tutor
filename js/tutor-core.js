@@ -176,25 +176,11 @@ const tutorController = {
 
             console.time('clientProcessing');
             
-            if (this.uiCallbacks.onChatHistoryReceived) {
-                this.uiCallbacks.onChatHistoryReceived(result.chat);
-            }
-            
             // Update chatObject with the response from the server
             this.chatObject = result.chatObject;
             
             if (this.uiCallbacks.onAPIResponseReceived) {
                 this.uiCallbacks.onAPIResponseReceived(result);
-            }
-            
-            // Display tutor's feedback
-            if (this.uiCallbacks.onTutorsFeedbackReceived) {
-                this.uiCallbacks.onTutorsFeedbackReceived(result.tutors_feedback);
-            }
-            
-            // Display updated summary
-            if (this.uiCallbacks.onSummaryUpdated) {
-                this.uiCallbacks.onSummaryUpdated(result.updated_summary);
             }
             
             // Decode audio data

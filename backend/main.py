@@ -11,7 +11,10 @@ from agents import *
 from logging_utilities import *
 from typing import List, Dict
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+import uvicorn
 import asyncio
+
+
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +33,9 @@ app.add_middleware(
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+
 
 class MessageDict(BaseModel):
     type: str
@@ -78,6 +84,15 @@ def dict_to_message(message_dict: Dict) -> BaseMessage:
 async def root():
     return {"message": "Welcome to the audio analysis API"}
 
+# Add this mapping at the beginning of your file or in a constants section
+
+INTERVENTION_LEVEL_MAP = {
+    "no": 0,
+    "low": 1,
+    "medium": 2,
+    "high": 3
+}
+
 @app.post("/process_audio")
 async def process_audio(
     audio: UploadFile = File(...),
@@ -114,7 +129,8 @@ async def process_audio(
         logger.info("Starting partner_chat task")
         partner_task = asyncio.create_task(partner_chat(
             audio_data.tutoringLanguage,
-            chat_history
+            chat_history,
+            audio_data.disableTutor
         ))
         
         logger.info("Starting tutor_chat task")
@@ -137,8 +153,15 @@ async def process_audio(
         audio_generation_tasks = []
         audio_order = []
 
-        if not audio_data.disableTutor and tutor_feedback["intervene"] == "yes":
-            logger.info("Tutor intervention enabled")
+        # Convert string levels to numeric values
+        tutor_intervention_level = INTERVENTION_LEVEL_MAP[tutor_feedback["intervene"]]
+        required_intervention_level = INTERVENTION_LEVEL_MAP[audio_data.interventionLevel]
+
+        # Prepare tutor feedback string
+        tutors_comments_string = f"Comment: {tutor_feedback['comments']}\nCorrection: {tutor_feedback['correction']}"
+
+        if not audio_data.disableTutor and tutor_intervention_level >= (3-required_intervention_level):
+            logger.info(f"Tutor intervention enabled. Level: {tutor_feedback['intervene']}")
             audio_generation_tasks.extend([
                 generate_audio(tutor_feedback["comments"], audio_data.tutorsVoice),
                 generate_audio(tutor_feedback["correction"], audio_data.tutorsVoice),
@@ -146,7 +169,7 @@ async def process_audio(
             ])
             audio_order = ["tutor_comments", "tutor_correction", "partner_response"]
         else:
-            logger.info("Tutor intervention disabled or not needed")
+            logger.info(f"Tutor intervention disabled or not needed. Level: {tutor_feedback['intervene']}")
             audio_generation_tasks.append(generate_audio(response.content, audio_data.partnersVoice))
             audio_order = ["partner_response"]
 
@@ -184,11 +207,10 @@ async def process_audio(
             MessageDict(**message_to_dict(msg)).model_dump() for msg in updated_chat_history
         ]
         updated_chat_object['summary'].append(updated_summary)
-        logger.info(f"Updated chat object: {updated_chat_object}")
+        updated_chat_object['tutors_comments'].append(tutors_comments_string)
 
-        # Create formatted conversation string
-        formatted_conversation = f"You: {transcription}\n\nPartner: {response.content}"
-        logger.info(f"Formatted conversation: {formatted_conversation}")
+        logger.info(f"Tutors comments: {updated_chat_object['tutors_comments']}")
+
 
         # Single return statement
         logger.info("Returning response")
@@ -206,8 +228,6 @@ async def process_audio(
 
 
 if __name__ == "__main__":
-    import uvicorn
-    import asyncio
     
     async def run_server():
         config = uvicorn.Config(app, host="0.0.0.0", port=8080)

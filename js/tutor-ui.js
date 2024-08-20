@@ -20,7 +20,6 @@ const partnersVoiceSelect = document.getElementById('partnersVoiceSelect');
 const infoWindow = document.getElementById('infoWindow');
 const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
 const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
-const summaryDisplay = document.getElementById('summaryDisplay');
 const thinkingSpinner = document.getElementById('thinkingSpinner');
 const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
 disableTutorCheckbox.addEventListener('change', updateDisableTutor);
@@ -215,13 +214,6 @@ function updateChatDisplay(chatObject) {
         commentElement.textContent = `${index + 1}. ${comment}`;
         tutorsCommentsDisplay.appendChild(commentElement);
     });
-
-    summaryDisplay.innerHTML = '';
-    chatObject.summary.forEach((item, index) => {
-        const summaryElement = document.createElement('p');
-        summaryElement.textContent = `${index + 1}. ${item}`;
-        summaryDisplay.appendChild(summaryElement);
-    });
 }
 
 function initializeUI() {
@@ -263,16 +255,6 @@ function initializeUI() {
         },
         onProcessingStart: () => {
             showProcessingState();
-        },
-        onChatHistoryReceived: (chatHistory) => {
-            statusDisplay.textContent = "Displaying chat history and preparing audio...";
-            chatHistoryDisplay.textContent = chatHistory;
-        },
-        onTutorsFeedbackReceived: (feedback) => {
-            tutorsCommentsDisplay.textContent = feedback;
-        },
-        onSummaryUpdated: (summary) => {
-            summaryDisplay.textContent = summary;
         },
         onAudioPlayStart: () => {
             statusDisplay.textContent = "Playing audio...";

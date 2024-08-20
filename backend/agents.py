@@ -34,42 +34,34 @@ class ChatOpenRouter(ChatOpenAI):
 
 
 
-async def partner_chat(learning_language, chat_history):
+async def partner_chat(learning_language, chat_history,disable_tutor):
     logger.info("Entering partner_chat function")
     logger.info(f"Learning language: {learning_language}")
     logger.info(f"Chat history: {chat_history}")
     api_key1 = os.getenv('GROQ_API_KEY')
     api_key2 = os.getenv('GROQ_API_KEY2')
 
+
+    if disable_tutor==True:
+        llm = ChatOpenRouter(model_name="nousresearch/hermes-3-llama-3.1-405b")
+    else:
     # Randomly choose one of the API keys
-    chosen_api_key = random.choice([api_key1, api_key2])
-
-    # Initialize the ChatGroq instance with the randomly chosen API key
-    #llm = ChatOpenRouter(
-    #model_name="nousresearch/hermes-3-llama-3.1-405b"
-#)  
-    #llm = ChatOpenAI(
-    #    model="gpt-4o-mini",
-    #    temperature=0,
-    #    max_tokens=None,
-    #    timeout=None,
-    #    max_retries=2)
-
-    llm = ChatGroq(
-            model="llama-3.1-70b-versatile",
-            temperature=0,
-            api_key=chosen_api_key,
-            max_tokens=None,
-            timeout=None,
-            max_retries=2,
-        )
+        chosen_api_key = random.choice([api_key1, api_key2])
+        llm = ChatGroq(
+                model="llama-3.1-70b-versatile",
+                temperature=0,
+                api_key=chosen_api_key,
+                max_tokens=None,
+                timeout=None,
+                max_retries=2,
+            )
 
     system_template = f"""You are a chat bot that acts as a partner to a student learning {learning_language}. 
     You must always respond in {learning_language}, regardless of the language the student uses. 
-    If the student doesn't use {learning_language}, gently remind them to do so in your response.
+    If the student doesn't use {learning_language}, gently encourage them to do so in your response, however if the mix
+    one or two english words, please ignore it (it is part of the learning process).
     Keep your answers relatively short and try to match the student's language level.
-    Don't provide translations; respond as if in a natural dialogue.
-    Your response should only contain your reply to the chat, nothing else!"""
+    Always respond as if in a natural dialogue. Your response should only contain your reply to the chat, nothing else!"""
 
     logger.info(f"System template: {system_template}")
 
@@ -124,10 +116,22 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
                 timeout=None,
                 max_retries=2,
             )
-            comment_template = """You are a language tutor for {tutoring_language}. Analyze the last few messages in the conversation, 
-            focusing on the very last thing the Human said. Provide comments on the user's language use ONLY, 
-            not on the topic. If the user isn't using {tutoring_language}, point this out as a major issue.
-            Your comment should be in {tutors_language}."""
+            comment_template = """As a {tutoring_language} verbal communication commentator:
+
+                                    Review the transcribed Human's last utterance.
+                                    Comment briefly on their spoken {tutoring_language}, focusing on things like grammar, vocabulary and sentence structure!
+                                    Comment only if there is something to useful to add. You can additionally provide very short tutoring advice if relevant.
+
+                                    If not speaking {tutoring_language}, note this as the main issue.
+                                    Comment only on language use, not content.
+                                    Respond in {tutors_language}.
+
+                                    Notes:
+
+                                    Ignore spelling in transcription.
+                                    Don't focus on formality unless very inappropriate for context.
+                                    Keep observations concise and constructive."""
+            
             comment_prompt = ChatPromptTemplate.from_messages([
                 ("system", comment_template),
                 MessagesPlaceholder(variable_name="chat_history")
@@ -148,10 +152,44 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
                 timeout=None,
                 max_retries=2,
             )
-            level_template = """Analyze the last few messages in the conversation, focusing on the very last thing 
-            the Human said. The student should be using {tutoring_language}. Characterize the need for intervention 
-            based on the quality of language use and whether they're using the correct language. 
-            Respond with one of: 'no', 'low', 'medium', or 'high'. Use 'high' if they're not using {tutoring_language} at all."""
+            level_template = """Assess the transcribed verbal communication in {tutoring_language}, focusing on the Human's last utterance. Determine the need for intervention based on the following criteria:
+
+                            Respond with one of these levels:
+
+                            1. 'no': 
+                            - Near-native or very advanced use of {tutoring_language}
+                            - No noticeable errors or only very minor ones
+                            - Rich vocabulary and complex structures used appropriately
+                            - Clear and effective communication
+
+                            2. 'low':
+                            - Generally good command of {tutoring_language}
+                            - A few minor grammatical or vocabulary errors that don't impede understanding
+                            - Mostly appropriate use of idioms and colloquialisms
+                            - Occasional hesitations or simple structures, but overall fluent
+
+                            3. 'medium':
+                            - Noticeable grammatical errors or inappropriate word choices
+                            - Limited vocabulary range, relying on basic or repetitive structures
+                            - Some awkward phrasing or literal translations from another language
+                            - Communication is understandable but requires some effort from the listener
+                            - Frequent pauses or filler words indicating language processing difficulties
+
+                            4. 'high':
+                            - Significant and frequent grammatical errors
+                            - Very limited vocabulary, unable to express complex ideas
+                            - Heavy reliance on simple or incorrect sentence structures
+                            - Communication is difficult and often unclear
+                            - Extensive use of another language or not using {tutoring_language} at all
+                            - Any other weird behavior!
+
+                            Additional notes:
+                            - Ignore spelling in transcription
+                            - Don't consider formality unless grossly inappropriate for the context
+                            - Focus on language use patterns rather than isolated mistakes
+                            - Consider fluency and overall communicative effectiveness
+                            
+                            No matter what, your answer should only contain one of the words in this list and nothing else: [no,low,medium,high]."""
             level_prompt = ChatPromptTemplate.from_messages([
                 ("system", level_template),
                 MessagesPlaceholder(variable_name="chat_history")
@@ -172,10 +210,22 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
                 timeout=None,
                 max_retries=2,
             )
-            expression_template = """Based on the last few messages in the conversation, particularly the last thing 
-            the Human said, provide the best way to express what the user intended to say in {tutoring_language}. 
-            If the user didn't use {tutoring_language}, translate their message to {tutoring_language} and improve it.
-            Focus on correct language use while maintaining the original meaning. Please return only the correct expression, without any additional output."""
+            expression_template = """Instructions for rephrasing in {tutoring_language}:
+
+                                Review the transcribed Human's last utterance.
+                                If not in {tutoring_language}, translate to {tutoring_language}.
+                                Rephrase the utterance to reflect correct, natural {tutoring_language} use:
+
+                                Fix grammatical errors
+                                Use appropriate vocabulary and idioms
+                                Maintain the original meaning and intent
+                                Keep the style suitable for verbal communication
+
+
+                                Ignore transcription spelling errors
+                                Maintain the level of formality from the original utterance
+                                Return only the corrected expression in {tutoring_language}
+                                Do not add any explanations or additional output"""
             expression_prompt = ChatPromptTemplate.from_messages([
                 ("system", expression_template),
                 MessagesPlaceholder(variable_name="chat_history")
@@ -193,8 +243,8 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history):
 
         tutor_feedback = {
             "comments": tutors_comment,
-            "intervene": intervention_level,
-            "correction": best_expression}
+            "correction": best_expression,
+            "intervene": intervention_level}
 
         logger.debug(f"Tutor feedback:{json.dumps(tutor_feedback)}")
         logger.debug("Exiting tutor_chat function")
