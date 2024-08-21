@@ -20,11 +20,19 @@
             <button id="sendButton" class="btn btn-success">Send</button>
             <button id="restartChatButton" class="btn btn-warning">Restart Chat</button>
             <button id="stopTutorButton" class="btn btn-secondary" disabled>Stop Tutor</button>
-            <div class="form-control">
-                <label class="label cursor-pointer">
-                    <span class="label-text">Disable tutor (for simple conversation)</span>
-                    <input type="checkbox" id="disableTutorCheckbox" class="checkbox" />
-                </label>
+            <div class="flex space-x-4">
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Disable tutor (for simple conversation)</span>
+                        <input type="checkbox" id="disableTutorCheckbox" class="checkbox checkbox-lg" />
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">I don't have the best accent in the world</span>
+                        <input type="checkbox" id="accentIgnoreCheckbox" class="checkbox checkbox-lg" checked />
+                    </label>
+                </div>
             </div>
             <div id="thinkingSpinner" class="spinner hidden"></div>
         </div>
@@ -36,10 +44,6 @@
 
         <!-- Language Selects Group -->
         <div class="flex space-x-4 mb-4">
-            <div class="flex-1">
-                <label for="motherTongueSelect">Mother Tongue:</label>
-                <select id="motherTongueSelect" class="select select-bordered w-full"></select>
-            </div>
             <div class="flex-1">
                 <label for="tutoringLanguageSelect">Tutoring Language:</label>
                 <select id="tutoringLanguageSelect" class="select select-bordered w-full"></select>
@@ -80,6 +84,13 @@
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="modelSelect">AI Model:</label>
+                <select id="modelSelect" class="select select-bordered w-full">
+                    <option value="Grok">Grok</option>
+                    <option value="OpenAI">OpenAI</option>
                 </select>
             </div>
         </div>

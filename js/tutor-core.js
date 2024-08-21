@@ -30,10 +30,13 @@ const tutorController = {
     chatObject: null,
     pauseTime: 1, // Default pause time in seconds
     disableTutor: false, // Tutor enabled by default
+    accentIgnore: true, // Default to ignoring accent issues
     pendingProcessingPromise: null,
 
     setFormElements: function(elements) {
         this.formElements = elements;
+        // Add the new parameter to formElements
+        this.formElements.newParameter = document.getElementById('newParameterInput') || { value: '' };
     },
 
     setUICallbacks: function(callbacks) {
@@ -136,6 +139,10 @@ const tutorController = {
 
     setDisableTutor: function(disable) {
         this.disableTutor = disable;
+    },
+
+    setAccentIgnore: function(ignore) {
+        this.accentIgnore = ignore;
     },
 
     manualStop: async function() {

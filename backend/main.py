@@ -8,18 +8,39 @@ import base64
 from dotenv import load_dotenv
 from agents import partner_chat
 from agents import *
-from logging_utilities import *
 from typing import List, Dict
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 import uvicorn
 import asyncio
-
-
+import random
+import json
+import os
 
 # Load environment variables
 load_dotenv()
 
 app = FastAPI()
+
+# Load API keys and add logging
+GROQ_API_KEYS = json.loads(os.getenv("GROQ_API_KEYs", "[]"))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+logger.info(f"GROQ_API_KEYs loaded: {len(GROQ_API_KEYS)} keys")
+logger.info(f"OPENAI_API_KEY loaded: {'Yes' if OPENAI_API_KEY else 'No'}")
+
+def get_random_groq_api_key():
+    if not GROQ_API_KEYS:
+        logger.error("No GROQ API keys available")
+        raise ValueError("No GROQ API keys available")
+    return random.choice(GROQ_API_KEYS)
+
+if not OPENAI_API_KEY:
+    logger.error("OPENAI_API_KEY is not set in the environment variables")
+    raise ValueError("OPENAI_API_KEY is not set in the environment variables")
+
+# Ensure .env file is loaded
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f".env file exists: {'Yes' if os.path.exists('.env') else 'No'}")
 
 # Add CORS middleware
 app.add_middleware(
@@ -57,7 +78,6 @@ class ChatObject(BaseModel):
         }
 
 class AudioData(BaseModel):
-    motherTongue: str
     tutoringLanguage: str
     tutorsLanguage: str
     tutorsVoice: str
@@ -65,6 +85,8 @@ class AudioData(BaseModel):
     interventionLevel: str
     chatObject: ChatObject
     disableTutor: bool
+    accentignore: bool = False  # Make it optional with False as default
+    model: str
 
 class FormattedConversation(BaseModel):
     formatted_text: str
@@ -104,18 +126,30 @@ async def process_audio(
         logger.info("Starting process_audio function")
         audio_data = AudioData.model_validate_json(data)
         
-        # Log the received data
-        log_audio_data(audio_data, audio.filename)
-        log_api_key_status()
         
         # Read the audio file
         audio_content = await audio.read()
         learning_language = language_to_code(audio_data.tutoringLanguage)
         logger.info(f"Learning language code: {learning_language}")
         
-        # Transcribe the audio using Groq API
-        logger.info("Starting audio transcription")
-        transcription = transcribe_audio(audio_content, learning_language, groq_api_key)
+        # Select the appropriate API key based on the model
+        if audio_data.model == "OpenAI":
+            api_key = OPENAI_API_KEY
+            provider = "openai"
+            logger.info("Using OpenAI API{api_key[:5]} ")
+        else:
+            if not groq_api_key:
+                logger.info("No Groq API key provided, selecting a random one")
+                api_key = get_random_groq_api_key()
+            else:
+                api_key = groq_api_key
+            provider = "groq"
+            logger.info(f"Using Groq API key: {api_key[:5]}...")  # Log first 5 characters for security
+        
+        # Transcribe the audio
+        logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
+        logger.info("Starting transcribe_audio task {api_key}")
+        transcription = transcribe_audio(audio_content, learning_language, api_key, new_parameter=audio_data.accentignore, provider=provider)
         logger.info(f"Transcription: {transcription}")
         
         # Convert MessageDict objects to BaseMessage objects
@@ -124,23 +158,27 @@ async def process_audio(
         logger.info(f"Converted chat history: {chat_history}")
         wrapped_transcription = HumanMessage(content=transcription)
         chat_history.append(wrapped_transcription)
+        tutor_history = audio_data.chatObject.tutors_comments
 
         # Use the partner_chat function to get a response
         logger.info("Starting partner_chat task")
+        last_summary = audio_data.chatObject.summary[-1] if audio_data.chatObject.summary else ""
         partner_task = asyncio.create_task(partner_chat(
             audio_data.tutoringLanguage,
             chat_history,
-            audio_data.disableTutor
-        ))
+            provider=provider,
+            api_key=api_key,
+            last_summary=last_summary))
         
         logger.info("Starting tutor_chat task")
         tutor_task = asyncio.create_task(tutor_chat(
             audio_data.tutoringLanguage,
             audio_data.tutorsLanguage,
-            chat_history
-        ))
+            chat_history,
+            tutor_history,
+            provider=provider,
+            api_key=api_key))
         
-        logger.info("Awaiting partner_chat and tutor_chat tasks")
         (response, updated_chat_history), tutor_feedback = await asyncio.gather(partner_task, tutor_task)
 
         logger.info(f"Partner response: {response.content}")
@@ -148,7 +186,7 @@ async def process_audio(
         
         async def generate_audio(text, voice):
             logger.info(f"Generating audio for voice: {voice}")
-            return await asyncio.to_thread(generate_tts, text, openai_api_key, voice)
+            return await asyncio.to_thread(generate_tts, text, OPENAI_API_KEY, voice)
 
         audio_generation_tasks = []
         audio_order = []
@@ -179,7 +217,9 @@ async def process_audio(
         summarizer_task = summarize_conversation(
             audio_data.tutoringLanguage,
             updated_chat_history,
-            previous_summary
+            previous_summary,
+            provider=provider,
+            api_key=api_key
         )
 
         # Gather all tasks
@@ -210,7 +250,6 @@ async def process_audio(
         updated_chat_object['tutors_comments'].append(tutors_comments_string)
 
         logger.info(f"Tutors comments: {updated_chat_object['tutors_comments']}")
-
 
         # Single return statement
         logger.info("Returning response")

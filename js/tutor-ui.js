@@ -1,5 +1,5 @@
 import { tutorController } from './tutor-core.js';
-import { motherTongueOptions, tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
+import { tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
 const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
@@ -12,7 +12,6 @@ const playbackSpeedSlider = document.getElementById('playbackSpeedSlider');
 const playbackSpeedDisplay = document.getElementById('playbackSpeedDisplay');
 const pauseTimeSlider = document.getElementById('pauseTimeSlider');
 const pauseTimeDisplay = document.getElementById('pauseTimeDisplay');
-const motherTongueSelect = document.getElementById('motherTongueSelect');
 const tutoringLanguageSelect = document.getElementById('tutoringLanguageSelect');
 const tutorsLanguageSelect = document.getElementById('tutorsLanguageSelect');
 const interventionLevelSelect = document.getElementById('interventionLevelSelect');
@@ -23,7 +22,11 @@ const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
 const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
 const thinkingSpinner = document.getElementById('thinkingSpinner');
 const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
+const accentIgnoreCheckbox = document.getElementById('accentIgnoreCheckbox');
+const modelSelect = document.getElementById('modelSelect');
 disableTutorCheckbox.addEventListener('change', updateDisableTutor);
+accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
+modelSelect.addEventListener('change', updateModel);
 
 startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
@@ -51,7 +54,6 @@ restartChatButton.addEventListener('click', () => {
 });
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
 pauseTimeSlider.addEventListener('input', updatePauseTime);
-motherTongueSelect.addEventListener('change', updateMotherTongue);
 tutoringLanguageSelect.addEventListener('change', updateTutoringLanguage);
 tutorsLanguageSelect.addEventListener('change', updateTutorsLanguage);
 interventionLevelSelect.addEventListener('change', updateInterventionLevel);
@@ -113,10 +115,6 @@ function updatePauseTime() {
     tutorController.setPauseTime(pauseTime);
 }
 
-function updateMotherTongue() {
-    const selectedLanguage = motherTongueSelect.value;
-}
-
 function updateTutoringLanguage() {
     const selectedLanguage = tutoringLanguageSelect.value;
 }
@@ -137,9 +135,18 @@ function updatePartnersVoice() {
     const selectedVoice = partnersVoiceSelect.value;
 }
 
+function updateModel() {
+    const selectedModel = modelSelect.value;
+}
+
 function updateDisableTutor() {
     const disableTutor = disableTutorCheckbox.checked;
     tutorController.setDisableTutor(disableTutor);
+}
+
+function updateAccentIgnore() {
+    const accentIgnore = accentIgnoreCheckbox.checked;
+    tutorController.setAccentIgnore(accentIgnore);
 }
 
 function updateMicrophone() {
@@ -175,7 +182,6 @@ function populateMicrophoneSelect() {
 
 function populateLanguageSelects() {
     const languageSets = [
-        { select: motherTongueSelect, options: motherTongueOptions },
         { select: tutoringLanguageSelect, options: tutoringLanguageOptions },
         { select: tutorsLanguageSelect, options: tutorsLanguageOptions }
     ];
@@ -227,13 +233,13 @@ function initializeUI() {
     populateMicrophoneSelect();
     populateLanguageSelects();
     updatePlaybackSpeed();
-    updateMotherTongue();
     updateTutoringLanguage();
     updateTutorsLanguage();
     updateInterventionLevel();
     updateTutorsVoice();
     updatePartnersVoice();
     updateDisableTutor();
+    updateAccentIgnore();
 
     pauseTimeSlider.min = 1;
     pauseTimeSlider.max = 10;
@@ -244,7 +250,6 @@ function initializeUI() {
     thinkingSpinner.classList.add('hidden');
 
     tutorController.setFormElements({
-        motherTongueSelect,
         tutoringLanguageSelect,
         tutorsLanguageSelect,
         tutorsVoiceSelect,
@@ -252,7 +257,9 @@ function initializeUI() {
         interventionLevelSelect,
         playbackSpeedSlider,
         pauseTimeSlider,
-        disableTutorCheckbox
+        disableTutorCheckbox,
+        accentIgnoreCheckbox,
+        modelSelect
     });
 
     tutorController.setUICallbacks({
