@@ -1,14 +1,14 @@
 async function sendAudioToServer(audioBlob, formElements) {
     const audioData = {
-        tutoringLanguage: formElements.tutoringLanguageSelect.value,
-        tutorsLanguage: formElements.tutorsLanguageSelect.value,
-        tutorsVoice: formElements.tutorsVoiceSelect.value,
-        partnersVoice: formElements.partnersVoiceSelect.value,
-        interventionLevel: formElements.interventionLevelSelect.value,
+        tutoringLanguage: formElements.tutoringLanguageSelect?.value,
+        tutorsLanguage: formElements.tutorsLanguageSelect?.value,
+        tutorsVoice: formElements.tutorsVoiceSelect?.value,
+        partnersVoice: formElements.partnersVoiceSelect?.value,
+        interventionLevel: formElements.interventionLevelSelect?.value,
         chatObject: formElements.chatObject,
-        disableTutor: formElements.disableTutorCheckbox.checked,
-        accentignore: formElements.accentIgnoreCheckbox.checked,
-        model: formElements.modelSelect.value
+        disableTutor: formElements.disableTutorCheckbox?.checked,
+        accentignore: formElements.accentIgnoreCheckbox?.checked,
+        model: formElements.modelSelect?.value
     };
 
     const formData = new FormData();
@@ -16,17 +16,21 @@ async function sendAudioToServer(audioBlob, formElements) {
     formData.append('data', JSON.stringify(audioData));
     
     // Add API keys to form data (sending empty strings if not available)
-    // TODO: Implement proper API key management later
     formData.append('groq_api_key', '');
     formData.append('openai_api_key', '');
 
+    const url = 'https://tutorapi.metaskepsis.com/process_audio';
+
     try {
         console.time('serverProcessing');
-        //const response = await fetch('https://fastapi.metaskepsis.com/process_audio'
-        const response = await fetch('https://tutorapi.metaskepsis.com/process_audio', {
-        //const response = await fetch('http://127.0.0.1:8080/process_audio', {
+        const response = await fetch(url, {
             method: 'POST',
-            body: formData
+            body: formData,
+            mode: 'cors',
+            credentials: 'same-origin', // Changed from 'include' to 'same-origin'
+            headers: {
+                'Accept': 'application/json',
+            }
         });
 
         if (!response.ok) {
