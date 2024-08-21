@@ -15,6 +15,7 @@ import asyncio
 import random
 import json
 import os
+import re
 
 # Load environment variables
 load_dotenv()
@@ -41,6 +42,19 @@ if not OPENAI_API_KEY:
 # Ensure .env file is loaded
 logger.info(f"Current working directory: {os.getcwd()}")
 logger.info(f".env file exists: {'Yes' if os.path.exists('.env') else 'No'}")
+
+def split_text(text, max_sentences=4):
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    parts = []
+    current_part = []
+    for sentence in sentences:
+        current_part.append(sentence)
+        if len(current_part) == max_sentences:
+            parts.append(' '.join(current_part))
+            current_part = []
+    if current_part:
+        parts.append(' '.join(current_part))
+    return parts
 
 # Add CORS middleware
 app.add_middleware(
@@ -201,15 +215,21 @@ async def process_audio(
         if not audio_data.disableTutor and (3-tutor_intervention_level) < required_intervention_level:
             logger.info(f"Tutor intervention enabled. Level: {tutor_feedback['intervene']}")
             audio_generation_tasks.extend([
-                generate_audio(tutor_feedback["comments"], audio_data.tutorsVoice),
-                generate_audio(tutor_feedback["correction"], audio_data.tutorsVoice),
-                generate_audio(response.content, audio_data.partnersVoice)
+                generate_audio(tutor_feedback["comments"], audio_data.tutorsVoice),  # TTS: Tutor's comments
+                generate_audio(tutor_feedback["correction"], audio_data.tutorsVoice),  # TTS: Tutor's correction
             ])
-            audio_order = ["tutor_comments", "tutor_correction", "partner_response"]
+            audio_order = ["tutor_comments", "tutor_correction"]
         else:
             logger.info(f"Tutor intervention disabled or not needed. Level: {tutor_feedback['intervene']}")
-            audio_generation_tasks.append(generate_audio(response.content, audio_data.partnersVoice))
-            audio_order = ["partner_response"]
+            audio_order = []
+
+        # Split partner's response if it's long
+        response_parts = split_text(response.content)
+        for i, part in enumerate(response_parts):
+            audio_generation_tasks.append(generate_audio(part, audio_data.partnersVoice))  # TTS: Partner's response part
+            audio_order.append(f"partner_response_{i}")
+
+        logger.info(f"Number of response parts: {len(response_parts)}")
 
         # Add summarizer task
         logger.info("Starting summarizer task")
@@ -234,7 +254,12 @@ async def process_audio(
 
         # Concatenate audio data in the correct order
         logger.info("Concatenating audio data")
-        audio_data_list = [audio_dict[key] for key in audio_order]
+        audio_data_list = []
+        for key in audio_order:
+            if key.startswith("partner_response_"):
+                audio_data_list.append(audio_dict[key])
+            else:
+                audio_data_list.append(audio_dict[key])
         concatenated_audio = b''.join(audio_data_list)
         audio_base64 = base64.b64encode(concatenated_audio).decode('utf-8')
 
