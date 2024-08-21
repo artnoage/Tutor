@@ -5,6 +5,8 @@ from openai import OpenAI
 import logging
 from pydantic import BaseModel
 from typing import List
+import tempfile
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +15,8 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
         if not api_key:
             raise HTTPException(status_code=500, detail="GROQ_API_KEY is not provided")
 
-        logger.debug(f"Using GROQ_API_KEY: {api_key[:5]}...")  # Log first 5 chars for security
-        logger.debug(f"New parameter value: {new_parameter}")  # Log the new parameter
+        logger.debug(f"Using GROQ_API_KEY: {api_key[:5]}...")
+        logger.debug(f"New parameter value: {new_parameter}")
 
         try:
             url = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -29,7 +31,6 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
                 "response_format": "text"
             }
             
-            # Only include the language in the data if new_parameter is True
             if new_parameter:
                 data["language"] = language
 
@@ -47,16 +48,32 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
         if not api_key:
             raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not provided")
 
-        logger.debug(f"Using OPENAI_API_KEY: {api_key[:5]}...")  # Log first 5 chars for security
+        logger.debug(f"Using OPENAI_API_KEY: {api_key[:5]}...")
 
         try:
             client = OpenAI(api_key=api_key)
-            with io.BytesIO(audio_content) as audio_file:
-                transcription = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_file,
-                    response_format="text"
-                )
+            
+            # Create a named temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
+                temp_audio_file.write(audio_content)
+                temp_audio_file_path = temp_audio_file.name
+
+            # Open the file and pass it to the OpenAI API
+            with open(temp_audio_file_path, "rb") as audio_file:
+                transcription_params = {
+                    "model": "whisper-1",
+                    "file": audio_file,
+                    "response_format": "text"
+                }
+                
+                if new_parameter:
+                    transcription_params["language"] = language_to_code(language)
+
+                transcription = client.audio.transcriptions.create(**transcription_params)
+
+            # Clean up the temporary file
+            os.unlink(temp_audio_file_path)
+
             logger.info("Transcription extracted successfully using OpenAI")
             return transcription
         except Exception as e:
@@ -110,4 +127,3 @@ INTERVENTION_LEVEL_MAP = {
     "medium": 2,
     "high": 3
 }
-
