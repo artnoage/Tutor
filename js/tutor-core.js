@@ -223,11 +223,12 @@ const tutorController = {
 
             console.time('clientProcessing');
             
-            // Update chatObject with the response from the server
-            this.chatObject = result.chatObject;
+            // Update the current chat object with the response from the server
+            const updatedChat = result.chatObject;
+            this.chatObjects[this.currentChatIndex] = updatedChat;
             
             if (this.uiCallbacks.onAPIResponseReceived) {
-                this.uiCallbacks.onAPIResponseReceived(result);
+                this.uiCallbacks.onAPIResponseReceived(updatedChat);
             }
             
             // Decode audio data
