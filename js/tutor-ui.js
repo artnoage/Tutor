@@ -343,12 +343,21 @@ function initializeUI() {
         onChatSwitched: (chatObject) => {
             updateChatDisplay(chatObject);
             updateChatList(); // Update the chat list to reflect the new selection
+        },
+        onChatObjectsLoaded: () => {
+            updateChatList();
+            if (tutorController.chatObjects.length > 0) {
+                updateChatDisplay(tutorController.getCurrentChat());
+            }
+        },
+        onInitialLoadComplete: () => {
+            if (tutorController.chatObjects.length === 0) {
+                tutorController.createNewChat();
+            }
+            updateChatList();
+            updateChatDisplay(tutorController.getCurrentChat());
         }
     });
-
-    // Initialize with a new chat
-    tutorController.createNewChat();
-    updateChatList();
 }
 
 const monitoringInterval = tutorController.startMonitoringInterval();

@@ -40,21 +40,40 @@ function saveChatObjects() {
 
 // Function to load chat objects from IndexedDB
 function loadChatObjects() {
-    const transaction = db.transaction([objectStoreName], "readonly");
-    const store = transaction.objectStore(objectStoreName);
-    const request = store.getAll();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([objectStoreName], "readonly");
+        const store = transaction.objectStore(objectStoreName);
+        const request = store.getAll();
 
-    request.onsuccess = function(event) {
-        const loadedChatObjects = event.target.result;
-        if (loadedChatObjects.length > 0) {
-            tutorController.chatObjects = loadedChatObjects;
-            tutorController.currentChatIndex = loadedChatObjects.length - 1;
-            if (tutorController.uiCallbacks.onChatObjectsLoaded) {
-                tutorController.uiCallbacks.onChatObjectsLoaded();
+        request.onsuccess = function(event) {
+            const loadedChatObjects = event.target.result;
+            if (loadedChatObjects.length > 0) {
+                tutorController.chatObjects = loadedChatObjects;
+                tutorController.currentChatIndex = loadedChatObjects.length - 1;
+                if (tutorController.uiCallbacks.onChatObjectsLoaded) {
+                    tutorController.uiCallbacks.onChatObjectsLoaded();
+                }
             }
-        }
-    };
+            resolve(loadedChatObjects);
+        };
+
+        request.onerror = function(event) {
+            reject(event.target.error);
+        };
+    });
 }
+
+// Initialize IndexedDB and load chat objects
+dbPromise.onsuccess = function(event) {
+    db = event.target.result;
+    loadChatObjects().then(() => {
+        if (tutorController.uiCallbacks.onInitialLoadComplete) {
+            tutorController.uiCallbacks.onInitialLoadComplete();
+        }
+    }).catch(error => {
+        console.error("Error loading chat objects:", error);
+    });
+};
 
 // Global variables
 let audioContext;
