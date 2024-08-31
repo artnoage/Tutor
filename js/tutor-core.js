@@ -224,22 +224,29 @@ const tutorController = {
             console.time('clientProcessing');
             
             // Update the current chat object with the response from the server
-            const updatedChat = result.chatObject;
-            this.chatObjects[this.currentChatIndex] = updatedChat;
-            
-            if (this.uiCallbacks.onAPIResponseReceived) {
-                this.uiCallbacks.onAPIResponseReceived(updatedChat);
+            if (result.chatObject) {
+                this.chatObjects[this.currentChatIndex] = result.chatObject;
+                
+                if (this.uiCallbacks.onAPIResponseReceived) {
+                    this.uiCallbacks.onAPIResponseReceived(result.chatObject);
+                }
+            } else {
+                console.error('Server response did not include chatObject');
             }
             
             // Decode audio data
-            const audioBuffer = await decodeAudioData(result.audio_base64);
-            
-            // Play audio
-            if (this.uiCallbacks.onAudioPlayStart) {
-                this.uiCallbacks.onAudioPlayStart();
+            if (result.audio_base64) {
+                const audioBuffer = await decodeAudioData(result.audio_base64);
+                
+                // Play audio
+                if (this.uiCallbacks.onAudioPlayStart) {
+                    this.uiCallbacks.onAudioPlayStart();
+                }
+                const playbackSpeed = 0.9 + (parseFloat(this.formElements.playbackSpeedSlider.value) * 0.1);
+                await playDecodedAudio(audioBuffer, playbackSpeed);
+            } else {
+                console.error('Server response did not include audio_base64');
             }
-            const playbackSpeed = 0.9 + (parseFloat(this.formElements.playbackSpeedSlider.value) * 0.1);
-            await playDecodedAudio(audioBuffer, playbackSpeed);
             
             console.timeEnd('clientProcessing');
             

@@ -308,8 +308,8 @@ function initializeUI() {
             statusDisplay.textContent = "Error: " + errorMessage;
             hideProcessingState();
         },
-        onAPIResponseReceived: (result) => {
-            updateChatDisplay(result.chatObject);
+        onAPIResponseReceived: (chatObject) => {
+            updateChatDisplay(chatObject);
             statusDisplay.textContent = "Updated chat display with API response";
             hideProcessingState();
         },
