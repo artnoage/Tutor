@@ -220,6 +220,7 @@ function updateChatDisplay(chatObject) {
         messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
         chatHistoryDisplay.appendChild(messageElement);
     });
+    chatHistoryDisplay.scrollTop = chatHistoryDisplay.scrollHeight;
 
     tutorsCommentsDisplay.innerHTML = '';
     chatObject.tutors_comments.forEach((comment, index) => {
@@ -227,6 +228,7 @@ function updateChatDisplay(chatObject) {
         commentElement.textContent = `${index + 1}. ${comment}`;
         tutorsCommentsDisplay.appendChild(commentElement);
     });
+    tutorsCommentsDisplay.scrollTop = tutorsCommentsDisplay.scrollHeight;
 }
 
 function initializeUI() {
