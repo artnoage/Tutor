@@ -120,26 +120,22 @@
 
   /* Chat item styles for the sidebar */
   .chat-item {
-    @apply p-2 mb-2 rounded cursor-pointer;
+    @apply p-2 mb-2 rounded cursor-pointer transition-all duration-300 ease-in-out;
   }
 
   /* Highlighted chat item */
   .chat-item-selected {
-    @apply bg-primary text-primary-content;
+    @apply bg-midnight-purple text-midnight-foreground font-bold;
   }
 
   /* Hover effect for chat items */
   .chat-item:hover:not(.chat-item-selected) {
-    @apply bg-base-100;
+    @apply bg-midnight-currentLine;
   }
 
-  /* Transition effects */
-  .chat-item {
-    @apply transition-all duration-300 ease-in-out;
-  }
-
-  .chat-item-selected {
-    @apply scale-105 shadow-lg;
+  .chat-item-selected::before {
+    content: '• ';
+    color: #ff79c6; /* Dracula pink */
   }
 }
 

@@ -175,7 +175,7 @@ function updateChatList() {
     chatList.innerHTML = '';
     tutorController.chatObjects.slice().reverse().forEach((chatObject, index) => {
         const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item transition-all duration-300 ease-in-out';
+        chatItem.className = 'chat-item';
         chatItem.textContent = `Chat ${tutorController.chatObjects.length - index}`;
         chatItem.dataset.index = tutorController.chatObjects.length - index - 1;
         chatItem.addEventListener('click', () => {
@@ -191,12 +191,10 @@ function updateChatList() {
 // Function to highlight the selected chat
 function highlightSelectedChat(selectedChatItem) {
     chatList.querySelectorAll('.chat-item').forEach(item => {
-        item.classList.remove('chat-item-selected', 'scale-105', 'shadow-lg');
-        item.classList.add('bg-base-300', 'hover:bg-base-100');
+        item.classList.remove('chat-item-selected');
     });
     if (selectedChatItem) {
-        selectedChatItem.classList.remove('bg-base-300', 'hover:bg-base-100');
-        selectedChatItem.classList.add('chat-item-selected', 'scale-105', 'shadow-lg');
+        selectedChatItem.classList.add('chat-item-selected');
     }
 }
 
