@@ -8,7 +8,9 @@ async function sendAudioToServer(audioBlob, formElements) {
         chatObject: formElements.chatObject,
         disableTutor: formElements.disableTutorCheckbox.checked,
         accentignore: formElements.accentIgnoreCheckbox.checked,
-        model: formElements.modelSelect.value
+        model: formElements.modelSelect.value,
+        playbackSpeed: formElements.playbackSpeedSlider.value,
+        pauseTime: formElements.pauseTimeSlider.value
     };
 
     const formData = new FormData();
