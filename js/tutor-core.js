@@ -27,7 +27,8 @@ const tutorController = {
     selectedMicrophoneId: null,
     formElements: null,
     uiCallbacks: null,
-    chatObject: null,
+    chatObjects: [],
+    currentChatIndex: -1,
     pauseTime: 1, // Default pause time in seconds
     disableTutor: false, // Tutor enabled by default
     accentIgnore: true, // Default to ignoring accent issues
@@ -48,11 +49,9 @@ const tutorController = {
         this.isActive = true;
         this.isRecording = false;
         isProcessing = false;
-        this.chatObject = {
-            chat_history: [],
-            tutors_comments: [],
-            summary: []
-        };
+        if (this.currentChatIndex === -1) {
+            this.createNewChat();
+        }
         currentSessionTimestamp = Date.now();
         this.startMonitoring();
     },
@@ -67,7 +66,6 @@ const tutorController = {
         if (this.isRecording) {
             await this.stopRecording();
         }
-        this.chatObject = null;
         stopTutor();
         
         // Cancel any pending operations
@@ -82,17 +80,40 @@ const tutorController = {
         soundDetectedTime = null;
     },
 
+    createNewChat: function() {
+        this.chatObjects.push({
+            chat_history: [],
+            tutors_comments: [],
+            summary: []
+        });
+        this.currentChatIndex = this.chatObjects.length - 1;
+        if (this.uiCallbacks.onChatCreated) {
+            this.uiCallbacks.onChatCreated(this.currentChatIndex);
+        }
+    },
+
+    switchChat: function(index) {
+        if (index >= 0 && index < this.chatObjects.length) {
+            this.currentChatIndex = index;
+            if (this.uiCallbacks.onChatSwitched) {
+                this.uiCallbacks.onChatSwitched(this.getCurrentChat());
+            }
+        }
+    },
+
+    getCurrentChat: function() {
+        return this.chatObjects[this.currentChatIndex];
+    },
+
     restartChat: function() {
         console.log('Restarting chat');
         const wasActive = this.isActive;
         if (wasActive) {
             this.stop();
         }
-        this.chatObject = {
-            chat_history: [],
-            tutors_comments: [],
-            summary: []
-        };
+        this.getCurrentChat().chat_history = [];
+        this.getCurrentChat().tutors_comments = [];
+        this.getCurrentChat().summary = [];
         if (this.uiCallbacks.onChatRestart) {
             this.uiCallbacks.onChatRestart();
         }

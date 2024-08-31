@@ -5,6 +5,8 @@ const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
 const sendButton = document.getElementById('sendButton');
 const restartChatButton = document.getElementById('restartChatButton');
+const createChatButton = document.getElementById('createChatButton');
+const chatSelectDropdown = document.getElementById('chatSelectDropdown');
 const statusDisplay = document.getElementById('statusDisplay');
 const microphoneSelect = document.getElementById('microphoneSelect');
 const soundLevelDisplay = document.getElementById('soundLevelDisplay');
@@ -24,6 +26,7 @@ const thinkingSpinner = document.getElementById('thinkingSpinner');
 const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
 const accentIgnoreCheckbox = document.getElementById('accentIgnoreCheckbox');
 const modelSelect = document.getElementById('modelSelect');
+
 disableTutorCheckbox.addEventListener('change', updateDisableTutor);
 accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
 modelSelect.addEventListener('change', updateModel);
@@ -51,6 +54,15 @@ restartChatButton.addEventListener('click', () => {
     tutorController.restartChat();
     updateUIState(wasActive);
     statusDisplay.textContent = "Chat restarted";
+});
+createChatButton.addEventListener('click', () => {
+    tutorController.createNewChat();
+    updateChatSelectDropdown();
+});
+chatSelectDropdown.addEventListener('change', () => {
+    const selectedIndex = parseInt(chatSelectDropdown.value);
+    tutorController.switchChat(selectedIndex);
+    updateChatDisplay(tutorController.getCurrentChat());
 });
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
 pauseTimeSlider.addEventListener('input', updatePauseTime);
@@ -231,6 +243,17 @@ function updateChatDisplay(chatObject) {
     tutorsCommentsDisplay.scrollTop = tutorsCommentsDisplay.scrollHeight;
 }
 
+function updateChatSelectDropdown() {
+    chatSelectDropdown.innerHTML = '';
+    tutorController.chatObjects.forEach((_, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.text = `Chat ${index + 1}`;
+        chatSelectDropdown.appendChild(option);
+    });
+    chatSelectDropdown.value = tutorController.currentChatIndex;
+}
+
 function initializeUI() {
     populateMicrophoneSelect();
     populateLanguageSelects();
@@ -294,8 +317,20 @@ function initializeUI() {
             chatHistoryDisplay.innerHTML = '';
             tutorsCommentsDisplay.innerHTML = '';
             statusDisplay.textContent = "Chat restarted";
+        },
+        onChatCreated: (index) => {
+            updateChatSelectDropdown();
+            chatSelectDropdown.value = index;
+            updateChatDisplay(tutorController.getCurrentChat());
+        },
+        onChatSwitched: (chatObject) => {
+            updateChatDisplay(chatObject);
         }
     });
+
+    // Initialize with a new chat
+    tutorController.createNewChat();
+    updateChatSelectDropdown();
 }
 
 const monitoringInterval = tutorController.startMonitoringInterval();
