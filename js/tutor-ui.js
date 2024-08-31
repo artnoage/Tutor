@@ -181,19 +181,20 @@ function updateChatList() {
         chatItem.addEventListener('click', () => {
             tutorController.switchChat(parseInt(chatItem.dataset.index));
             updateChatDisplay(tutorController.getCurrentChat());
-            highlightSelectedChat(chatItem);
+            highlightSelectedChat();
         });
         chatList.appendChild(chatItem);
     });
-    highlightSelectedChat(chatList.querySelector(`[data-index="${tutorController.currentChatIndex}"]`));
+    highlightSelectedChat();
 }
 
 // Function to highlight the selected chat
-function highlightSelectedChat(selectedChatItem) {
+function highlightSelectedChat() {
     chatList.querySelectorAll('.chat-item').forEach(item => {
         item.classList.remove('chat-item-selected', 'scale-105', 'shadow-lg');
         item.textContent = item.textContent.replace('► ', '');
     });
+    const selectedChatItem = chatList.querySelector(`[data-index="${tutorController.currentChatIndex}"]`);
     if (selectedChatItem) {
         selectedChatItem.classList.add('chat-item-selected', 'scale-105', 'shadow-lg');
         selectedChatItem.textContent = '► ' + selectedChatItem.textContent;
