@@ -6,7 +6,6 @@ const stopTutorButton = document.getElementById('stopTutorButton');
 const sendButton = document.getElementById('sendButton');
 const restartChatButton = document.getElementById('restartChatButton');
 const createChatButton = document.getElementById('createChatButton');
-const chatSelectDropdown = document.getElementById('chatSelectDropdown');
 const statusDisplay = document.getElementById('statusDisplay');
 const microphoneSelect = document.getElementById('microphoneSelect');
 const soundLevelDisplay = document.getElementById('soundLevelDisplay');
@@ -26,6 +25,7 @@ const thinkingSpinner = document.getElementById('thinkingSpinner');
 const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
 const accentIgnoreCheckbox = document.getElementById('accentIgnoreCheckbox');
 const modelSelect = document.getElementById('modelSelect');
+const chatList = document.getElementById('chatList');
 
 disableTutorCheckbox.addEventListener('change', updateDisableTutor);
 accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
@@ -55,15 +55,12 @@ restartChatButton.addEventListener('click', () => {
     updateUIState(wasActive);
     statusDisplay.textContent = "Chat restarted";
 });
+
 createChatButton.addEventListener('click', () => {
     tutorController.createNewChat();
-    updateChatSelectDropdown();
+    updateChatList();
 });
-chatSelectDropdown.addEventListener('change', () => {
-    const selectedIndex = parseInt(chatSelectDropdown.value);
-    tutorController.switchChat(selectedIndex);
-    updateChatDisplay(tutorController.getCurrentChat());
-});
+
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
 pauseTimeSlider.addEventListener('input', updatePauseTime);
 tutoringLanguageSelect.addEventListener('change', updateTutoringLanguage);
@@ -173,6 +170,63 @@ function updateInfoWindow(message) {
     infoWindow.scrollTop = infoWindow.scrollHeight;
 }
 
+// Updated function to dynamically update the chat list in the sidebar
+function updateChatList() {
+    chatList.innerHTML = '';
+    tutorController.chatObjects.slice().reverse().forEach((chatObject, index) => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'p-2 mb-2 bg-base-300 rounded cursor-pointer hover:bg-base-100';
+        chatItem.textContent = `Chat ${index + 1}`;
+        chatItem.addEventListener('click', () => {
+            tutorController.switchChat(index);
+            updateChatDisplay(tutorController.getCurrentChat());
+            highlightSelectedChat(chatItem);
+        });
+        chatList.appendChild(chatItem);
+    });
+    highlightSelectedChat(chatList.lastChild);
+}
+
+// Function to highlight the selected chat
+function highlightSelectedChat(selectedChatItem) {
+    chatList.querySelectorAll('div').forEach(item => {
+        item.classList.remove('bg-primary', 'text-primary-content');
+    });
+    if (selectedChatItem) {
+        selectedChatItem.classList.add('bg-primary', 'text-primary-content');
+    }
+}
+
+// Function to update the chat display area with the current chat's history and comments
+function updateChatDisplay(chatObject) {
+    chatHistoryDisplay.innerHTML = '';
+    chatObject.chat_history.forEach((message, index) => {
+        const messageElement = document.createElement('p');
+        let prefix;
+        switch (message.type) {
+            case 'HumanMessage':
+                prefix = 'You: ';
+                break;
+            case 'AIMessage':
+                prefix = 'Bot: ';
+                break;
+            default:
+                prefix = `${message.type}: `;
+        }
+        messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
+        chatHistoryDisplay.appendChild(messageElement);
+    });
+    chatHistoryDisplay.scrollTop = chatHistoryDisplay.scrollHeight;
+
+    tutorsCommentsDisplay.innerHTML = '';
+    chatObject.tutors_comments.forEach((comment, index) => {
+        const commentElement = document.createElement('p');
+        commentElement.textContent = `${index + 1}. ${comment}`;
+        tutorsCommentsDisplay.appendChild(commentElement);
+    });
+    tutorsCommentsDisplay.scrollTop = tutorsCommentsDisplay.scrollHeight;
+}
+
 function populateMicrophoneSelect() {
     navigator.mediaDevices.enumerateDevices()
         .then(devices => {
@@ -212,46 +266,6 @@ function populateLanguageSelects() {
             .sort((a, b) => a.getAttribute('data-order') - b.getAttribute('data-order'))
             .forEach(option => select.appendChild(option));
     });
-}
-
-function updateChatDisplay(chatObject) {
-    chatHistoryDisplay.innerHTML = '';
-    chatObject.chat_history.forEach((message, index) => {
-        const messageElement = document.createElement('p');
-        let prefix;
-        switch (message.type) {
-            case 'HumanMessage':
-                prefix = 'You: ';
-                break;
-            case 'AIMessage':
-                prefix = 'Bot: ';
-                break;
-            default:
-                prefix = `${message.type}: `;
-        }
-        messageElement.textContent = `${index + 1}. ${prefix}${message.content}`;
-        chatHistoryDisplay.appendChild(messageElement);
-    });
-    chatHistoryDisplay.scrollTop = chatHistoryDisplay.scrollHeight;
-
-    tutorsCommentsDisplay.innerHTML = '';
-    chatObject.tutors_comments.forEach((comment, index) => {
-        const commentElement = document.createElement('p');
-        commentElement.textContent = `${index + 1}. ${comment}`;
-        tutorsCommentsDisplay.appendChild(commentElement);
-    });
-    tutorsCommentsDisplay.scrollTop = tutorsCommentsDisplay.scrollHeight;
-}
-
-function updateChatSelectDropdown() {
-    chatSelectDropdown.innerHTML = '';
-    tutorController.chatObjects.forEach((_, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.text = `Chat ${index + 1}`;
-        chatSelectDropdown.appendChild(option);
-    });
-    chatSelectDropdown.value = tutorController.currentChatIndex;
 }
 
 function initializeUI() {
@@ -319,18 +333,18 @@ function initializeUI() {
             statusDisplay.textContent = "Chat restarted";
         },
         onChatCreated: (index) => {
-            updateChatSelectDropdown();
-            chatSelectDropdown.value = index;
+            updateChatList();
             updateChatDisplay(tutorController.getCurrentChat());
         },
         onChatSwitched: (chatObject) => {
             updateChatDisplay(chatObject);
+            updateChatList(); // Update the chat list to reflect the new selection
         }
     });
 
     // Initialize with a new chat
     tutorController.createNewChat();
-    updateChatSelectDropdown();
+    updateChatList();
 }
 
 const monitoringInterval = tutorController.startMonitoringInterval();

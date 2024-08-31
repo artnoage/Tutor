@@ -601,40 +601,6 @@ a:hover {
   --tw-contain-style:  ;
 }
 
-.container {
-  width: 100%;
-}
-
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-  }
-}
-
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1536px;
-  }
-}
-
 .btn {
   border-radius: 0.25rem;
   padding-top: 0.5rem;
@@ -784,11 +750,6 @@ select option:hover,
   border-color: rgb(0 0 0 / var(--tw-border-opacity));
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -807,6 +768,10 @@ select option:hover,
 
 .h-64 {
   height: 16rem;
+}
+
+.w-64 {
+  width: 16rem;
 }
 
 .w-full {
