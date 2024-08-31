@@ -125,7 +125,7 @@
 
   /* Highlighted chat item */
   .chat-item-selected {
-    @apply bg-midnight-purple text-midnight-foreground font-bold;
+    @apply bg-midnight-purple text-midnight-foreground font-bold shadow-lg;
   }
 
   /* Hover effect for chat items */
@@ -133,8 +133,14 @@
     @apply bg-midnight-currentLine;
   }
 
+  .chat-item-selected {
+    @apply relative pl-6;
+  }
+
   .chat-item-selected::before {
-    content: '• ';
+    content: '►';
+    position: absolute;
+    left: 8px;
     color: #ff79c6; /* Dracula pink */
   }
 }

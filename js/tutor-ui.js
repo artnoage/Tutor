@@ -191,10 +191,12 @@ function updateChatList() {
 // Function to highlight the selected chat
 function highlightSelectedChat(selectedChatItem) {
     chatList.querySelectorAll('.chat-item').forEach(item => {
-        item.classList.remove('chat-item-selected');
+        item.classList.remove('chat-item-selected', 'scale-105', 'shadow-lg');
+        item.textContent = item.textContent.replace('► ', '');
     });
     if (selectedChatItem) {
-        selectedChatItem.classList.add('chat-item-selected');
+        selectedChatItem.classList.add('chat-item-selected', 'scale-105', 'shadow-lg');
+        selectedChatItem.textContent = '► ' + selectedChatItem.textContent;
     }
 }
 
