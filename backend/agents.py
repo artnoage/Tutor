@@ -39,7 +39,7 @@ def get_llm(provider, model_name, api_key):
         raise ValueError(f"Unsupported provider: {provider}")
 
 async def partner_chat(learning_language, chat_history, api_key, provider="groq", last_summary=""):
-    llm = get_llm(provider, "llama-3.1-8b-instant" if provider == "groq" else "gpt-4-turbo-preview", api_key)
+    llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else  "gpt-4o-mini", api_key)
 
     recent_chat_history = chat_history[-8:]
 
@@ -86,7 +86,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             return response.content
 
         async def get_intervention_level():
-            llm = get_llm(provider, "llama3-groq-8b-8192-tool-use-preview" if provider == "groq" else "gpt-4o-mini", api_key)
+            llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
             
             tutor_comments = [comment for comment in tutor_history if comment.startswith("Comment:")][-4:]
             tutor_comments_str = ' '.join(tutor_comments)
@@ -101,7 +101,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             return response.content
 
         async def get_best_expression():
-            llm = get_llm(provider, "llama-3.1-8b-instant" if provider == "groq" else "gpt-4o-mini", api_key)
+            llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
                 
             expression_template = get_best_expression_prompt(tutoring_language)
             expression_prompt = ChatPromptTemplate.from_messages([
@@ -131,7 +131,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
         raise
 
 async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="groq", api_key=None):
-    llm = get_llm(provider, "llama-3.1-70b-versatile" if provider == "groq" else "gpt-4", api_key)
+    llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4", api_key)
 
     last_messages = chat_history[-5:] if len(chat_history) > 5 else chat_history
     
