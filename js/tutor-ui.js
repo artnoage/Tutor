@@ -26,10 +26,12 @@ const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
 const accentIgnoreCheckbox = document.getElementById('accentIgnoreCheckbox');
 const modelSelect = document.getElementById('modelSelect');
 const chatList = document.getElementById('chatList');
+const deleteLocalHistoryButton = document.getElementById('deleteLocalHistoryButton');
 
 disableTutorCheckbox.addEventListener('change', updateDisableTutor);
 accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
 modelSelect.addEventListener('change', updateModel);
+deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 
 startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
