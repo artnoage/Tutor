@@ -233,6 +233,19 @@ function updateChatDisplay(chatObject) {
     tutorsCommentsDisplay.scrollTop = tutorsCommentsDisplay.scrollHeight;
 }
 
+function deleteLocalHistory() {
+    if (confirm("Are you sure you want to delete all local chat history? This action cannot be undone.")) {
+        indexedDB.deleteDatabase("TutorChatDB").onsuccess = function() {
+            console.log("IndexedDB TutorChatDB deleted successfully");
+            tutorController.chatObjects = [];
+            tutorController.currentChatIndex = -1;
+            updateChatList();
+            updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
+            alert("Local history has been deleted.");
+        };
+    }
+}
+
 function populateMicrophoneSelect() {
     navigator.mediaDevices.enumerateDevices()
         .then(devices => {
