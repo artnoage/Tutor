@@ -208,7 +208,7 @@ const tutorController = {
     
             const formElementsWithChat = {
                 ...this.formElements,
-                chatObject: this.chatObject
+                chatObject: this.getCurrentChat()
             };
     
             if (sessionTimestamp !== currentSessionTimestamp) {
