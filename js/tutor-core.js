@@ -1,5 +1,5 @@
 import { sendAudioToServer } from './api-service.js';
-import { trimSilence, bufferToWave } from './audio-utils.js';
+import { bufferToWave } from './audio-utils.js';
 
 // Global variables
 let audioContext;
@@ -10,8 +10,6 @@ let audioChunks = [];
 let stream;
 let isMonitoring = false;
 let isRecording = false;
-let silenceStartTime = null;
-let soundDetectedTime = null;
 let currentSessionTimestamp = null;
 let isProcessing = false;
 
@@ -33,6 +31,8 @@ const tutorController = {
     disableTutor: false, // Tutor enabled by default
     accentIgnore: true, // Default to ignoring accent issues
     pendingProcessingPromise: null,
+    speechStartTime: null,
+    silenceStartTime: null,
 
     setFormElements: function(elements) {
         this.formElements = elements;
@@ -76,8 +76,8 @@ const tutorController = {
 
         // Reset all recording-related variables
         audioChunks = [];
-        silenceStartTime = null;
-        soundDetectedTime = null;
+        this.speechStartTime = null;
+        this.silenceStartTime = null;
     },
 
     createNewChat: function() {
@@ -124,7 +124,8 @@ const tutorController = {
 
     startMonitoring: function() {
         console.log('startMonitoring called');
-        soundDetectedTime = null;
+        this.speechStartTime = null;
+        this.silenceStartTime = null;
         
         const constraints = {
             audio: {
@@ -137,6 +138,7 @@ const tutorController = {
                 stream = str;
                 setupAudioContext();
                 startMonitoring();
+                startRecording(); // Start recording immediately
                 if (this.uiCallbacks.onMonitoringStart) {
                     this.uiCallbacks.onMonitoringStart();
                 }
@@ -194,7 +196,7 @@ const tutorController = {
         return Promise.resolve();
     },
 
-    async processAndPlayAudio(audioBlob, sessionTimestamp) {
+    async processAndPlayAudio(audioData, sessionTimestamp) {
         console.log('Process and play audio called');
         if (sessionTimestamp !== currentSessionTimestamp) {
             console.log('Ignoring outdated audio processing request');
@@ -214,6 +216,9 @@ const tutorController = {
             if (sessionTimestamp !== currentSessionTimestamp) {
                 throw new DOMException('Session changed', 'AbortError');
             }
+
+            // Ensure audioData is a Blob
+            const audioBlob = audioData instanceof Blob ? audioData : new Blob([audioData], { type: 'audio/wav' });
 
             const result = await sendAudioToServer(audioBlob, formElementsWithChat);
             
@@ -309,7 +314,15 @@ const tutorController = {
         const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
         
         try {
-            await this.processAndPlayAudio(audioBlob, sessionTimestamp);
+            const trimmedBlob = await this.trimAudioFromSpeechStart(audioBlob);
+            if (trimmedBlob) {
+                await this.processAndPlayAudio(trimmedBlob, sessionTimestamp);
+            } else {
+                console.log('Audio discarded: no speech detected or too short');
+                if (this.uiCallbacks.onRecordingDiscarded) {
+                    this.uiCallbacks.onRecordingDiscarded("No speech detected or too short");
+                }
+            }
         } catch (error) {
             if (error.name === 'AbortError') {
                 console.log('Audio processing was cancelled');
@@ -319,6 +332,8 @@ const tutorController = {
         } finally {
             isProcessing = false;
             this.pendingProcessingPromise = null;
+            this.speechStartTime = null;
+            this.silenceStartTime = null;
         }
         
         // Reset for next recording only if the session is still active
@@ -328,6 +343,41 @@ const tutorController = {
                 this.uiCallbacks.onMonitoringStart();
             }
         }
+    },
+
+    trimAudioFromSpeechStart: async function(audioBlob) {
+        if (!this.speechStartTime) {
+            return null; // No speech detected
+        }
+
+        const audioBuffer = await this.blobToAudioBuffer(audioBlob);
+        const recordingStartTime = currentSessionTimestamp;
+        const trimStartTime = Math.max(0, this.speechStartTime - recordingStartTime - 300); // 300ms buffer
+        const trimStartSample = Math.floor(trimStartTime * audioBuffer.sampleRate / 1000);
+        
+        if (audioBuffer.length - trimStartSample < audioBuffer.sampleRate * MIN_VALID_DURATION) {
+            return null; // Audio too short after trimming
+        }
+
+        const trimmedBuffer = audioContext.createBuffer(
+            audioBuffer.numberOfChannels,
+            audioBuffer.length - trimStartSample,
+            audioBuffer.sampleRate
+        );
+
+        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+            const channelData = audioBuffer.getChannelData(channel);
+            trimmedBuffer.copyToChannel(channelData.slice(trimStartSample), channel);
+        }
+
+        return new Blob([bufferToWave(trimmedBuffer)], {type: 'audio/wav'});
+    },
+
+    blobToAudioBuffer: async function(blob) {
+        const arrayBuffer = await blob.arrayBuffer();
+        return new Promise((resolve, reject) => {
+            audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+        });
     }
 };
 
@@ -361,38 +411,29 @@ function monitorSound() {
     const average = dataArray.reduce((acc, value) => acc + value, 0) / dataArray.length;
     const isSilent = average < SILENCE_THRESHOLD;
 
-    if (!isRecording) {
-        handlePreRecordingState(isSilent);
-    } else {
-        handleRecordingState(isSilent);
-    }
+    handleSoundState(isSilent);
 
     return { average, isSilent };
 }
 
-function handlePreRecordingState(isSilent) {
-    if (!isSilent) {
-        if (!soundDetectedTime) {
-            soundDetectedTime = Date.now();
-        } else if (Date.now() - soundDetectedTime >= SOUND_DETECTION_DURATION) {
-            startRecording();
-        }
-    } else {
-        soundDetectedTime = null;
-    }
-}
+function handleSoundState(isSilent) {
+    const currentTime = Date.now();
 
-function handleRecordingState(isSilent) {
-    if (isSilent) {
-        if (!silenceStartTime) {
-            silenceStartTime = Date.now();
-        } else if (Date.now() - silenceStartTime >= tutorController.pauseTime * 1000) {
-            stopRecording().then(result => {
-                tutorController.onRecordingComplete(result);
-            });
+    if (!isSilent) {
+        if (!tutorController.speechStartTime) {
+            tutorController.speechStartTime = currentTime;
         }
+        tutorController.silenceStartTime = null;
     } else {
-        silenceStartTime = null;
+        if (tutorController.speechStartTime) {
+            if (!tutorController.silenceStartTime) {
+                tutorController.silenceStartTime = currentTime;
+            } else if (currentTime - tutorController.silenceStartTime >= tutorController.pauseTime * 1000) {
+                stopRecording().then(result => {
+                    tutorController.onRecordingComplete(result);
+                });
+            }
+        }
     }
 }
 
@@ -406,7 +447,8 @@ function startRecording() {
         audioChunks.push(event.data);
     };
     mediaRecorder.start();
-    silenceStartTime = null;
+    tutorController.speechStartTime = null;
+    tutorController.silenceStartTime = null;
 }
 
 async function stopRecording() {
@@ -418,19 +460,9 @@ async function stopRecording() {
         stopMonitoring();
         
         return new Promise((resolve) => {
-            mediaRecorder.onstop = async () => {
+            mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
-                const trimmedBlob = await trimSilence(
-                    audioBlob, 
-                    audioContext, 
-                    tutorController.pauseTime, 
-                    MIN_VALID_DURATION
-                );
-                if (trimmedBlob === null) {
-                    resolve({ discarded: true, reason: "Recording too short" });
-                } else {
-                    resolve({ discarded: false, audioBlob: trimmedBlob });
-                }
+                resolve({ discarded: false, audioBlob: audioBlob });
             };
         });
     }
@@ -458,8 +490,8 @@ function stopTutor() {
     isRecording = false;
     isProcessing = false;
     audioChunks = [];
-    silenceStartTime = null;
-    soundDetectedTime = null;
+    tutorController.speechStartTime = null;
+    tutorController.silenceStartTime = null;
 }
 
 function decodeAudioData(base64Audio) {
