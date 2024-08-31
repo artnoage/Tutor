@@ -1,6 +1,61 @@
 import { sendAudioToServer } from './api-service.js';
 import { bufferToWave } from './audio-utils.js';
 
+// IndexedDB
+let db;
+
+const dbName = "TutorChatDB";
+const objectStoreName = "chatObjects";
+
+// Initialize IndexedDB
+const dbPromise = indexedDB.open(dbName, 1);
+
+dbPromise.onupgradeneeded = function(event) {
+    db = event.target.result;
+    db.createObjectStore(objectStoreName, { keyPath: "id", autoIncrement: true });
+};
+
+dbPromise.onsuccess = function(event) {
+    db = event.target.result;
+    loadChatObjects(); // Load chat objects when DB is ready
+};
+
+dbPromise.onerror = function(event) {
+    console.error("IndexedDB error:", event.target.error);
+};
+
+// Function to save chat objects to IndexedDB
+function saveChatObjects() {
+    const transaction = db.transaction([objectStoreName], "readwrite");
+    const store = transaction.objectStore(objectStoreName);
+
+    // Clear existing data
+    store.clear();
+
+    // Add each chat object
+    tutorController.chatObjects.forEach((chatObject, index) => {
+        store.add({ ...chatObject, id: index + 1 });
+    });
+}
+
+// Function to load chat objects from IndexedDB
+function loadChatObjects() {
+    const transaction = db.transaction([objectStoreName], "readonly");
+    const store = transaction.objectStore(objectStoreName);
+    const request = store.getAll();
+
+    request.onsuccess = function(event) {
+        const loadedChatObjects = event.target.result;
+        if (loadedChatObjects.length > 0) {
+            tutorController.chatObjects = loadedChatObjects;
+            tutorController.currentChatIndex = loadedChatObjects.length - 1;
+            if (tutorController.uiCallbacks.onChatObjectsLoaded) {
+                tutorController.uiCallbacks.onChatObjectsLoaded();
+            }
+        }
+    };
+}
+
 // Global variables
 let audioContext;
 let analyser;
@@ -90,6 +145,7 @@ const tutorController = {
         if (this.uiCallbacks.onChatCreated) {
             this.uiCallbacks.onChatCreated(this.currentChatIndex);
         }
+        saveChatObjects(); // Save after creating a new chat
     },
 
     switchChat: function(index) {
@@ -98,6 +154,7 @@ const tutorController = {
             if (this.uiCallbacks.onChatSwitched) {
                 this.uiCallbacks.onChatSwitched(this.getCurrentChat());
             }
+            saveChatObjects(); // Save after switching chats
         }
     },
 
@@ -120,6 +177,7 @@ const tutorController = {
         if (wasActive) {
             this.start();
         }
+        saveChatObjects(); // Save after restarting chat
     },
 
     startMonitoring: function() {
