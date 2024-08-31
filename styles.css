@@ -120,15 +120,26 @@
 
   /* Chat item styles for the sidebar */
   .chat-item {
-    @apply p-2 mb-2 bg-base-300 rounded cursor-pointer hover:bg-base-100;
-  }
-  .chat-item:hover {
-    @apply hover:bg-base-100;
+    @apply p-2 mb-2 rounded cursor-pointer;
   }
 
   /* Highlighted chat item */
   .chat-item-selected {
     @apply bg-primary text-primary-content;
+  }
+
+  /* Hover effect for chat items */
+  .chat-item:hover:not(.chat-item-selected) {
+    @apply bg-base-100;
+  }
+
+  /* Transition effects */
+  .chat-item {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .chat-item-selected {
+    @apply scale-105 shadow-lg;
   }
 }
 

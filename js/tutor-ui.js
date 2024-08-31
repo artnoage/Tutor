@@ -175,25 +175,28 @@ function updateChatList() {
     chatList.innerHTML = '';
     tutorController.chatObjects.slice().reverse().forEach((chatObject, index) => {
         const chatItem = document.createElement('div');
-        chatItem.className = 'p-2 mb-2 bg-base-300 rounded cursor-pointer hover:bg-base-100';
-        chatItem.textContent = `Chat ${index + 1}`;
+        chatItem.className = 'chat-item transition-all duration-300 ease-in-out';
+        chatItem.textContent = `Chat ${tutorController.chatObjects.length - index}`;
+        chatItem.dataset.index = tutorController.chatObjects.length - index - 1;
         chatItem.addEventListener('click', () => {
-            tutorController.switchChat(index);
+            tutorController.switchChat(parseInt(chatItem.dataset.index));
             updateChatDisplay(tutorController.getCurrentChat());
             highlightSelectedChat(chatItem);
         });
         chatList.appendChild(chatItem);
     });
-    highlightSelectedChat(chatList.lastChild);
+    highlightSelectedChat(chatList.querySelector(`[data-index="${tutorController.currentChatIndex}"]`));
 }
 
 // Function to highlight the selected chat
 function highlightSelectedChat(selectedChatItem) {
-    chatList.querySelectorAll('div').forEach(item => {
-        item.classList.remove('bg-primary', 'text-primary-content');
+    chatList.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('chat-item-selected', 'scale-105', 'shadow-lg');
+        item.classList.add('bg-base-300', 'hover:bg-base-100');
     });
     if (selectedChatItem) {
-        selectedChatItem.classList.add('bg-primary', 'text-primary-content');
+        selectedChatItem.classList.remove('bg-base-300', 'hover:bg-base-100');
+        selectedChatItem.classList.add('chat-item-selected', 'scale-105', 'shadow-lg');
     }
 }
 
