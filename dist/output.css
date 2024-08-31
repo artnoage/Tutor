@@ -750,6 +750,10 @@ select option:hover,
   border-color: rgb(0 0 0 / var(--tw-border-opacity));
 }
 
+/* Chat item styles for the sidebar */
+
+/* Highlighted chat item */
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -762,12 +766,20 @@ select option:hover,
   display: flex;
 }
 
+.grid {
+  display: grid;
+}
+
 .hidden {
   display: none;
 }
 
 .h-64 {
   height: 16rem;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .w-64 {
@@ -788,6 +800,14 @@ select option:hover,
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.grid-rows-\[auto\2c auto\2c 1fr\] {
+  grid-template-rows: auto auto 1fr;
+}
+
+.gap-4 {
+  gap: 1rem;
 }
 
 .space-x-4 > :not([hidden]) ~ :not([hidden]) {

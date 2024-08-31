@@ -59,15 +59,16 @@
     vertical-align: middle;
     margin-left: 10px;
   }
-  
+
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
-  
+
   .hidden {
     display: none;
   }
+  
   /* Dropdown styles */
   .dropdown {
     @apply relative inline-block;
@@ -82,7 +83,7 @@
   .dropdown-item {
     @apply block px-4 py-2 text-midnight-foreground hover:bg-midnight-background hover:text-midnight-cyan;
   }
-  
+
   /* Select element styles */
   select {
     @apply bg-midnight-currentLine text-midnight-foreground border border-midnight-comment rounded px-3 py-2 appearance-none;
@@ -115,6 +116,19 @@
   }
   .info-window {
     @apply bg-midnight-currentLine border border-black p-4 rounded-lg overflow-y-auto;
+  }
+
+  /* Chat item styles for the sidebar */
+  .chat-item {
+    @apply p-2 mb-2 bg-base-300 rounded cursor-pointer hover:bg-base-100;
+  }
+  .chat-item:hover {
+    @apply hover:bg-base-100;
+  }
+
+  /* Highlighted chat item */
+  .chat-item-selected {
+    @apply bg-primary text-primary-content;
   }
 }
 
