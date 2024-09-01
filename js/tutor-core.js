@@ -195,10 +195,9 @@ const tutorController = {
 
         // If there's no empty chat, create a new one
         const now = new Date();
-        const timestamp = now.toLocaleString();
         const newChat = {
             id: now.getTime().toString(), // Use milliseconds since epoch as a unique ID
-            name: timestamp,
+            name: now.toLocaleString(),
             chat_history: [],
             tutors_comments: [],
             summary: []
@@ -208,7 +207,7 @@ const tutorController = {
         if (this.uiCallbacks.onChatCreated) {
             this.uiCallbacks.onChatCreated(this.currentChatIndex);
         }
-        saveChatObjects(); // Save after creating a new chat
+        this.saveChatObjects(); // Save after creating a new chat
         
         // Inform the user about the new chat creation
         if (this.uiCallbacks.onInfoUpdate) {
