@@ -2,21 +2,15 @@ import { tutorController } from './tutor-core.js';
 import { tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
 export function updateChatList() {
-    console.log('Updating chat list');
-    console.log('All chat objects:', tutorController.chatObjects);
-    console.log('Current chat timestamp:', tutorController.currentChatTimestamp);
-
     const chatList = document.getElementById('chatList');
     chatList.innerHTML = '';
     tutorController.chatObjects.sort((a, b) => b.timestamp - a.timestamp).forEach((chat) => {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         const timestamp = chat.timestamp ? new Date(chat.timestamp).toLocaleString() : 'Invalid Date';
-        console.log(`Chat: Raw timestamp: ${chat.timestamp}, Formatted: ${timestamp}`);
         chatItem.textContent = `Chat ${timestamp}`;
         chatItem.dataset.timestamp = chat.timestamp;
         chatItem.onclick = () => {
-            console.log('Switching to chat with timestamp:', chat.timestamp);
             tutorController.switchChat(chat.timestamp);
         };
         chatList.appendChild(chatItem);
@@ -219,7 +213,7 @@ export function initializeUI() {
     const pauseTimeSlider = document.getElementById('pauseTimeSlider');
     pauseTimeSlider.min = 1;
     pauseTimeSlider.max = 10;
-    pauseTimeSlider.value = 1;
+    pauseTimeSlider.value = 2;
     pauseTimeSlider.step = 1;
 
     document.getElementById('thinkingSpinner').classList.add('hidden');
@@ -230,6 +224,10 @@ export function initializeUI() {
         tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
         partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
         interventionLevelSelect: document.getElementById('interventionLevelSelect'),
+    });
+
+    // Set default intervention level to medium
+    document.getElementById('interventionLevelSelect').value = 'medium';
         playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
         pauseTimeSlider: document.getElementById('pauseTimeSlider'),
         disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
