@@ -1,54 +1,36 @@
 async function sendAudioToServer(audioBlob, formElements) {
-    console.log('Sending audio to server. Form elements:', JSON.stringify(formElements, null, 2));
+    // Debug: Log the chatObject before sending
+    console.log('ChatObject being sent to server:', JSON.stringify(formElements.chatObject, null, 2));
 
     const audioData = {
-        tutoringLanguage: formElements.tutoringLanguageSelect?.value,
-        tutorsLanguage: formElements.tutorsLanguageSelect?.value,
-        tutorsVoice: formElements.tutorsVoiceSelect?.value,
-        partnersVoice: formElements.partnersVoiceSelect?.value,
-        interventionLevel: formElements.interventionLevelSelect?.value,
-        chatObject: formElements.chatObject,
-<<<<<<< HEAD
+        tutoringLanguage: formElements.tutoringLanguageSelect.value,
+        tutorsLanguage: formElements.tutorsLanguageSelect.value,
+        tutorsVoice: formElements.tutorsVoiceSelect.value,
+        partnersVoice: formElements.partnersVoiceSelect.value,
+        interventionLevel: formElements.interventionLevelSelect.value,
+        chatObject: formElements.chatObject, // This should now be correctly structured
         disableTutor: formElements.disableTutorCheckbox.checked,
         accentignore: formElements.accentIgnoreCheckbox.checked,
         model: formElements.modelSelect.value,
         playbackSpeed: formElements.playbackSpeedSlider.value,
         pauseTime: formElements.pauseTimeSlider.value
-=======
-        disableTutor: formElements.disableTutorCheckbox?.checked,
-        accentignore: formElements.accentIgnoreCheckbox?.checked,
-        model: formElements.modelSelect?.value
->>>>>>> origin/main
     };
 
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.wav');
     formData.append('data', JSON.stringify(audioData));
     
-<<<<<<< HEAD
-=======
     // Add API keys to form data (sending empty strings if not available)
->>>>>>> origin/main
+    // TODO: Implement proper API key management later
     formData.append('groq_api_key', '');
     formData.append('openai_api_key', '');
 
-    const url = 'https://tutorapi.metaskepsis.com/process_audio';
-
     try {
         console.time('serverProcessing');
-<<<<<<< HEAD
         //const response = await fetch('https://tutorapi.metaskepsis.com/process_audio', {
         const response = await fetch('http://127.0.0.1:8080/process_audio', {
-=======
-        const response = await fetch(url, {
->>>>>>> origin/main
             method: 'POST',
-            body: formData,
-            mode: 'cors',
-            credentials: 'same-origin', // Changed from 'include' to 'same-origin'
-            headers: {
-                'Accept': 'application/json',
-            }
+            body: formData
         });
 
         if (!response.ok) {
@@ -59,7 +41,7 @@ async function sendAudioToServer(audioBlob, formElements) {
 
         const result = await response.json();
         console.timeEnd('serverProcessing');
-        console.log('Server response:', JSON.stringify(result, null, 2));
+        console.log('Server response:', result);
         return {
             audio_base64: result.audio_base64,
             chatObject: result.chatObject
