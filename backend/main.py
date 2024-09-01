@@ -302,7 +302,12 @@ async def generate_homework(request_data: AudioData):
         # Combine chat history and tutor history
         full_context = f"Chat History:\n{chat_history_text}\n\nTutor History:\n{tutor_history_text}"
         
-        return JSONResponse({"homework": full_context})
+        # For now, we're just returning the full context as homework
+        # In a real implementation, you might want to process this data further
+        # or use it to generate more specific homework tasks
+        return JSONResponse({
+            "homework": "Based on your conversation, here's a summary to review:\n\n" + full_context
+        })
     
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
