@@ -294,16 +294,14 @@ async def generate_homework(request_data: AudioData):
         logger.info("Starting generate_homework function")
         
         # Concatenate chat history
-        chat_history_text = "I am listening on the top\n\n" + "\n".join([msg.content for msg in request_data.chatObject.chat_history])
+        chat_history_text = "\n".join([f"{msg.type}: {msg.content}" for msg in request_data.chatObject.chat_history])
         
         # Concatenate tutor history
         tutor_history_text = "\n".join(request_data.chatObject.tutors_comments)
         
         # Combine chat history and tutor history
-        full_context = f"{chat_history_text}\n\n{tutor_history_text}"
+        full_context = f"Chat History:\n{chat_history_text}\n\nTutor History:\n{tutor_history_text}"
         
-        # For now, we'll just return the full context as the homework
-        # In a real scenario, you might want to send this to another service or process it further
         return JSONResponse({"homework": full_context})
     
     except Exception as e:
