@@ -113,8 +113,10 @@ stopTutorButton.addEventListener('click', async () => {
 sendButton.addEventListener('click', manualSend);
 
 createChatButton.addEventListener('click', () => {
-    tutorController.createNewChat();
-    updateChatList();
+    const newChat = tutorController.createNewChat();
+    if (newChat !== null) {
+        updateChatList();
+    }
 });
 
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);

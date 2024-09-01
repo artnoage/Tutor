@@ -143,6 +143,22 @@ const tutorController = {
     },
 
     createNewChat: function() {
+        // Check if there's an existing chat
+        if (this.chatObjects.length > 0) {
+            const lastChat = this.chatObjects[this.chatObjects.length - 1];
+            const isEmptyChat = 
+                lastChat.chat_history.length === 0 &&
+                lastChat.tutors_comments.length === 0 &&
+                lastChat.summary.length === 0;
+
+            if (isEmptyChat) {
+                if (this.uiCallbacks.onInfoUpdate) {
+                    this.uiCallbacks.onInfoUpdate("The last chat is empty. Please use it instead of creating a new one.");
+                }
+                return null;
+            }
+        }
+
         const newChat = {
             chat_history: [],
             tutors_comments: [],
