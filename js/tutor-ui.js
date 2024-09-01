@@ -76,7 +76,7 @@ createChatButton.addEventListener('click', async () => {
 
 playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
 pauseTimeSlider.addEventListener('input', updatePauseTime);
-tutoringLanguageSelect.addEventListener('change', () => tutorController.updateTutoringLanguage(tutoringLanguageSelect.value));
+tutoringLanguageSelect.addEventListener('change', () => tutorController.setTutoringLanguage(tutoringLanguageSelect.value));
 tutorsLanguageSelect.addEventListener('change', () => tutorController.updateTutorsLanguage(tutorsLanguageSelect.value));
 interventionLevelSelect.addEventListener('change', () => tutorController.updateInterventionLevel(interventionLevelSelect.value));
 tutorsVoiceSelect.addEventListener('change', () => tutorController.updateTutorsVoice(tutorsVoiceSelect.value));

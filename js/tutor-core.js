@@ -184,6 +184,11 @@ class TutorController {
         this.accentIgnore = ignore;
     }
 
+    setTutoringLanguage(language) {
+        this.tutoringLanguage = language;
+        // You might want to add additional logic here if needed
+    }
+
     async manualStop() {
         await this.audioManager.manualStop();
         if (this.uiCallbacks.onProcessingStart) {
