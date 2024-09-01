@@ -1,6 +1,8 @@
 import { tutorController } from './tutor-core.js';
 import { tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
+// eslint-disable-next-line no-unused-vars
+
 const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
 const sendButton = document.getElementById('sendButton');
@@ -29,12 +31,23 @@ const chatList = document.getElementById('chatList');
 const deleteLocalHistoryButton = document.getElementById('deleteLocalHistoryButton');
 const deleteSelectedChatButton = document.getElementById('deleteSelectedChatButton');
 
-if (disableTutorCheckbox) disableTutorCheckbox.addEventListener('change', updateDisableTutor);
-if (deleteSelectedChatButton) deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
-if (accentIgnoreCheckbox) accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
-if (modelSelect) modelSelect.addEventListener('change', updateModel);
-if (deleteLocalHistoryButton) deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
-if (deleteSelectedChatButton) deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
+// eslint-disable-next-line no-unused-vars
+
+if (disableTutorCheckbox) {
+    disableTutorCheckbox.addEventListener('change', updateDisableTutor);
+}
+if (deleteSelectedChatButton) {
+    deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
+}
+if (accentIgnoreCheckbox) {
+    accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
+}
+if (modelSelect) {
+    modelSelect.addEventListener('change', updateModel);
+}
+if (deleteLocalHistoryButton) {
+    deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
+}
 
 startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');

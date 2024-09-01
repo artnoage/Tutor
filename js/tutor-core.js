@@ -10,17 +10,17 @@ const objectStoreName = "chatObjects";
 // Initialize IndexedDB
 const dbPromise = indexedDB.open(dbName, 1);
 
-dbPromise.onupgradeneeded = function(event) {
+dbPromise.onupgradeneeded = (event) => {
     db = event.target.result;
     db.createObjectStore(objectStoreName, { keyPath: "id", autoIncrement: true });
 };
 
-dbPromise.onsuccess = function(event) {
+dbPromise.onsuccess = (event) => {
     db = event.target.result;
     loadChatObjects(); // Load chat objects when DB is ready
 };
 
-dbPromise.onerror = function(event) {
+dbPromise.onerror = (event) => {
     console.error("IndexedDB error:", event.target.error);
 };
 
@@ -45,7 +45,7 @@ function loadChatObjects() {
         const store = transaction.objectStore(objectStoreName);
         const request = store.getAll();
 
-        request.onsuccess = function(event) {
+        request.onsuccess = (event) => {
             const loadedChatObjects = event.target.result;
             if (loadedChatObjects.length > 0) {
                 tutorController.chatObjects = loadedChatObjects;
@@ -57,14 +57,14 @@ function loadChatObjects() {
             resolve(tutorController.chatObjects);
         };
 
-        request.onerror = function(event) {
+        request.onerror = (event) => {
             reject(event.target.error);
         };
     });
 }
 
 // Initialize IndexedDB and load chat objects
-dbPromise.onsuccess = function(event) {
+dbPromise.onsuccess = (event) => {
     db = event.target.result;
     loadChatObjects().then(() => {
         if (tutorController.uiCallbacks && tutorController.uiCallbacks.onInitialLoadComplete) {
