@@ -279,16 +279,18 @@ function deleteSelectedChat() {
 
     if (confirm("Are you sure you want to delete the selected chat? This action cannot be undone.")) {
         tutorController.chatObjects.splice(tutorController.currentChatIndex, 1);
+        tutorController.saveChatObjects(); // Save the updated chat objects
+
         if (tutorController.chatObjects.length === 0) {
-            tutorController.currentChatIndex = -1;
-            updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
+            // If we've deleted the last chat, refresh the page
+            alert("Last chat deleted. The page will now refresh to create a new chat.");
+            window.location.reload();
         } else {
             tutorController.currentChatIndex = Math.min(tutorController.currentChatIndex, tutorController.chatObjects.length - 1);
             updateChatDisplay(tutorController.getCurrentChat());
+            updateChatList();
+            alert("Selected chat has been deleted.");
         }
-        updateChatList();
-        tutorController.saveChatObjects(); // Save the updated chat objects
-        alert("Selected chat has been deleted.");
     }
 }
 
