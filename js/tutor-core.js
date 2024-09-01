@@ -51,7 +51,7 @@ function loadChatObjects() {
                 tutorController.chatObjects = loadedChatObjects;
                 tutorController.currentChatIndex = loadedChatObjects.length - 1;
             }
-            if (tutorController.uiCallbacks.onChatObjectsLoaded) {
+            if (tutorController.uiCallbacks && tutorController.uiCallbacks.onChatObjectsLoaded) {
                 tutorController.uiCallbacks.onChatObjectsLoaded();
             }
             resolve(tutorController.chatObjects);

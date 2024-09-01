@@ -29,11 +29,11 @@ const chatList = document.getElementById('chatList');
 const deleteLocalHistoryButton = document.getElementById('deleteLocalHistoryButton');
 const deleteSelectedChatButton = document.getElementById('deleteSelectedChatButton');
 
-disableTutorCheckbox.addEventListener('change', updateDisableTutor);
-deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
-accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
-modelSelect.addEventListener('change', updateModel);
-deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
+if (disableTutorCheckbox) disableTutorCheckbox.addEventListener('change', updateDisableTutor);
+if (deleteSelectedChatButton) deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
+if (accentIgnoreCheckbox) accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
+if (modelSelect) modelSelect.addEventListener('change', updateModel);
+if (deleteLocalHistoryButton) deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 
 startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
