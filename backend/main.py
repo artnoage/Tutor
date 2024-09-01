@@ -292,173 +292,22 @@ async def process_audio(
 async def generate_homework(request_data: AudioData):
     try:
         logger.info("Starting generate_homework function")
-        
+
         # Concatenate chat history
-        chat_history_text = "\n".join([f"{msg.type}: {msg.content}" for msg in request_data.chatObject.chat_history])
-        
+        chat_history_text = "\n".join([f"{msg.type}: {msg.content}" for msg in
+        request_data.chatObject.chat_history])
+
         # Concatenate tutor history
         tutor_history_text = "\n".join(request_data.chatObject.tutors_comments)
-        
+
         # Combine chat history and tutor history
         full_context = f"Chat History:\n{chat_history_text}\n\nTutor History:\n{tutor_history_text}"
-        
+
         # For now, we're just returning the full context as homework
         # In a real implementation, you might want to process this data further
         # or use it to generate more specific homework tasks
         return JSONResponse({
-            "homework": "Based on your conversation, here's a summary to review:\n\n" + full_context
-        })
-    
-    except Exception as e:
-        logger.error(f"An error occurred: {str(e)}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
-    try:
-        logger.info("Starting process_audio function")
-        audio_data = AudioData.model_validate_json(data)
-        
-        
-        # Read the audio file
-        audio_content = await audio.read()
-        learning_language = language_to_code(audio_data.tutoringLanguage)
-        logger.info(f"Learning language code: {learning_language}")
-        
-        # Select the appropriate API key based on the model
-        if audio_data.model == "OpenAI":
-            api_key = OPENAI_API_KEY
-            provider = "openai"
-            logger.info("Using OpenAI API{api_key[:5]} ")
-        else:
-            if not groq_api_key:
-                logger.info("No Groq API key provided, selecting a random one")
-                api_key = get_random_groq_api_key()
-            else:
-                api_key = groq_api_key
-            provider = "groq"
-            logger.info(f"Using Groq API key: {api_key[:5]}...")  # Log first 5 characters for security
-        
-        # Transcribe the audio
-        logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
-        logger.info("Starting transcribe_audio task {api_key}")
-        transcription = transcribe_audio(audio_content, learning_language, api_key, new_parameter=audio_data.accentignore, provider=provider)
-        logger.info(f"Transcription: {transcription}")
-        
-        # Convert MessageDict objects to BaseMessage objects
-        logger.info("Converting chat history")
-        chat_history = [dict_to_message(msg.model_dump()) for msg in audio_data.chatObject.chat_history]
-        logger.info(f"Converted chat history: {chat_history}")
-        wrapped_transcription = HumanMessage(content=transcription)
-        chat_history.append(wrapped_transcription)
-        tutor_history = audio_data.chatObject.tutors_comments
-
-        # Use the partner_chat function to get a response
-        logger.info("Starting partner_chat task")
-        last_summary = audio_data.chatObject.summary[-1] if audio_data.chatObject.summary else ""
-        partner_task = asyncio.create_task(partner_chat(
-            audio_data.tutoringLanguage,
-            chat_history,
-            provider=provider,
-            api_key=api_key,
-            last_summary=last_summary))
-        
-        logger.info("Starting tutor_chat task")
-        tutor_task = asyncio.create_task(tutor_chat(
-            audio_data.tutoringLanguage,
-            audio_data.tutorsLanguage,
-            chat_history,
-            tutor_history,
-            provider=provider,
-            api_key=api_key))
-        
-        (response, updated_chat_history), tutor_feedback = await asyncio.gather(partner_task, tutor_task)
-
-        logger.info(f"Partner response: {response.content}")
-        logger.info(f"Tutor feedback: {tutor_feedback}")
-        
-        async def generate_audio(text, voice):
-            logger.info(f"Generating audio for voice: {voice}")
-            return await asyncio.to_thread(generate_tts, text, OPENAI_API_KEY, voice)
-
-        audio_generation_tasks = []
-        audio_order = []
-
-        # Convert string levels to numeric values
-        tutor_intervention_level = INTERVENTION_LEVEL_MAP[tutor_feedback["intervene"]]
-        required_intervention_level = INTERVENTION_LEVEL_MAP[audio_data.interventionLevel]
-
-        # Prepare tutor feedback string
-        tutors_comments_string = f"Comment: {tutor_feedback['comments']}\nCorrection: {tutor_feedback['correction']}"
-
-        if not audio_data.disableTutor and (3-tutor_intervention_level) < required_intervention_level:
-            logger.info(f"Tutor intervention enabled. Level: {tutor_feedback['intervene']}")
-            audio_generation_tasks.extend([
-                generate_audio(tutor_feedback["comments"], audio_data.tutorsVoice),  # TTS: Tutor's comments
-                generate_audio(tutor_feedback["correction"], audio_data.tutorsVoice),  # TTS: Tutor's correction
-            ])
-            audio_order = ["tutor_comments", "tutor_correction"]
-        else:
-            logger.info(f"Tutor intervention disabled or not needed. Level: {tutor_feedback['intervene']}")
-            audio_order = []
-
-        # Split partner's response if it's long
-        response_parts = split_text(response.content)
-        for i, part in enumerate(response_parts):
-            audio_generation_tasks.append(generate_audio(part, audio_data.partnersVoice))  # TTS: Partner's response part
-            audio_order.append(f"partner_response_{i}")
-
-        logger.info(f"Number of response parts: {len(response_parts)}")
-
-        # Add summarizer task
-        logger.info("Starting summarizer task")
-        previous_summary = audio_data.chatObject.summary[-1] if audio_data.chatObject.summary else ""
-        summarizer_task = summarize_conversation(
-            audio_data.tutoringLanguage,
-            updated_chat_history,
-            previous_summary,
-            provider=provider,
-            api_key=api_key
-        )
-
-        # Gather all tasks
-        logger.info("Gathering all tasks")
-        all_results = await asyncio.gather(*audio_generation_tasks, summarizer_task)
-
-        # Separate audio results and summary
-        audio_results = all_results[:-1]
-        updated_summary = all_results[-1]
-
-        audio_dict = dict(zip(audio_order, audio_results))
-
-        # Concatenate audio data in the correct order
-        logger.info("Concatenating audio data")
-        audio_data_list = []
-        for key in audio_order:
-            if key.startswith("partner_response_"):
-                audio_data_list.append(audio_dict[key])
-            else:
-                audio_data_list.append(audio_dict[key])
-        concatenated_audio = b''.join(audio_data_list)
-        audio_base64 = base64.b64encode(concatenated_audio).decode('utf-8')
-
-        logger.info(f"Updated summary: {updated_summary}")
-
-        # Convert BaseMessage objects back to MessageDict objects
-        logger.info("Updating chat object")
-        updated_chat_object = audio_data.chatObject.model_dump()
-        updated_chat_object['chat_history'] = [
-            MessageDict(**message_to_dict(msg)).model_dump() for msg in updated_chat_history
-        ]
-        updated_chat_object['summary'].append(updated_summary)
-        updated_chat_object['tutors_comments'].append(tutors_comments_string)
-
-        logger.info(f"Tutors comments: {updated_chat_object['tutors_comments']}")
-
-        # Single return statement
-        logger.info("Returning response")
-        return JSONResponse({
-            "audio_base64": audio_base64,
-            "chatObject": updated_chat_object
-        })
+            "homework": "Based on your conversation, here's a summary to review:\n\n" + full_context})
 
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
