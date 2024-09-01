@@ -34,6 +34,7 @@ if (deleteSelectedChatButton) deleteSelectedChatButton.addEventListener('click',
 if (accentIgnoreCheckbox) accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
 if (modelSelect) modelSelect.addEventListener('change', updateModel);
 if (deleteLocalHistoryButton) deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
+if (deleteSelectedChatButton) deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
 startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
@@ -254,6 +255,27 @@ function deleteLocalHistory() {
             console.error("Error deleting data:", error);
             alert("An error occurred while deleting data. Please try again.");
         });
+    }
+}
+
+function deleteSelectedChat() {
+    if (tutorController.currentChatIndex === -1) {
+        alert("No chat selected to delete.");
+        return;
+    }
+
+    if (confirm("Are you sure you want to delete the selected chat? This action cannot be undone.")) {
+        tutorController.chatObjects.splice(tutorController.currentChatIndex, 1);
+        if (tutorController.chatObjects.length === 0) {
+            tutorController.currentChatIndex = -1;
+            updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
+        } else {
+            tutorController.currentChatIndex = Math.min(tutorController.currentChatIndex, tutorController.chatObjects.length - 1);
+            updateChatDisplay(tutorController.getCurrentChat());
+        }
+        updateChatList();
+        tutorController.saveChatObjects(); // Save the updated chat objects
+        alert("Selected chat has been deleted.");
     }
 }
 
