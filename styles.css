@@ -120,28 +120,39 @@
 
   /* Chat item styles for the sidebar */
   .chat-item {
-    @apply p-2 mb-2 rounded cursor-pointer transition-all duration-300 ease-in-out;
+    @apply p-3 mb-3 rounded cursor-pointer transition-all duration-300 ease-in-out border border-midnight-comment;
   }
 
   /* Highlighted chat item */
   .chat-item-selected {
-    @apply bg-midnight-purple text-midnight-foreground font-bold shadow-lg;
+    @apply bg-midnight-purple text-midnight-foreground font-bold shadow-lg border-midnight-cyan;
   }
 
   /* Hover effect for chat items */
   .chat-item:hover:not(.chat-item-selected) {
-    @apply bg-midnight-currentLine;
+    @apply bg-midnight-currentLine border-midnight-orange;
   }
 
   .chat-item-selected {
-    @apply relative pl-6;
+    @apply relative pl-8;
   }
 
   .chat-item-selected::before {
     content: '►';
     position: absolute;
-    left: 8px;
+    left: 12px;
     color: #ff79c6; /* Dracula pink */
+    font-size: 1.2em;
+  }
+
+  /* Sidebar styles */
+  .sidebar {
+    @apply bg-midnight-background border-r border-midnight-comment;
+  }
+
+  /* Chat list container */
+  #chatList {
+    @apply space-y-2 p-2;
   }
 }
 
