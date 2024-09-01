@@ -145,8 +145,38 @@ async def generate_homework(request_data: AudioData):
     try:
         logger.info("Starting generate_homework function")
         
-        # Placeholder response
-        homework = "I am listening"
+        chat_history = [dict_to_message(msg.model_dump()) for msg in request_data.chatObject.chat_history]
+        
+        # Use the last AI message as context for homework generation
+        last_ai_message = next((msg for msg in reversed(chat_history) if isinstance(msg, AIMessage)), None)
+        context = last_ai_message.content if last_ai_message else ""
+        
+        # Select the appropriate API key based on the model
+        if request_data.model == "OpenAI":
+            api_key = OPENAI_API_KEY
+            provider = "openai"
+        else:
+            api_key = get_random_groq_api_key()
+            provider = "groq"
+        
+        llm = get_llm(provider, "llama-3.1-8b-instant" if provider == "groq" else "gpt-4-turbo-preview", api_key)
+        
+        homework_prompt = f"""
+        Based on the following context from a language learning conversation, generate a homework assignment:
+        
+        Context: {context}
+        
+        The homework should:
+        1. Be relevant to the topics discussed in the conversation
+        2. Help reinforce the language concepts covered
+        3. Be appropriate for the learner's level (infer from the context)
+        4. Include 2-3 exercises or tasks
+        5. Provide clear instructions for each task
+        
+        Generate the homework assignment:
+        """
+        
+        homework = await llm.ainvoke(homework_prompt)
         
         return JSONResponse({"homework": homework})
     
