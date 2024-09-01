@@ -293,15 +293,18 @@ async def generate_homework_endpoint(request_data: AudioData):
     try:
         logger.info("Starting generate_homework function")
 
-        # Concatenate chat history
-        chat_history_text = "\n".join([f"{msg.type}: {msg.content}" for msg in
-        request_data.chatObject.chat_history])
+        # Interweave chat history and tutor comments
+        interwoven_context = []
+        for i, msg in enumerate(request_data.chatObject.chat_history):
+            interwoven_context.append(f"{msg.type}: {msg.content}")
+            
+            if i < len(request_data.chatObject.tutors_comments):
+                interwoven_context.append("")  # Empty line
+                interwoven_context.append(f"Tutor: {request_data.chatObject.tutors_comments[i]}")
+                interwoven_context.append("")  # Empty line
 
-        # Concatenate tutor history
-        tutor_history_text = "\n".join(request_data.chatObject.tutors_comments)
-
-        # Combine chat history and tutor history
-        full_context = f"Chat History:\n{chat_history_text}\n\nTutor History:\n{tutor_history_text}"
+        # Join the interwoven context
+        full_context = "\n".join(interwoven_context)
 
         # Select the appropriate API key based on the model
         if request_data.model.lower() == "openai":
