@@ -136,6 +136,9 @@ async def process_audio(
     groq_api_key: str = Form(None),
     openai_api_key: str = Form(None)
 ):
+    # Implementation of process_audio function
+    # (The existing implementation should be here)
+    pass  # Remove this line when you add the actual implementation
 
 @app.post("/generate_homework")
 async def generate_homework(request_data: AudioData):
