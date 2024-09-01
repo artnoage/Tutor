@@ -185,10 +185,9 @@ const tutorController = {
             if (lastChat.chat_history.length === 0 && 
                 lastChat.tutors_comments.length === 0 && 
                 lastChat.summary.length === 0) {
-                // If the last chat is empty, just switch to it
-                this.currentChatIndex = this.chatObjects.length - 1;
-                if (this.uiCallbacks.onChatSwitched) {
-                    this.uiCallbacks.onChatSwitched(this.getCurrentChat());
+                // If the last chat is empty, show a message
+                if (this.uiCallbacks.onError) {
+                    this.uiCallbacks.onError("You already have an empty chat. Please use the existing one.");
                 }
                 return; // Exit the function without creating a new chat
             }
