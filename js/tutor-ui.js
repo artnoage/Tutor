@@ -235,16 +235,22 @@ function updateChatDisplay(chatObject) {
 }
 
 function deleteLocalHistory() {
-    if (confirm("Are you sure you want to delete all local chat history? This action cannot be undone.")) {
-        indexedDB.deleteDatabase("TutorChatDB").onsuccess = function() {
-            console.log("IndexedDB TutorChatDB deleted successfully");
+    if (confirm("Are you sure you want to delete all local chat history and clear the cache? This action cannot be undone.")) {
+        Promise.all([
+            indexedDB.deleteDatabase("TutorChatDB"),
+            caches.keys().then(cacheNames => Promise.all(cacheNames.map(name => caches.delete(name))))
+        ]).then(() => {
+            console.log("IndexedDB TutorChatDB and caches deleted successfully");
             tutorController.chatObjects = [];
             tutorController.currentChatIndex = -1;
             updateChatList();
             updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
-            alert("Local history has been deleted. The page will now refresh.");
-            location.reload(true); // Force a hard refresh, bypassing the cache
-        };
+            alert("Local history and cache have been deleted. The page will now refresh.");
+            window.location.href = window.location.href.split('#')[0] + '?cache-bust=' + Date.now();
+        }).catch(error => {
+            console.error("Error deleting data:", error);
+            alert("An error occurred while deleting data. Please try again.");
+        });
     }
 }
 
