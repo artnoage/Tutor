@@ -152,3 +152,25 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
 
     updated_summary = response.content
     return updated_summary
+
+async def generate_homework(tutoring_language, full_context, provider="groq", api_key=None):
+    try:
+        llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4", api_key)
+
+        homework_template = get_homework_prompt(tutoring_language)
+
+        homework_prompt = ChatPromptTemplate.from_messages([
+            ("system", homework_template),
+            ("human", full_context)
+        ])
+
+        chain = homework_prompt | llm
+
+        response = await chain.ainvoke({})
+
+        return response.content
+
+    except Exception as e:
+        logger.error(f"An error occurred in generate_homework: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise

@@ -100,3 +100,18 @@ def get_summarizer_prompt(tutoring_language, previous_summary):
     Previous summary: {previous_summary}
 
     Your response should be the updated summary in {tutoring_language}."""
+
+def get_homework_prompt(tutoring_language):
+    return f"""You are an expert {tutoring_language} tutor. Your task is to generate homework based on the conversation 
+    between a student and a language partner, as well as the tutor's comments. The homework should reinforce the 
+    concepts discussed and address any areas where the student needs improvement.
+
+    Please follow these guidelines:
+    1. The homework should be in {tutoring_language}.
+    2. Create 3-5 exercises or tasks that are relevant to the conversation topics and the student's language level.
+    3. Include a mix of grammar, vocabulary, and communication exercises.
+    4. Address any specific issues or errors mentioned in the tutor's comments.
+    5. Provide clear instructions for each exercise.
+    6. Keep the homework challenging but achievable for the student's current level.
+
+    Your response should be a well-formatted set of homework exercises in {tutoring_language}."""

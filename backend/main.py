@@ -289,7 +289,7 @@ async def process_audio(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate_homework")
-async def generate_homework(request_data: AudioData):
+async def generate_homework_endpoint(request_data: AudioData):
     try:
         logger.info("Starting generate_homework function")
 
@@ -303,11 +303,17 @@ async def generate_homework(request_data: AudioData):
         # Combine chat history and tutor history
         full_context = f"Chat History:\n{chat_history_text}\n\nTutor History:\n{tutor_history_text}"
 
-        # For now, we're just returning the full context as homework
-        # In a real implementation, you might want to process this data further
-        # or use it to generate more specific homework tasks
+        # Generate homework using the new agent function
+        homework = await generate_homework(
+            request_data.tutoringLanguage,
+            full_context,
+            provider=request_data.model.lower(),
+            api_key=GROQ_API_KEYS[0] if request_data.model.lower() == "groq" else OPENAI_API_KEY
+        )
+
         return JSONResponse({
-            "homework": "Based on your conversation, here's a summary to review:\n\n" + full_context})
+            "homework": homework
+        })
 
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
