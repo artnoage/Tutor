@@ -101,10 +101,13 @@ def get_summarizer_prompt(tutoring_language, previous_summary):
 
     Your response should be the updated summary in {tutoring_language}."""
 
-def get_homework_prompt(tutoring_language):
-    return f"""You are an expert {tutoring_language} tutor. Your task is to generate homework based on the conversation 
+def get_homework_prompt(tutoring_language, full_context):
+    return f"""You are an expert {tutoring_language} tutor. Your task is to generate homework based on the following conversation 
     between a student and a language partner, as well as the tutor's comments. The homework should reinforce the 
     concepts discussed and address any areas where the student needs improvement.
+
+    Conversation and tutor comments:
+    {full_context}
 
     Please follow these guidelines:
     1. The homework should be in {tutoring_language}.
