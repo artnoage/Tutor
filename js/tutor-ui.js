@@ -246,6 +246,7 @@ function deleteLocalHistory() {
             updateChatList();
             updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
             alert("Local history and cache have been deleted. The page will now refresh.");
+        }).then(() => {
             window.location.href = window.location.href.split('#')[0] + '?cache-bust=' + Date.now();
         }).catch(error => {
             console.error("Error deleting data:", error);
