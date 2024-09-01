@@ -178,42 +178,6 @@ const tutorController = {
         this.silenceStartTime = null;
     },
 
-    createNewChat: function() {
-        // Check if the last chat is empty
-        if (this.chatObjects.length > 0) {
-            const lastChat = this.chatObjects[this.chatObjects.length - 1];
-            if (lastChat.chat_history.length === 0 && 
-                lastChat.tutors_comments.length === 0 && 
-                lastChat.summary.length === 0) {
-                // If the last chat is empty, show a message in the info box
-                if (this.uiCallbacks.onInfoUpdate) {
-                    this.uiCallbacks.onInfoUpdate("You already have an empty chat. Please use the existing one.");
-                }
-                return; // Exit the function without creating a new chat
-            }
-        }
-
-        // If there's no empty chat, create a new one
-        const now = new Date();
-        const newChat = {
-            id: now.getTime().toString(), // Use milliseconds since epoch as a unique ID
-            name: now.toLocaleString(),
-            chat_history: [],
-            tutors_comments: [],
-            summary: []
-        };
-        this.chatObjects.push(newChat);
-        this.currentChatIndex = this.chatObjects.length - 1;
-        if (this.uiCallbacks.onChatCreated) {
-            this.uiCallbacks.onChatCreated(this.currentChatIndex);
-        }
-        this.saveChatObjects(); // Save after creating a new chat
-        
-        // Inform the user about the new chat creation
-        if (this.uiCallbacks.onInfoUpdate) {
-            this.uiCallbacks.onInfoUpdate("A new chat has been created.");
-        }
-    },
 
     switchChat: function(index) {
         if (index >= 0 && index < this.chatObjects.length) {
