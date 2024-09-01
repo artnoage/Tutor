@@ -1,6 +1,5 @@
 async function sendAudioToServer(audioBlob, formElements) {
     // Debug: Log the chatObject before sending
-    console.log('ChatObject being sent to server:', JSON.stringify(formElements.chatObject, null, 2));
 
     const audioData = {
         tutoringLanguage: formElements.tutoringLanguageSelect.value,
