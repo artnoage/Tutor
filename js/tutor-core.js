@@ -179,6 +179,22 @@ const tutorController = {
     },
 
     createNewChat: function() {
+        // Check if the last chat is empty
+        if (this.chatObjects.length > 0) {
+            const lastChat = this.chatObjects[this.chatObjects.length - 1];
+            if (lastChat.chat_history.length === 0 && 
+                lastChat.tutors_comments.length === 0 && 
+                lastChat.summary.length === 0) {
+                // If the last chat is empty, just switch to it
+                this.currentChatIndex = this.chatObjects.length - 1;
+                if (this.uiCallbacks.onChatSwitched) {
+                    this.uiCallbacks.onChatSwitched(this.getCurrentChat());
+                }
+                return; // Exit the function without creating a new chat
+            }
+        }
+
+        // If there's no empty chat, create a new one
         const now = new Date();
         const timestamp = now.toLocaleString();
         const newChat = {
