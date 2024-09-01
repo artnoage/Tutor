@@ -279,26 +279,6 @@ function deleteSelectedChat() {
     }
 }
 
-function deleteSelectedChat() {
-    if (tutorController.currentChatIndex === -1) {
-        alert("No chat selected to delete.");
-        return;
-    }
-
-    if (confirm("Are you sure you want to delete the selected chat? This action cannot be undone.")) {
-        tutorController.chatObjects.splice(tutorController.currentChatIndex, 1);
-        if (tutorController.chatObjects.length === 0) {
-            tutorController.currentChatIndex = -1;
-            updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
-        } else {
-            tutorController.currentChatIndex = Math.min(tutorController.currentChatIndex, tutorController.chatObjects.length - 1);
-            updateChatDisplay(tutorController.getCurrentChat());
-        }
-        updateChatList();
-        saveChatObjects(); // Save the updated chat objects
-        alert("Selected chat has been deleted.");
-    }
-}
 
 function populateMicrophoneSelect() {
     navigator.mediaDevices.enumerateDevices()

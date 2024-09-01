@@ -67,7 +67,7 @@ function loadChatObjects() {
 dbPromise.onsuccess = function(event) {
     db = event.target.result;
     loadChatObjects().then(() => {
-        if (tutorController.uiCallbacks.onInitialLoadComplete) {
+        if (tutorController.uiCallbacks && tutorController.uiCallbacks.onInitialLoadComplete) {
             tutorController.uiCallbacks.onInitialLoadComplete();
         }
     }).catch(error => {
