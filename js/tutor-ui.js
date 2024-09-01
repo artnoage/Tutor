@@ -242,7 +242,8 @@ function deleteLocalHistory() {
             tutorController.currentChatIndex = -1;
             updateChatList();
             updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
-            alert("Local history has been deleted.");
+            alert("Local history has been deleted. The page will now refresh.");
+            location.reload(); // Refresh the page
         };
     }
 }
