@@ -7,7 +7,8 @@ function updateChatList() {
     tutorController.chatObjects.forEach((chat, index) => {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
-        chatItem.textContent = `Chat ${index + 1}`;
+        const timestamp = new Date(chat.timestamp).toLocaleString();
+        chatItem.textContent = `Chat ${timestamp}`;
         chatItem.dataset.index = index;
         chatItem.onclick = () => tutorController.switchChat(index);
         chatList.appendChild(chatItem);
