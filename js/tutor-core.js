@@ -50,9 +50,6 @@ function loadChatObjects() {
             if (loadedChatObjects.length > 0) {
                 tutorController.chatObjects = loadedChatObjects;
                 tutorController.currentChatIndex = loadedChatObjects.length - 1;
-            } else {
-                // Create a new chat if there are no saved chat objects
-                tutorController.createNewChat();
             }
             if (tutorController.uiCallbacks.onChatObjectsLoaded) {
                 tutorController.uiCallbacks.onChatObjectsLoaded();
@@ -119,6 +116,17 @@ const tutorController = {
 
     setUICallbacks: function(callbacks) {
         this.uiCallbacks = callbacks;
+        
+        // Wrap the onInitialLoadComplete callback
+        const originalOnInitialLoadComplete = callbacks.onInitialLoadComplete;
+        this.uiCallbacks.onInitialLoadComplete = () => {
+            if (this.chatObjects.length === 0) {
+                this.createNewChat();
+            }
+            if (originalOnInitialLoadComplete) {
+                originalOnInitialLoadComplete();
+            }
+        };
     },
 
     start: function() {
