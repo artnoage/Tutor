@@ -153,11 +153,10 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
     try:
         llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-2024-08-06", api_key)
 
-        homework_template = get_homework_prompt(tutoring_language)
+        homework_template = get_homework_prompt(tutoring_language,full_context)
 
         homework_prompt = ChatPromptTemplate.from_messages([
-            ("system", homework_template),
-            ("human", full_context)
+            ("system", homework_template)
         ])
 
         chain = homework_prompt | llm

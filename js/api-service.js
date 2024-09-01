@@ -27,7 +27,7 @@ async function sendAudioToServer(audioBlob, formElements) {
     try {
         console.time('serverProcessing');
         //const response = await fetch('https://tutorapi.metaskepsis.com/process_audio', {
-        const response = await fetch('http://127.0.0.1:8080/process_audio', {
+        const response = await fetch('https://tutorapi.metaskepsis.com/process_audio', {
             method: 'POST',
             body: formData
         });
@@ -66,7 +66,7 @@ async function sendHomeworkRequest(formElements) {
     };
 
     try {
-        const response = await fetch('http://127.0.0.1:8080/generate_homework', {
+        const response = await fetch('https://tutorapi.metaskepsis.com/generate_homework', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
