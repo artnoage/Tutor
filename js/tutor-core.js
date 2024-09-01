@@ -185,9 +185,9 @@ const tutorController = {
             if (lastChat.chat_history.length === 0 && 
                 lastChat.tutors_comments.length === 0 && 
                 lastChat.summary.length === 0) {
-                // If the last chat is empty, show a message
-                if (this.uiCallbacks.onError) {
-                    this.uiCallbacks.onError("You already have an empty chat. Please use the existing one.");
+                // If the last chat is empty, show a message in the info box
+                if (this.uiCallbacks.onInfoUpdate) {
+                    this.uiCallbacks.onInfoUpdate("You already have an empty chat. Please use the existing one.");
                 }
                 return; // Exit the function without creating a new chat
             }
@@ -209,6 +209,11 @@ const tutorController = {
             this.uiCallbacks.onChatCreated(this.currentChatIndex);
         }
         saveChatObjects(); // Save after creating a new chat
+        
+        // Inform the user about the new chat creation
+        if (this.uiCallbacks.onInfoUpdate) {
+            this.uiCallbacks.onInfoUpdate("A new chat has been created.");
+        }
     },
 
     switchChat: function(index) {

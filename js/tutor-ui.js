@@ -418,6 +418,9 @@ function initializeUI() {
             }
             updateChatList();
             updateChatDisplay(tutorController.getCurrentChat());
+        },
+        onInfoUpdate: (message) => {
+            updateInfoWindow(message);
         }
     });
 }
