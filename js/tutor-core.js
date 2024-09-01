@@ -166,9 +166,10 @@ const tutorController = {
     },
 
     createNewChat: function() {
-        const timestamp = new Date().toISOString();
+        const now = new Date();
+        const timestamp = now.toLocaleString();
         const newChat = {
-            id: timestamp,
+            id: now.getTime().toString(), // Use milliseconds since epoch as a unique ID
             name: timestamp,
             chat_history: [],
             tutors_comments: [],
