@@ -40,7 +40,6 @@ async function sendAudioToServer(audioBlob, formElements) {
 
         const result = await response.json();
         console.timeEnd('serverProcessing');
-        console.log('Server response:', result);
         return {
             audio_base64: result.audio_base64,
             chatObject: result.chatObject
