@@ -142,6 +142,22 @@ const tutorController = {
         };
     },
 
+    createNewChat: function() {
+        const newChat = {
+            chat_history: [],
+            tutors_comments: [],
+            summary: [],
+            timestamp: Date.now()
+        };
+        this.chatObjects.push(newChat);
+        this.currentChatIndex = this.chatObjects.length - 1;
+        if (this.uiCallbacks.onChatCreated) {
+            this.uiCallbacks.onChatCreated(this.currentChatIndex);
+        }
+        this.saveChatObjects(); // Save after creating a new chat
+        return newChat;
+    },
+
     start: function() {
         console.log('Tutor start method called');
         this.isActive = true;
