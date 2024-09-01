@@ -303,12 +303,22 @@ async def generate_homework_endpoint(request_data: AudioData):
         # Combine chat history and tutor history
         full_context = f"Chat History:\n{chat_history_text}\n\nTutor History:\n{tutor_history_text}"
 
+        # Select the appropriate API key based on the model
+        if request_data.model.lower() == "openai":
+            api_key = OPENAI_API_KEY
+            provider = "openai"
+            logger.info("Using OpenAI API key")
+        else:
+            api_key = get_random_groq_api_key()
+            provider = "groq"
+            logger.info(f"Using Groq API key: {api_key[:5]}...")  # Log first 5 characters for security
+
         # Generate homework using the new agent function
         homework = await generate_homework(
             request_data.tutoringLanguage,
             full_context,
-            provider=request_data.model.lower(),
-            api_key=GROQ_API_KEYS[0] if request_data.model.lower() == "groq" else OPENAI_API_KEY
+            provider=provider,
+            api_key=api_key
         )
 
         return JSONResponse({
