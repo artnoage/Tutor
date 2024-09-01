@@ -27,8 +27,10 @@ const accentIgnoreCheckbox = document.getElementById('accentIgnoreCheckbox');
 const modelSelect = document.getElementById('modelSelect');
 const chatList = document.getElementById('chatList');
 const deleteLocalHistoryButton = document.getElementById('deleteLocalHistoryButton');
+const deleteSelectedChatButton = document.getElementById('deleteSelectedChatButton');
 
 disableTutorCheckbox.addEventListener('change', updateDisableTutor);
+deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 accentIgnoreCheckbox.addEventListener('change', updateAccentIgnore);
 modelSelect.addEventListener('change', updateModel);
 deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
@@ -252,6 +254,27 @@ function deleteLocalHistory() {
             console.error("Error deleting data:", error);
             alert("An error occurred while deleting data. Please try again.");
         });
+    }
+}
+
+function deleteSelectedChat() {
+    if (tutorController.currentChatIndex === -1) {
+        alert("No chat selected to delete.");
+        return;
+    }
+
+    if (confirm("Are you sure you want to delete the selected chat? This action cannot be undone.")) {
+        tutorController.chatObjects.splice(tutorController.currentChatIndex, 1);
+        if (tutorController.chatObjects.length === 0) {
+            tutorController.currentChatIndex = -1;
+            updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
+        } else {
+            tutorController.currentChatIndex = Math.min(tutorController.currentChatIndex, tutorController.chatObjects.length - 1);
+            updateChatDisplay(tutorController.getCurrentChat());
+        }
+        updateChatList();
+        saveChatObjects(); // Save the updated chat objects
+        alert("Selected chat has been deleted.");
     }
 }
 

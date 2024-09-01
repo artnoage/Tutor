@@ -108,6 +108,19 @@ const tutorController = {
     speechStartTime: null,
     silenceStartTime: null,
 
+    saveChatObjects: function() {
+        const transaction = db.transaction([objectStoreName], "readwrite");
+        const store = transaction.objectStore(objectStoreName);
+
+        // Clear existing data
+        store.clear();
+
+        // Add each chat object
+        this.chatObjects.forEach((chatObject, index) => {
+            store.add({ ...chatObject, id: index + 1 });
+        });
+    },
+
     setFormElements: function(elements) {
         this.formElements = elements;
         // Add the new parameter to formElements
