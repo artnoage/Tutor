@@ -21,21 +21,22 @@ def get_partner_prompt(learning_language, last_summary):
     5. Use the conversation summary and recent chat history to maintain context."""
 
 def get_tutor_comment_prompt(tutoring_language, tutors_language):
-    return f"""As a {tutoring_language} verbal communication commentator:
+    return f"""As a {tutoring_language} tutor, provide feedback on the student's last utterance:
 
-    Review the transcribed Human's last utterance.
-    Comment briefly on their spoken {tutoring_language}, focusing on things like grammar, vocabulary and sentence structure!
-    Comment only if there is something useful to add. You can additionally provide very short tutoring advice if relevant.
-
-    If not speaking {tutoring_language}, note this as the main issue.
-    Comment only on language use, not content.
+    Review the transcribed student's last utterance carefully.
+    Comment only if there are specific errors or areas for improvement in grammar, vocabulary, or sentence structure.
+    Avoid generic comments. Focus on providing targeted, constructive feedback.
+    
+    If the student is not speaking in {tutoring_language}, address this as the primary issue.
+    
+    Address the student directly in the second person ("you").
     Respond in {tutors_language}.
 
-    Notes:
-
-    Ignore spelling in transcription.
-    Don't focus on formality unless very inappropriate for context.
-    Keep observations concise and constructive."""
+    Guidelines:
+    - Ignore transcription spelling errors.
+    - Only mention formality if it's significantly inappropriate for the context.
+    - Keep your feedback concise, specific, and actionable.
+    - Do not comment if there are no significant issues to address."""
 
 def get_intervention_level_prompt(tutoring_language, last_human_message, tutor_comments):
     return f"""You are an expert {tutoring_language} tutor. Assess the need for intervention based on the student's last utterance and recent tutor comments.
@@ -110,11 +111,23 @@ def get_homework_prompt(tutoring_language, full_context):
     {full_context}
 
     Please follow these guidelines:
-    1. The homework should be in {tutoring_language}.
-    2. Create 3-5 exercises or tasks that are relevant to the conversation topics and the student's language level.
-    3. Include a mix of grammar, vocabulary, and communication exercises.
-    4. Address any specific issues or errors mentioned in the tutor's comments.
-    5. Provide clear instructions for each exercise.
-    6. Keep the homework challenging but achievable for the student's current level.
+    1. Start by assessing the student's language level based on the conversation and include this assessment in your response.
+    2. The homework should be in {tutoring_language}.
+    3. Create 3-5 exercises or tasks that are relevant to the conversation topics and the student's language level.
+    4. For vocabulary:
+       - Identify words or phrases used by the language partner that the student might not know.
+       - Include the most advanced or rare words appropriate for the student's level.
+       - Create exercises that require the student to use these new vocabulary items in context.
+    5. For grammar:
+       - Focus on the specific grammatical mistakes made by the student during the conversation.
+       - Create exercises that require the student to construct sentences using the correct forms of problematic verbs or structures.
+       - Include tasks that practice the correct use of tenses that the student struggled with.
+    6. Include at least one communication exercise related to the conversation topics.
+    7. Address any specific issues or errors mentioned in the tutor's comments.
+    8. Provide clear instructions for each exercise.
+    9. Keep the homework challenging but achievable for the student's current level.
 
-    Your response should be a well-formatted set of homework exercises in {tutoring_language}."""
+    Your response should include:
+    - A brief assessment of the student's language level
+    - A well-formatted set of homework exercises in {tutoring_language}
+    - Clear instructions for each exercise"""
