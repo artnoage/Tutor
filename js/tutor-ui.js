@@ -1,4 +1,5 @@
 import { tutorController } from './tutor-core.js';
+import { sendHomeworkRequest } from './api-service.js';
 import {
     updateChatList,
     updateChatDisplay,
@@ -88,9 +89,31 @@ modelSelect.addEventListener('change', () => tutorController.updateModel(modelSe
 deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
-giveHomeworkButton.addEventListener('click', () => {
-    // TODO: Implement homework generation logic
-    homeworkTextarea.value = "Your homework assignment goes here...";
+giveHomeworkButton.addEventListener('click', async () => {
+    try {
+        showProcessingState();
+        const currentChat = tutorController.getCurrentChat();
+        const formElements = {
+            tutoringLanguageSelect,
+            tutorsLanguageSelect,
+            tutorsVoiceSelect,
+            partnersVoiceSelect,
+            interventionLevelSelect,
+            chatObject: currentChat,
+            disableTutorCheckbox,
+            accentIgnoreCheckbox,
+            modelSelect,
+            playbackSpeedSlider,
+            pauseTimeSlider
+        };
+        const homework = await sendHomeworkRequest(formElements);
+        homeworkTextarea.value = homework;
+    } catch (error) {
+        console.error("Error generating homework:", error);
+        updateInfoWindow("Error generating homework: " + error.message);
+    } finally {
+        hideProcessingState();
+    }
 });
 
 downloadHomeworkButton.addEventListener('click', () => {

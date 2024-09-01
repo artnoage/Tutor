@@ -52,4 +52,42 @@ async function sendAudioToServer(audioBlob, formElements) {
     }
 }
 
-export { sendAudioToServer };
+async function sendHomeworkRequest(formElements) {
+    const requestData = {
+        tutoringLanguage: formElements.tutoringLanguageSelect.value,
+        tutorsLanguage: formElements.tutorsLanguageSelect.value,
+        tutorsVoice: formElements.tutorsVoiceSelect.value,
+        partnersVoice: formElements.partnersVoiceSelect.value,
+        interventionLevel: formElements.interventionLevelSelect.value,
+        chatObject: formElements.chatObject,
+        disableTutor: formElements.disableTutorCheckbox.checked,
+        accentignore: formElements.accentIgnoreCheckbox.checked,
+        model: formElements.modelSelect.value,
+        playbackSpeed: formElements.playbackSpeedSlider.value,
+        pauseTime: formElements.pauseTimeSlider.value
+    };
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/generate_homework', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+
+        const result = await response.json();
+        return result.homework;
+    } catch (error) {
+        console.error('Error sending homework request to server:', error);
+        throw error;
+    }
+}
+
+export { sendAudioToServer, sendHomeworkRequest };
