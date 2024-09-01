@@ -1,6 +1,20 @@
 import { tutorController } from './tutor-core.js';
 import { tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
+function updateChatList() {
+    const chatList = document.getElementById('chatList');
+    chatList.innerHTML = '';
+    tutorController.chatObjects.forEach((chat, index) => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.textContent = `Chat ${index + 1}`;
+        chatItem.dataset.index = index;
+        chatItem.onclick = () => tutorController.switchChat(index);
+        chatList.appendChild(chatItem);
+    });
+    highlightSelectedChat();
+}
+
 // eslint-disable-next-line no-unused-vars
 
 const startTutorButton = document.getElementById('startTutorButton');
@@ -46,6 +60,36 @@ if (modelSelect) {
 }
 if (deleteLocalHistoryButton) {
     deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
+}
+
+const giveHomeworkButton = document.getElementById('giveHomeworkButton');
+const downloadHomeworkButton = document.getElementById('downloadHomeworkButton');
+const homeworkTextarea = document.getElementById('homeworkTextarea');
+
+if (giveHomeworkButton) {
+    giveHomeworkButton.addEventListener('click', giveHomework);
+}
+
+if (downloadHomeworkButton) {
+    downloadHomeworkButton.addEventListener('click', downloadHomework);
+}
+
+function giveHomework() {
+    // TODO: Implement logic to generate homework
+    homeworkTextarea.value = "Your homework assignment goes here...";
+}
+
+function downloadHomework() {
+    const homework = homeworkTextarea.value;
+    const blob = new Blob([homework], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'homework.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 startTutorButton.addEventListener('click', () => {

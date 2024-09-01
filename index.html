@@ -8,7 +8,7 @@
     </head>
 <body>
     <div class="flex">
-        <!-- Sidebar -->
+        <!-- Left Sidebar -->
         <div class="w-160 bg-base-200 p-4 grid grid-rows-[auto,auto,1fr] gap-4 h-full">
             <h2 class="text-xl font-bold">Chat Management</h2>
             <button id="createChatButton" class="btn btn-info w-full mb-2">Create New Chat</button>
@@ -142,6 +142,14 @@ Hello! Welcome to the tutor!
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="w-160 bg-base-200 p-4 grid grid-rows-[auto,1fr] gap-4 h-full">
+            <h2 class="text-xl font-bold">Homework</h2>
+            <textarea id="homeworkTextarea" class="w-full h-64 p-2 mb-4 bg-base-300 rounded" placeholder="Your homework will appear here..."></textarea>
+            <button id="giveHomeworkButton" class="btn btn-primary w-full mb-2">Give Me Homework</button>
+            <button id="downloadHomeworkButton" class="btn btn-secondary w-full">Download Homework</button>
         </div>
     </div>
 
