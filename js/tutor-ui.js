@@ -133,7 +133,10 @@ initializeUI();
 // Start monitoring interval
 const monitoringInterval = tutorController.startMonitoringInterval();
 
-// Clean up on page unload
-window.addEventListener('unload', () => {
+// Clean up before page unload
+window.addEventListener('beforeunload', (event) => {
     clearInterval(monitoringInterval);
+    // Optionally, you can show a confirmation dialog
+    // event.preventDefault(); // Cancel the event
+    // event.returnValue = ''; // Show a generic message in some browsers
 });
