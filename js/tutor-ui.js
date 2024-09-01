@@ -178,7 +178,8 @@ function updateChatList() {
     tutorController.chatObjects.slice().reverse().forEach((chatObject, index) => {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
-        chatItem.textContent = `Chat ${tutorController.chatObjects.length - index}`;
+        const chatDate = new Date(chatObject.name);
+        chatItem.textContent = chatDate.toLocaleString();
         chatItem.dataset.index = tutorController.chatObjects.length - index - 1;
         chatItem.addEventListener('click', () => {
             tutorController.switchChat(parseInt(chatItem.dataset.index));

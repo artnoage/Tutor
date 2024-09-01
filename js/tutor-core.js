@@ -50,11 +50,14 @@ function loadChatObjects() {
             if (loadedChatObjects.length > 0) {
                 tutorController.chatObjects = loadedChatObjects;
                 tutorController.currentChatIndex = loadedChatObjects.length - 1;
-                if (tutorController.uiCallbacks.onChatObjectsLoaded) {
-                    tutorController.uiCallbacks.onChatObjectsLoaded();
-                }
+            } else {
+                // Create a new chat if there are no saved chat objects
+                tutorController.createNewChat();
             }
-            resolve(loadedChatObjects);
+            if (tutorController.uiCallbacks.onChatObjectsLoaded) {
+                tutorController.uiCallbacks.onChatObjectsLoaded();
+            }
+            resolve(tutorController.chatObjects);
         };
 
         request.onerror = function(event) {
@@ -123,7 +126,7 @@ const tutorController = {
         this.isActive = true;
         this.isRecording = false;
         isProcessing = false;
-        if (this.currentChatIndex === -1) {
+        if (this.chatObjects.length === 0) {
             this.createNewChat();
         }
         currentSessionTimestamp = Date.now();
@@ -155,11 +158,15 @@ const tutorController = {
     },
 
     createNewChat: function() {
-        this.chatObjects.push({
+        const timestamp = new Date().toISOString();
+        const newChat = {
+            id: timestamp,
+            name: timestamp,
             chat_history: [],
             tutors_comments: [],
             summary: []
-        });
+        };
+        this.chatObjects.push(newChat);
         this.currentChatIndex = this.chatObjects.length - 1;
         if (this.uiCallbacks.onChatCreated) {
             this.uiCallbacks.onChatCreated(this.currentChatIndex);
