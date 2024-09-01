@@ -66,12 +66,6 @@ stopTutorButton.addEventListener('click', async () => {
 });
 
 sendButton.addEventListener('click', manualSend);
-restartChatButton.addEventListener('click', () => {
-    const wasActive = tutorController.isActive;
-    tutorController.restartChat();
-    updateUIState(wasActive);
-    statusDisplay.textContent = "Chat restarted";
-});
 
 createChatButton.addEventListener('click', () => {
     tutorController.createNewChat();
