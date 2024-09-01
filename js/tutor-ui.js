@@ -95,15 +95,13 @@ giveHomeworkButton.addEventListener('click', () => {
 
 downloadHomeworkButton.addEventListener('click', () => {
     const homework = homeworkTextarea.value;
-    const blob = new Blob([homework], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'homework.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const splitText = doc.splitTextToSize(homework, 180);
+    doc.text(splitText, 15, 15);
+    
+    doc.save('homework.pdf');
 });
 
 // Initialize UI
