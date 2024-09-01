@@ -145,27 +145,8 @@ async def generate_homework(request_data: AudioData):
     try:
         logger.info("Starting generate_homework function")
         
-        # Check if we have all the necessary objects
-        required_fields = [
-            'tutoringLanguage', 'tutorsLanguage', 'tutorsVoice', 'partnersVoice',
-            'interventionLevel', 'chatObject', 'disableTutor', 'accentignore', 'model'
-        ]
-        for field in required_fields:
-            if not hasattr(request_data, field):
-                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
-        
-        # Select the appropriate API key based on the model
-        if request_data.model == "OpenAI":
-            api_key = OPENAI_API_KEY
-            provider = "openai"
-            logger.info("Using OpenAI API")
-        else:
-            api_key = get_random_groq_api_key()
-            provider = "groq"
-            logger.info(f"Using Groq API key: {api_key[:5]}...")
-        
-        # TODO: Call LLM to generate homework (to be implemented in the next step)
-        homework = "This is a placeholder for the generated homework."
+        # Placeholder response
+        homework = "I am listening"
         
         return JSONResponse({"homework": homework})
     
