@@ -19,55 +19,58 @@ import {
 } from './tutor-ui-helpers.js';
 
 // DOM element references
-const startTutorButton = document.getElementById('startTutorButton');
-const stopTutorButton = document.getElementById('stopTutorButton');
-const sendButton = document.getElementById('sendButton');
-const createChatButton = document.getElementById('createChatButton');
-const statusDisplay = document.getElementById('statusDisplay');
-const microphoneSelect = document.getElementById('microphoneSelect');
-const playbackSpeedSlider = document.getElementById('playbackSpeedSlider');
-const pauseTimeSlider = document.getElementById('pauseTimeSlider');
-const tutoringLanguageSelect = document.getElementById('tutoringLanguageSelect');
-const tutorsLanguageSelect = document.getElementById('tutorsLanguageSelect');
-const interventionLevelSelect = document.getElementById('interventionLevelSelect');
-const tutorsVoiceSelect = document.getElementById('tutorsVoiceSelect');
-const partnersVoiceSelect = document.getElementById('partnersVoiceSelect');
-const disableTutorCheckbox = document.getElementById('disableTutorCheckbox');
-const accentIgnoreCheckbox = document.getElementById('accentIgnoreCheckbox');
-const modelSelect = document.getElementById('modelSelect');
-const deleteLocalHistoryButton = document.getElementById('deleteLocalHistoryButton');
-const deleteSelectedChatButton = document.getElementById('deleteSelectedChatButton');
-const giveHomeworkButton = document.getElementById('giveHomeworkButton');
-const downloadHomeworkButton = document.getElementById('downloadHomeworkButton');
-const homeworkTextarea = document.getElementById('homeworkTextarea');
+// DOM element references
+const elements = {
+    startTutorButton: document.getElementById('startTutorButton'),
+    stopTutorButton: document.getElementById('stopTutorButton'),
+    sendButton: document.getElementById('sendButton'),
+    createChatButton: document.getElementById('createChatButton'),
+    statusDisplay: document.getElementById('statusDisplay'),
+    microphoneSelect: document.getElementById('microphoneSelect'),
+    playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
+    pauseTimeSlider: document.getElementById('pauseTimeSlider'),
+    tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
+    tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
+    interventionLevelSelect: document.getElementById('interventionLevelSelect'),
+    tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
+    partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
+    disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
+    accentIgnoreCheckbox: document.getElementById('accentIgnoreCheckbox'),
+    modelSelect: document.getElementById('modelSelect'),
+    deleteLocalHistoryButton: document.getElementById('deleteLocalHistoryButton'),
+    deleteSelectedChatButton: document.getElementById('deleteSelectedChatButton'),
+    giveHomeworkButton: document.getElementById('giveHomeworkButton'),
+    downloadHomeworkButton: document.getElementById('downloadHomeworkButton'),
+    homeworkTextarea: document.getElementById('homeworkTextarea')
+};
 
 // Event listeners
-startTutorButton.addEventListener('click', () => {
+elements.startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
     tutorController.start();
     updateUIState(true);
 });
 
-stopTutorButton.addEventListener('click', async () => {
+elements.stopTutorButton.addEventListener('click', async () => {
     try {
         await tutorController.stop();
         updateUIState(false);
-        statusDisplay.textContent = "Stopped";
+        elements.statusDisplay.textContent = "Stopped";
     } catch (error) {
         console.error("Error stopping tutor:", error);
-        statusDisplay.textContent = "Error: Failed to stop tutor";
+        elements.statusDisplay.textContent = "Error: Failed to stop tutor";
     }
 });
 
-sendButton.addEventListener('click', () => {
+elements.sendButton.addEventListener('click', () => {
     if (tutorController.isActive) {
         tutorController.manualStop();
-        sendButton.disabled = true;
+        elements.sendButton.disabled = true;
         showProcessingState();
     }
 });
 
-createChatButton.addEventListener('click', async () => {
+elements.createChatButton.addEventListener('click', async () => {
     const newChat = await tutorController.createNewChat();
     if (newChat !== null) {
         await updateChatList();
@@ -75,39 +78,39 @@ createChatButton.addEventListener('click', async () => {
     }
 });
 
-playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
-pauseTimeSlider.addEventListener('input', updatePauseTime);
-tutoringLanguageSelect.addEventListener('change', () => tutorController.setTutoringLanguage(tutoringLanguageSelect.value));
-tutorsLanguageSelect.addEventListener('change', () => tutorController.updateTutorsLanguage(tutorsLanguageSelect.value));
-interventionLevelSelect.addEventListener('change', () => tutorController.updateInterventionLevel(interventionLevelSelect.value));
-tutorsVoiceSelect.addEventListener('change', () => tutorController.updateTutorsVoice(tutorsVoiceSelect.value));
-partnersVoiceSelect.addEventListener('change', () => tutorController.updatePartnersVoice(partnersVoiceSelect.value));
-microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(microphoneSelect.value));
-disableTutorCheckbox.addEventListener('change', () => tutorController.setDisableTutor(disableTutorCheckbox.checked));
-accentIgnoreCheckbox.addEventListener('change', () => tutorController.setAccentIgnore(accentIgnoreCheckbox.checked));
-modelSelect.addEventListener('change', () => tutorController.updateModel(modelSelect.value));
-deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
-deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
+elements.playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
+elements.pauseTimeSlider.addEventListener('input', updatePauseTime);
+elements.tutoringLanguageSelect.addEventListener('change', () => tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value));
+elements.tutorsLanguageSelect.addEventListener('change', () => tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value));
+elements.interventionLevelSelect.addEventListener('change', () => tutorController.updateInterventionLevel(elements.interventionLevelSelect.value));
+elements.tutorsVoiceSelect.addEventListener('change', () => tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value));
+elements.partnersVoiceSelect.addEventListener('change', () => tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value));
+elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
+elements.disableTutorCheckbox.addEventListener('change', () => tutorController.setDisableTutor(elements.disableTutorCheckbox.checked));
+elements.accentIgnoreCheckbox.addEventListener('change', () => tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked));
+elements.modelSelect.addEventListener('change', () => tutorController.updateModel(elements.modelSelect.value));
+elements.deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
+elements.deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
-giveHomeworkButton.addEventListener('click', async () => {
+elements.giveHomeworkButton.addEventListener('click', async () => {
     try {
         showProcessingState();
         const currentChat = tutorController.getCurrentChat();
         const formElements = {
-            tutoringLanguageSelect,
-            tutorsLanguageSelect,
-            tutorsVoiceSelect,
-            partnersVoiceSelect,
-            interventionLevelSelect,
+            tutoringLanguageSelect: elements.tutoringLanguageSelect,
+            tutorsLanguageSelect: elements.tutorsLanguageSelect,
+            tutorsVoiceSelect: elements.tutorsVoiceSelect,
+            partnersVoiceSelect: elements.partnersVoiceSelect,
+            interventionLevelSelect: elements.interventionLevelSelect,
             chatObject: currentChat,
-            disableTutorCheckbox,
-            accentIgnoreCheckbox,
-            modelSelect,
-            playbackSpeedSlider,
-            pauseTimeSlider
+            disableTutorCheckbox: elements.disableTutorCheckbox,
+            accentIgnoreCheckbox: elements.accentIgnoreCheckbox,
+            modelSelect: elements.modelSelect,
+            playbackSpeedSlider: elements.playbackSpeedSlider,
+            pauseTimeSlider: elements.pauseTimeSlider
         };
         const homework = await sendHomeworkRequest(formElements);
-        homeworkTextarea.value = homework;
+        elements.homeworkTextarea.value = homework;
     } catch (error) {
         console.error("Error generating homework:", error);
         updateInfoWindow("Error generating homework: " + error.message);
@@ -116,8 +119,8 @@ giveHomeworkButton.addEventListener('click', async () => {
     }
 });
 
-downloadHomeworkButton.addEventListener('click', () => {
-    const homework = homeworkTextarea.value;
+elements.downloadHomeworkButton.addEventListener('click', () => {
+    const homework = elements.homeworkTextarea.value;
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     

@@ -228,6 +228,13 @@ export function initializeUI() {
 
     // Set default intervention level to medium
     document.getElementById('interventionLevelSelect').value = 'medium';
+
+    tutorController.setFormElements({
+        tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
+        tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
+        tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
+        partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
+        interventionLevelSelect: document.getElementById('interventionLevelSelect'),
         playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
         pauseTimeSlider: document.getElementById('pauseTimeSlider'),
         disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
