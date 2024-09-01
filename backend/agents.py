@@ -3,14 +3,10 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
-from typing import Optional
 import logging
 import traceback
-import os
-import random 
-import json
 import asyncio
-from prompts import get_partner_prompt, get_tutor_comment_prompt, get_intervention_level_prompt, get_best_expression_prompt, get_summarizer_prompt
+from prompts import *
 
 load_dotenv()
 
@@ -131,7 +127,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
         raise
 
 async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="groq", api_key=None):
-    llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4", api_key)
+    llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
 
     last_messages = chat_history[-5:] if len(chat_history) > 5 else chat_history
     
@@ -155,12 +151,13 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
 
 async def generate_homework(tutoring_language, full_context, provider="groq", api_key=None):
     try:
-        llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4", api_key)
+        llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-2024-08-06", api_key)
 
-        homework_template = get_homework_prompt(tutoring_language, full_context)
+        homework_template = get_homework_prompt(tutoring_language)
 
         homework_prompt = ChatPromptTemplate.from_messages([
-            ("human", homework_template)
+            ("system", homework_template),
+            ("human", full_context)
         ])
 
         chain = homework_prompt | llm

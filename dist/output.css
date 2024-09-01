@@ -814,6 +814,10 @@ select option:hover,
   cursor: pointer;
 }
 
+.grid-rows-\[auto\2c 1fr\] {
+  grid-template-rows: auto 1fr;
+}
+
 .grid-rows-\[auto\2c auto\2c 1fr\] {
   grid-template-rows: auto auto 1fr;
 }
@@ -832,8 +836,16 @@ select option:hover,
   overflow-y: auto;
 }
 
+.rounded {
+  border-radius: 0.25rem;
+}
+
 .rounded-lg {
   border-radius: 0.5rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .p-4 {
