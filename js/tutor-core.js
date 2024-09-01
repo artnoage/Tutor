@@ -230,23 +230,6 @@ const tutorController = {
         return this.chatObjects[this.currentChatIndex];
     },
 
-    restartChat: function() {
-        console.log('Restarting chat');
-        const wasActive = this.isActive;
-        if (wasActive) {
-            this.stop();
-        }
-        this.getCurrentChat().chat_history = [];
-        this.getCurrentChat().tutors_comments = [];
-        this.getCurrentChat().summary = [];
-        if (this.uiCallbacks.onChatRestart) {
-            this.uiCallbacks.onChatRestart();
-        }
-        if (wasActive) {
-            this.start();
-        }
-        saveChatObjects(); // Save after restarting chat
-    },
 
     startMonitoring: function() {
         console.log('startMonitoring called');

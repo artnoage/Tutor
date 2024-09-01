@@ -6,7 +6,6 @@ import { tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 const startTutorButton = document.getElementById('startTutorButton');
 const stopTutorButton = document.getElementById('stopTutorButton');
 const sendButton = document.getElementById('sendButton');
-const restartChatButton = document.getElementById('restartChatButton');
 const createChatButton = document.getElementById('createChatButton');
 const statusDisplay = document.getElementById('statusDisplay');
 const microphoneSelect = document.getElementById('microphoneSelect');
@@ -394,11 +393,6 @@ function initializeUI() {
             updateChatDisplay(chatObject);
             statusDisplay.textContent = "Updated chat display with API response";
             hideProcessingState();
-        },
-        onChatRestart: () => {
-            chatHistoryDisplay.innerHTML = '';
-            tutorsCommentsDisplay.innerHTML = '';
-            statusDisplay.textContent = "Chat restarted";
         },
         onChatCreated: (index) => {
             updateChatList();
