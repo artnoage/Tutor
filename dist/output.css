@@ -756,6 +756,20 @@ select option:hover,
 
 /* Hover effect for chat items */
 
+/* Sidebar styles */
+
+/* Chat list container */
+
+#chatList > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+}
+
+#chatList {
+  padding: 0.5rem;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -782,10 +796,6 @@ select option:hover,
 
 .h-full {
   height: 100%;
-}
-
-.w-64 {
-  width: 16rem;
 }
 
 .w-full {

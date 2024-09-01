@@ -1,149 +1,117 @@
+import { AudioManager } from './audio-manager.js';
 import { sendAudioToServer } from './api-service.js';
-import { bufferToWave } from './audio-utils.js';
-
-// IndexedDB
-let db;
+import { debugPrintChats } from './tutor-ui-helpers.js';
 
 const dbName = "TutorChatDB";
 const objectStoreName = "chatObjects";
 
-// Initialize IndexedDB
-const dbPromise = indexedDB.open(dbName, 1);
+class TutorController {
+    constructor() {
+        this.isActive = false;
+        this.formElements = null;
+        this.uiCallbacks = null;
+        this.chatObjects = [];
+        this.currentChatTimestamp = null;
+        this.pauseTime = 1;
+        this.disableTutor = false;
+        this.accentIgnore = true;
+        this.pendingProcessingPromise = null;
+        this.audioManager = new AudioManager();
+        this.dbPromise = this.initDatabase();
+    }
 
-dbPromise.onupgradeneeded = (event) => {
-    db = event.target.result;
-    db.createObjectStore(objectStoreName, { keyPath: "id", autoIncrement: true });
-};
+    async initDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(dbName, 1);
 
-dbPromise.onsuccess = (event) => {
-    db = event.target.result;
-    loadChatObjects(); // Load chat objects when DB is ready
-};
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                db.createObjectStore(objectStoreName, { keyPath: "timestamp" });
+            };
 
-dbPromise.onerror = (event) => {
-    console.error("IndexedDB error:", event.target.error);
-};
+            request.onsuccess = (event) => {
+                this.db = event.target.result;
+                this.loadChatObjects().then(() => {
+                    if (this.uiCallbacks && this.uiCallbacks.onInitialLoadComplete) {
+                        this.uiCallbacks.onInitialLoadComplete();
+                    }
+                });
+                resolve();
+            };
 
-// Function to save chat objects to IndexedDB
-function saveChatObjects() {
-    const transaction = db.transaction([objectStoreName], "readwrite");
-    const store = transaction.objectStore(objectStoreName);
-
-    // Clear existing data
-    store.clear();
-
-    // Add each chat object
-    tutorController.chatObjects.forEach((chatObject, index) => {
-        store.add({ ...chatObject, id: index + 1 });
-    });
-}
-
-// Function to load chat objects from IndexedDB
-function loadChatObjects() {
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction([objectStoreName], "readonly");
-        const store = transaction.objectStore(objectStoreName);
-        const request = store.getAll();
-
-        request.onsuccess = (event) => {
-            const loadedChatObjects = event.target.result;
-            if (loadedChatObjects.length > 0) {
-                tutorController.chatObjects = loadedChatObjects;
-                tutorController.currentChatIndex = loadedChatObjects.length - 1;
-            }
-            if (tutorController.uiCallbacks && tutorController.uiCallbacks.onChatObjectsLoaded) {
-                tutorController.uiCallbacks.onChatObjectsLoaded();
-            }
-            resolve(tutorController.chatObjects);
-        };
-
-        request.onerror = (event) => {
-            reject(event.target.error);
-        };
-    });
-}
-
-// Initialize IndexedDB and load chat objects
-dbPromise.onsuccess = (event) => {
-    db = event.target.result;
-    loadChatObjects().then(() => {
-        if (tutorController.uiCallbacks && tutorController.uiCallbacks.onInitialLoadComplete) {
-            tutorController.uiCallbacks.onInitialLoadComplete();
-        }
-    }).catch(error => {
-        console.error("Error loading chat objects:", error);
-    });
-};
-
-// Global variables
-let audioContext;
-let analyser;
-let dataArray;
-let mediaRecorder;
-let audioChunks = [];
-let stream;
-let isMonitoring = false;
-let isRecording = false;
-let currentSessionTimestamp = null;
-let isProcessing = false;
-
-// Constants for sound detection
-const SILENCE_THRESHOLD = 24;
-const SOUND_DETECTION_DURATION = 300; // How long of consecutive sounds before it starts recording
-const MIN_VALID_DURATION = 0.6; // How long the audio should be to be send
-const MONITOR_TIME_INTERVAL = 20;
-
-const tutorController = {
-    isActive: false,
-    isRecording: false,
-    selectedMicrophoneId: null,
-    formElements: null,
-    uiCallbacks: null,
-    chatObjects: [],
-    currentChatIndex: -1,
-    pauseTime: 1, // Default pause time in seconds
-    disableTutor: false, // Tutor enabled by default
-    accentIgnore: true, // Default to ignoring accent issues
-    pendingProcessingPromise: null,
-    speechStartTime: null,
-    silenceStartTime: null,
-
-    saveChatObjects: function() {
-        const transaction = db.transaction([objectStoreName], "readwrite");
-        const store = transaction.objectStore(objectStoreName);
-
-        // Clear existing data
-        store.clear();
-
-        // Add each chat object
-        this.chatObjects.forEach((chatObject, index) => {
-            store.add({ ...chatObject, id: index + 1 });
+            request.onerror = (event) => {
+                console.error("IndexedDB error:", event.target.error);
+                reject(event.target.error);
+            };
         });
-    },
+    }
 
-    setFormElements: function(elements) {
+    async saveChatObjects() {
+        await this.dbPromise;
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([objectStoreName], "readwrite");
+            const store = transaction.objectStore(objectStoreName);
+
+            store.clear();
+
+            let lastRequestPromise = Promise.resolve();
+
+            this.chatObjects.forEach((chatObject) => {
+                lastRequestPromise = new Promise((resolve) => {
+                    // Ensure timestamp is included when saving
+                    const chatToSave = { ...chatObject, timestamp: chatObject.timestamp || Date.now() };
+                    const request = store.add(chatToSave);
+                    request.onsuccess = resolve;
+                });
+            });
+
+            lastRequestPromise.then(() => {
+                console.log('Chat objects saved:', this.chatObjects);
+                console.log('Current chat timestamp after saving:', this.currentChatTimestamp);
+                resolve();
+            }).catch(reject);
+        });
+    }
+
+    async loadChatObjects() {
+        await this.dbPromise;
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([objectStoreName], "readonly");
+            const store = transaction.objectStore(objectStoreName);
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                const loadedChatObjects = event.target.result;
+                if (loadedChatObjects.length > 0) {
+                    this.chatObjects = loadedChatObjects.map(chat => ({
+                        ...chat,
+                        timestamp: chat.timestamp || Date.now() // Ensure timestamp exists
+                    }));
+                    this.currentChatTimestamp = this.chatObjects[this.chatObjects.length - 1].timestamp;
+                }
+                console.log('Chat objects loaded:', this.chatObjects);
+                console.log('Current chat timestamp after loading:', this.currentChatTimestamp);
+                if (this.uiCallbacks && this.uiCallbacks.onChatObjectsLoaded) {
+                    this.uiCallbacks.onChatObjectsLoaded();
+                }
+                resolve(this.chatObjects);
+            };
+
+            request.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    }
+
+    setFormElements(elements) {
         this.formElements = elements;
-        // Add the new parameter to formElements
-        this.formElements.newParameter = document.getElementById('newParameterInput') || { value: '' };
-    },
+    }
 
-    setUICallbacks: function(callbacks) {
+    setUICallbacks(callbacks) {
         this.uiCallbacks = callbacks;
-        
-        // Wrap the onInitialLoadComplete callback
-        const originalOnInitialLoadComplete = callbacks.onInitialLoadComplete;
-        this.uiCallbacks.onInitialLoadComplete = () => {
-            if (this.chatObjects.length === 0) {
-                this.createNewChat();
-            }
-            if (originalOnInitialLoadComplete) {
-                originalOnInitialLoadComplete();
-            }
-        };
-    },
+    }
 
-    createNewChat: function() {
-        // Check if there's an existing chat
+    async createNewChat() {
         if (this.chatObjects.length > 0) {
             const lastChat = this.chatObjects[this.chatObjects.length - 1];
             const isEmptyChat = 
@@ -166,175 +134,134 @@ const tutorController = {
             timestamp: Date.now()
         };
         this.chatObjects.push(newChat);
-        this.currentChatIndex = this.chatObjects.length - 1;
+        this.currentChatTimestamp = newChat.timestamp;
+        await this.saveChatObjects();
+        console.log('New chat created:', newChat);
+        console.log('Current chat timestamp after creation:', this.currentChatTimestamp);
+        
+        debugPrintChats(this.chatObjects);
+        
         if (this.uiCallbacks.onChatCreated) {
-            this.uiCallbacks.onChatCreated(this.currentChatIndex);
+            this.uiCallbacks.onChatCreated(newChat.timestamp);
         }
-        this.saveChatObjects(); // Save after creating a new chat
         return newChat;
-    },
+    }
 
-    start: function() {
+    start() {
         console.log('Tutor start method called');
         this.isActive = true;
-        this.isRecording = false;
-        isProcessing = false;
         if (this.chatObjects.length === 0) {
             this.createNewChat();
         }
-        currentSessionTimestamp = Date.now();
-        this.startMonitoring();
-    },
+        this.audioManager.start(this.onRecordingComplete.bind(this));
+    }
 
-    stop: async function() {
+    async stop() {
         console.log('Tutor stop method called');
-        const previousTimestamp = currentSessionTimestamp;
-        currentSessionTimestamp = null;
         this.isActive = false;
-        this.isRecording = false;
-        isProcessing = false;
-        if (this.isRecording) {
-            await this.stopRecording();
-        }
-        stopTutor();
+        await this.audioManager.stop();
         
-        // Cancel any pending operations
         if (this.pendingProcessingPromise) {
             this.pendingProcessingPromise.cancel();
             this.pendingProcessingPromise = null;
         }
+    }
 
-        // Reset all recording-related variables
-        audioChunks = [];
-        this.speechStartTime = null;
-        this.silenceStartTime = null;
-    },
-
-
-    switchChat: function(index) {
-        if (index >= 0 && index < this.chatObjects.length) {
-            this.currentChatIndex = index;
+    switchChat(timestamp) {
+        console.log('Switching to chat with timestamp:', timestamp);
+        const chat = this.chatObjects.find(chat => chat.timestamp === timestamp);
+        if (chat) {
+            this.currentChatTimestamp = timestamp;
+            console.log('Switched to chat:', chat);
             if (this.uiCallbacks.onChatSwitched) {
-                this.uiCallbacks.onChatSwitched(this.getCurrentChat());
+                this.uiCallbacks.onChatSwitched(chat);
             }
-            saveChatObjects(); // Save after switching chats
+        } else {
+            console.error('Attempted to switch to non-existent chat:', timestamp);
         }
-    },
+    }
 
-    getCurrentChat: function() {
-        return this.chatObjects[this.currentChatIndex];
-    },
+    getCurrentChat() {
+        console.log('Getting current chat. Current timestamp:', this.currentChatTimestamp);
+        const currentChat = this.chatObjects.find(chat => chat.timestamp === this.currentChatTimestamp);
+        if (!currentChat) {
+            console.error('No current chat found for timestamp:', this.currentChatTimestamp);
+            console.log('All chat objects:', JSON.stringify(this.chatObjects, null, 2));
+        }
+        return currentChat || null;
+    }
 
+    setMicrophone(deviceId) {
+        this.audioManager.setMicrophone(deviceId);
+    }
 
-    startMonitoring: function() {
-        console.log('startMonitoring called');
-        this.speechStartTime = null;
-        this.silenceStartTime = null;
-        
-        const constraints = {
-            audio: {
-                deviceId: this.selectedMicrophoneId ? {exact: this.selectedMicrophoneId} : undefined
-            }
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then(str => {
-                stream = str;
-                setupAudioContext();
-                startMonitoring();
-                startRecording(); // Start recording immediately
-                if (this.uiCallbacks.onMonitoringStart) {
-                    this.uiCallbacks.onMonitoringStart();
-                }
-            })
-            .catch(err => {
-                console.error("Error accessing microphone:", err);
-                this.stop();
-                if (this.uiCallbacks.onError) {
-                    this.uiCallbacks.onError("Error accessing microphone: " + err.message);
-                }
-            });
-    },
-
-    setMicrophone: function(deviceId) {
-        this.selectedMicrophoneId = deviceId;
-    },
-
-    setPauseTime: function(time) {
+    setPauseTime(time) {
         this.pauseTime = time;
-    },
+        this.audioManager.setPauseTime(time);
+    }
 
-    setDisableTutor: function(disable) {
+    setDisableTutor(disable) {
         this.disableTutor = disable;
-    },
+    }
 
-    setAccentIgnore: function(ignore) {
+    setAccentIgnore(ignore) {
         this.accentIgnore = ignore;
-    },
+    }
 
-    manualStop: async function() {
+    async manualStop() {
         console.log('Manual stop called');
-        this.isRecording = false;
-        await this.stopRecording();
-        stopMonitoring();
+        await this.audioManager.manualStop();
         if (this.uiCallbacks.onProcessingStart) {
             this.uiCallbacks.onProcessingStart();
         }
-        
-        setTimeout(() => {
-            this.processAndSendAudio();
-        }, this.pauseTime * 900); // Use the pause time set by the user
-    },
+    }
 
-    stopRecording: async function() {
-        console.log('Stop recording called');
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            return new Promise((resolve) => {
-                mediaRecorder.onstop = () => {
-                    this.isRecording = false;
-                    resolve();
-                };
-                mediaRecorder.stop();
-            });
-        }
-        return Promise.resolve();
-    },
-
-    async processAndPlayAudio(audioData, sessionTimestamp) {
+    async processAndPlayAudio(audioData) {
         console.log('Process and play audio called');
-        if (sessionTimestamp !== currentSessionTimestamp) {
-            console.log('Ignoring outdated audio processing request');
-            return;
-        }
+        console.log('Current chat timestamp:', this.currentChatTimestamp);
 
         try {
             if (this.uiCallbacks.onProcessingStart) {
                 this.uiCallbacks.onProcessingStart();
             }
-    
+
+            const currentChat = this.getCurrentChat();
+            console.log('Current chat before API call:', JSON.stringify(currentChat, null, 2));
+
+            if (!currentChat) {
+                console.error('No current chat found');
+                throw new Error('No current chat found');
+            }
+
             const formElementsWithChat = {
                 ...this.formElements,
-                chatObject: this.getCurrentChat()
+                chatObject: {
+                    chat_history: currentChat.chat_history || [],
+                    tutors_comments: currentChat.tutors_comments || [],
+                    summary: currentChat.summary || [],
+                    timestamp: currentChat.timestamp
+                }
             };
-    
-            if (sessionTimestamp !== currentSessionTimestamp) {
-                throw new DOMException('Session changed', 'AbortError');
-            }
 
-            // Ensure audioData is a Blob
-            const audioBlob = audioData instanceof Blob ? audioData : new Blob([audioData], { type: 'audio/wav' });
+            console.log('Form elements with chat being sent:', JSON.stringify(formElementsWithChat, null, 2));
 
-            const result = await sendAudioToServer(audioBlob, formElementsWithChat);
+            const result = await sendAudioToServer(audioData, formElementsWithChat);
             
-            if (sessionTimestamp !== currentSessionTimestamp) {
-                throw new DOMException('Session changed', 'AbortError');
-            }
+            console.log('Server response:', JSON.stringify(result, null, 2));
 
-            console.time('clientProcessing');
-            
-            // Update the current chat object with the response from the server
             if (result.chatObject) {
-                this.chatObjects[this.currentChatIndex] = result.chatObject;
+                console.log('Received chat object from server:', JSON.stringify(result.chatObject, null, 2));
+                const index = this.chatObjects.findIndex(chat => chat.timestamp === this.currentChatTimestamp);
+                if (index !== -1) {
+                    this.chatObjects[index] = {
+                        ...result.chatObject,
+                        timestamp: this.currentChatTimestamp // Ensure we keep the original timestamp
+                    };
+                    console.log('Updated chat object:', JSON.stringify(this.chatObjects[index], null, 2));
+                    await this.saveChatObjects();  // Save after updating
+                } else {
+                    console.error('Could not find chat object to update');
+                }
                 
                 if (this.uiCallbacks.onAPIResponseReceived) {
                     this.uiCallbacks.onAPIResponseReceived(result.chatObject);
@@ -343,34 +270,25 @@ const tutorController = {
                 console.error('Server response did not include chatObject');
             }
             
-            // Decode audio data
             if (result.audio_base64) {
-                const audioBuffer = await decodeAudioData(result.audio_base64);
-                
-                // Play audio
                 if (this.uiCallbacks.onAudioPlayStart) {
                     this.uiCallbacks.onAudioPlayStart();
                 }
                 const playbackSpeed = 0.9 + (parseFloat(this.formElements.playbackSpeedSlider.value) * 0.1);
-                await playDecodedAudio(audioBuffer, playbackSpeed);
+                await this.audioManager.playAudio(result.audio_base64, playbackSpeed);
             } else {
                 console.error('Server response did not include audio_base64');
             }
             
-            console.timeEnd('clientProcessing');
-            
             return { success: true };
         } catch (error) {
-            if (error.name === 'AbortError') {
-                throw error; // Re-throw AbortError to be caught in processAndSendAudio
-            }
             console.error('Error processing or playing audio:', error);
             if (this.uiCallbacks.onError) {
                 this.uiCallbacks.onError("Error processing or playing audio: " + error.message);
             }
             return { success: false, error: error.message };
         }
-    },
+    }
 
     async onRecordingComplete(result) {
         console.log('Recording complete called');
@@ -378,258 +296,23 @@ const tutorController = {
             if (this.uiCallbacks.onRecordingDiscarded) {
                 this.uiCallbacks.onRecordingDiscarded(result.reason);
             }
-            this.startMonitoring();
+            this.audioManager.startMonitoring();
         } else {
-            const processResult = await this.processAndPlayAudio(result.audioBlob, currentSessionTimestamp);
+            const processResult = await this.processAndPlayAudio(result.audioBlob);
             
-            if (processResult.success) {
-                // Resume monitoring after successful audio playback
-                if (this.isActive) {
-                    this.startMonitoring();
-                }
+            if (processResult.success && this.isActive) {
+                this.audioManager.startMonitoring();
             }
         }
-    },
+    }
 
-    startMonitoringInterval: function() {
-        return setInterval(() => {
-            if (this.isActive) {
-                const { average, isSilent } = monitorSound();
-                if (this.uiCallbacks.onSoundLevelUpdate) {
-                    this.uiCallbacks.onSoundLevelUpdate(average, isSilent);
-                }
-            } else {
-                if (this.uiCallbacks.onSoundLevelUpdate) {
-                    this.uiCallbacks.onSoundLevelUpdate(null, null);
-                }
+    startMonitoringInterval() {
+        return this.audioManager.startMonitoringInterval((average, isSilent) => {
+            if (this.uiCallbacks.onSoundLevelUpdate) {
+                this.uiCallbacks.onSoundLevelUpdate(average, isSilent);
             }
-        }, MONITOR_TIME_INTERVAL); 
-    },
-
-    processAndSendAudio: async function() {
-        console.log('Process and send audio called');
-        if (!this.isActive || isProcessing) {
-            console.log('Skipping audio processing: tutor inactive or already processing');
-            return;
-        }
-
-        isProcessing = true;
-        const sessionTimestamp = currentSessionTimestamp;
-        const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
-        
-        try {
-            const trimmedBlob = await this.trimAudioFromSpeechStart(audioBlob);
-            if (trimmedBlob) {
-                await this.processAndPlayAudio(trimmedBlob, sessionTimestamp);
-            } else {
-                console.log('Audio discarded: no speech detected or too short');
-                if (this.uiCallbacks.onRecordingDiscarded) {
-                    this.uiCallbacks.onRecordingDiscarded("No speech detected or too short");
-                }
-            }
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.log('Audio processing was cancelled');
-            } else {
-                console.error('Error processing audio:', error);
-            }
-        } finally {
-            isProcessing = false;
-            this.pendingProcessingPromise = null;
-            this.speechStartTime = null;
-            this.silenceStartTime = null;
-        }
-        
-        // Reset for next recording only if the session is still active
-        if (this.isActive && currentSessionTimestamp === sessionTimestamp) {
-            this.startMonitoring();
-            if (this.uiCallbacks.onMonitoringStart) {
-                this.uiCallbacks.onMonitoringStart();
-            }
-        }
-    },
-
-    trimAudioFromSpeechStart: async function(audioBlob) {
-        if (!this.speechStartTime) {
-            return null; // No speech detected
-        }
-
-        const audioBuffer = await this.blobToAudioBuffer(audioBlob);
-        const recordingStartTime = currentSessionTimestamp;
-        const trimStartTime = Math.max(0, this.speechStartTime - recordingStartTime - 300); // 300ms buffer
-        const trimStartSample = Math.floor(trimStartTime * audioBuffer.sampleRate / 1000);
-        
-        if (audioBuffer.length - trimStartSample < audioBuffer.sampleRate * MIN_VALID_DURATION) {
-            return null; // Audio too short after trimming
-        }
-
-        const trimmedBuffer = audioContext.createBuffer(
-            audioBuffer.numberOfChannels,
-            audioBuffer.length - trimStartSample,
-            audioBuffer.sampleRate
-        );
-
-        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-            const channelData = audioBuffer.getChannelData(channel);
-            trimmedBuffer.copyToChannel(channelData.slice(trimStartSample), channel);
-        }
-
-        return new Blob([bufferToWave(trimmedBuffer)], {type: 'audio/wav'});
-    },
-
-    blobToAudioBuffer: async function(blob) {
-        const arrayBuffer = await blob.arrayBuffer();
-        return new Promise((resolve, reject) => {
-            audioContext.decodeAudioData(arrayBuffer, resolve, reject);
         });
     }
-};
-
-function setupAudioContext() {
-    console.log('Setting up audio context');
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    analyser = audioContext.createAnalyser();
-    const source = audioContext.createMediaStreamSource(stream);
-    source.connect(analyser);
-
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
 }
 
-function startMonitoring() {
-    console.log('Start monitoring function called');
-    isMonitoring = true;
-    monitorSound();
-}
-
-function monitorSound() {
-    if (!isMonitoring || !analyser || !dataArray) {
-        return { average: 0, isSilent: true };
-    }
-
-    analyser.getByteFrequencyData(dataArray);
-
-    const average = dataArray.reduce((acc, value) => acc + value, 0) / dataArray.length;
-    const isSilent = average < SILENCE_THRESHOLD;
-
-    handleSoundState(isSilent);
-
-    return { average, isSilent };
-}
-
-function handleSoundState(isSilent) {
-    const currentTime = Date.now();
-
-    if (!isSilent) {
-        if (!tutorController.speechStartTime) {
-            tutorController.speechStartTime = currentTime;
-        }
-        tutorController.silenceStartTime = null;
-    } else {
-        if (tutorController.speechStartTime) {
-            if (!tutorController.silenceStartTime) {
-                tutorController.silenceStartTime = currentTime;
-            } else if (currentTime - tutorController.silenceStartTime >= tutorController.pauseTime * 1000) {
-                stopRecording().then(result => {
-                    tutorController.onRecordingComplete(result);
-                });
-            }
-        }
-    }
-}
-
-function startRecording() {
-    console.log('Start recording function called');
-    isRecording = true;
-    tutorController.isRecording = true;
-    audioChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = event => {
-        audioChunks.push(event.data);
-    };
-    mediaRecorder.start();
-    tutorController.speechStartTime = null;
-    tutorController.silenceStartTime = null;
-}
-
-async function stopRecording() {
-    console.log('Stop recording function called');
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        isRecording = false;
-        tutorController.isRecording = false;
-        stopMonitoring();
-        
-        return new Promise((resolve) => {
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
-                resolve({ discarded: false, audioBlob: audioBlob });
-            };
-        });
-    }
-    return Promise.resolve({ discarded: true, reason: "No active recording" });
-}
-
-function stopMonitoring() {
-    console.log('Stop monitoring function called');
-    isMonitoring = false;
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-    }
-}
-
-function stopTutor() {
-    console.log('Stop tutor function called');
-    stopMonitoring();
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
-    if (audioContext) {
-        audioContext.close();
-        audioContext = null;
-    }
-    isRecording = false;
-    isProcessing = false;
-    audioChunks = [];
-    tutorController.speechStartTime = null;
-    tutorController.silenceStartTime = null;
-}
-
-function decodeAudioData(base64Audio) {
-    return new Promise((resolve, reject) => {
-        const binaryString = atob(base64Audio);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        audioContext.decodeAudioData(bytes.buffer, resolve, reject);
-    });
-}
-
-function playDecodedAudio(audioBuffer, playbackSpeed) {
-    return new Promise((resolve) => {
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.playbackRate.value = playbackSpeed;
-        source.connect(audioContext.destination);
-        source.onended = resolve;
-        source.start(0);
-    });
-}
-
-// Update the Promise polyfill to include a cancel method
-Promise.prototype.cancel = function() {
-    if (this.cancel) {
-        this.cancel();
-    }
-};
-
-export { 
-    tutorController, 
-    decodeAudioData, 
-    playDecodedAudio
-};
+export const tutorController = new TutorController();
