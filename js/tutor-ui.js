@@ -243,7 +243,7 @@ function deleteLocalHistory() {
             updateChatList();
             updateChatDisplay({ chat_history: [], tutors_comments: [], summary: [] });
             alert("Local history has been deleted. The page will now refresh.");
-            location.reload(); // Refresh the page
+            location.reload(true); // Force a hard refresh, bypassing the cache
         };
     }
 }
