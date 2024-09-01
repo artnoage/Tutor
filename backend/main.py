@@ -136,6 +136,40 @@ async def process_audio(
     groq_api_key: str = Form(None),
     openai_api_key: str = Form(None)
 ):
+
+@app.post("/generate_homework")
+async def generate_homework(request_data: AudioData):
+    try:
+        logger.info("Starting generate_homework function")
+        
+        # Check if we have all the necessary objects
+        required_fields = [
+            'tutoringLanguage', 'tutorsLanguage', 'tutorsVoice', 'partnersVoice',
+            'interventionLevel', 'chatObject', 'disableTutor', 'accentignore', 'model'
+        ]
+        for field in required_fields:
+            if not hasattr(request_data, field):
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+        
+        # Select the appropriate API key based on the model
+        if request_data.model == "OpenAI":
+            api_key = OPENAI_API_KEY
+            provider = "openai"
+            logger.info("Using OpenAI API")
+        else:
+            api_key = get_random_groq_api_key()
+            provider = "groq"
+            logger.info(f"Using Groq API key: {api_key[:5]}...")
+        
+        # TODO: Call LLM to generate homework (to be implemented in the next step)
+        homework = "This is a placeholder for the generated homework."
+        
+        return JSONResponse({"homework": homework})
+    
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
     try:
         logger.info("Starting process_audio function")
         audio_data = AudioData.model_validate_json(data)
