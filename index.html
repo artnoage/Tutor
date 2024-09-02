@@ -145,11 +145,13 @@
         </div>
 
         <!-- Right Sidebar -->
-        <div class="col-span-1 bg-base-200 p-4 grid grid-rows-[auto,1fr] gap-4 overflow-y-auto">
-            <h2 class="text-xl font-bold">Homework</h2>
-            <textarea id="homeworkTextarea" class="w-full h-64 p-2 mb-4 bg-base-300 rounded" placeholder="Your homework will appear here..."></textarea>
-            <button id="giveHomeworkButton" class="btn btn-primary w-full mb-2">Give Me Homework</button>
-            <button id="downloadHomeworkButton" class="btn btn-secondary w-full">Download Homework</button>
+        <div class="col-span-1 bg-base-200 p-4 grid grid-rows-[auto,1fr,auto] gap-4 overflow-y-auto">
+            <h2 class="text-xl font-bold">Homework Chat</h2>
+            <div id="homeworkChatDisplay" class="bg-base-300 p-4 rounded-lg overflow-y-auto"></div>
+            <div class="flex flex-col gap-2">
+                <button id="giveHomeworkButton" class="btn btn-primary w-full">Give Me Homework</button>
+                <button id="downloadHomeworkButton" class="btn btn-secondary w-full">Download Homework</button>
+            </div>
         </div>
     </div>
 

@@ -41,7 +41,7 @@ const elements = {
     deleteSelectedChatButton: document.getElementById('deleteSelectedChatButton'),
     giveHomeworkButton: document.getElementById('giveHomeworkButton'),
     downloadHomeworkButton: document.getElementById('downloadHomeworkButton'),
-    homeworkTextarea: document.getElementById('homeworkTextarea')
+    homeworkChatDisplay: document.getElementById('homeworkChatDisplay')
 };
 
 // Event listeners
@@ -110,7 +110,7 @@ elements.giveHomeworkButton.addEventListener('click', async () => {
             pauseTimeSlider: elements.pauseTimeSlider
         };
         const homework = await sendHomeworkRequest(formElements);
-        elements.homeworkTextarea.value = homework;
+        addMessageToHomeworkChat('Tutor', homework);
     } catch (error) {
         console.error("Error generating homework:", error);
         updateInfoWindow("Error generating homework: " + error.message);
@@ -120,15 +120,22 @@ elements.giveHomeworkButton.addEventListener('click', async () => {
 });
 
 elements.downloadHomeworkButton.addEventListener('click', () => {
-    const homework = elements.homeworkTextarea.value;
+    const homeworkChat = elements.homeworkChatDisplay.innerText;
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    const splitText = doc.splitTextToSize(homework, 180);
+    const splitText = doc.splitTextToSize(homeworkChat, 180);
     doc.text(splitText, 15, 15);
     
-    doc.save('homework.pdf');
+    doc.save('homework_chat.pdf');
 });
+
+function addMessageToHomeworkChat(sender, message) {
+    const messageElement = document.createElement('p');
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    elements.homeworkChatDisplay.appendChild(messageElement);
+    elements.homeworkChatDisplay.scrollTop = elements.homeworkChatDisplay.scrollHeight;
+}
 
 // Initialize UI
 initializeUI();

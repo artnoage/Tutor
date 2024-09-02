@@ -307,3 +307,13 @@ export function debugPrintChats(chatObjects) {
     });
     updateInfoWindow(debugInfo);
 }
+export function updateHomeworkChatDisplay(chatObject) {
+    const homeworkChatDisplay = document.getElementById('homeworkChatDisplay');
+    homeworkChatDisplay.innerHTML = '';
+    chatObject.homework_chat.forEach((message) => {
+        const messageElement = document.createElement('p');
+        messageElement.innerHTML = `<strong>${message.sender}:</strong> ${message.content}`;
+        homeworkChatDisplay.appendChild(messageElement);
+    });
+    homeworkChatDisplay.scrollTop = homeworkChatDisplay.scrollHeight;
+}
