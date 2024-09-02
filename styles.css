@@ -21,6 +21,19 @@
 }
 
 @layer components {
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+
+  .layout-grid > * {
+    overflow-y: auto;
+    height: 100%;
+  }
+
   .btn {
     @apply py-2 px-4 rounded font-bold transition-colors duration-200;
   }
