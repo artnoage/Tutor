@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dracula">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tutor Recorder with Sound Monitor</title>
-        <link href="/dist/output.css" rel="stylesheet" type="text/css" />
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Recorder with Sound Monitor</title>
+    <link href="/dist/output.css" rel="stylesheet" type="text/css" />
+</head>
 <body>
     <div class="layout-grid">
         <!-- Left Sidebar -->
-        <div class="col-span-1 bg-base-200 p-4 grid grid-rows-[auto,auto,1fr] gap-4 overflow-y-auto">
+        <div id="leftSidebar" class="sidebar left-sidebar">
             <h2 class="text-xl font-bold">Chat Management</h2>
             <button id="createChatButton" class="btn btn-primary w-full mb-2">Create New Chat</button>
             <div id="chatList" class="overflow-y-auto mb-2">
@@ -18,9 +18,10 @@
             <button id="deleteSelectedChatButton" class="btn btn-warning w-full mb-2">Delete Selected Chat</button>
             <button id="deleteLocalHistoryButton" class="btn btn-error w-full">Delete Local History</button>
         </div>
+        <div id="leftResizeHandle" class="resize-handle"></div>
 
         <!-- Main Content -->
-        <div class="col-span-3 p-4 overflow-y-auto">
+        <div class="main-content">
             <h1 id="tutor-recorder-with-sound-monitor" class="text-3xl font-bold mb-4">Tutor Recorder with Sound Monitor</h1>
 
             <div class="mb-4">
@@ -145,7 +146,8 @@
         </div>
 
         <!-- Right Sidebar -->
-        <div class="col-span-1 bg-base-200 p-4 grid grid-rows-[auto,1fr,auto] gap-4 overflow-y-auto">
+        <div id="rightResizeHandle" class="resize-handle"></div>
+        <div id="rightSidebar" class="sidebar right-sidebar">
             <h2 class="text-xl font-bold">Homework Chat</h2>
             <div id="homeworkChatDisplay" class="bg-base-300 p-4 rounded-lg overflow-y-auto"></div>
             <div class="flex flex-col gap-2">
@@ -157,7 +159,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="/js/tutor-core.js" type="module"></script>
-    <script src="/js/tutor-ui-helpers.js" type="module" ></script>
-    <script src="/js/tutor-ui.js" type="module" ></script>
+    <script src="/js/tutor-ui-helpers.js" type="module"></script>
+    <script src="/js/tutor-ui.js" type="module"></script>
+    <script src="/js/sidebar-resize.js" type="module"></script>
 </body>
 </html>
