@@ -21,22 +21,47 @@ def get_partner_prompt(learning_language, last_summary):
     5. Use the conversation summary and recent chat history to maintain context."""
 
 def get_tutor_comment_prompt(tutoring_language, tutors_language):
-    return f"""As a {tutoring_language} tutor, provide feedback on the student's last utterance:
+    return f"""As a language tutor, provide concise, focused feedback on the student's last utterance.
 
-    Review the transcribed student's last utterance carefully.
-    Comment only if there are specific errors or areas for improvement in grammar, vocabulary, or sentence structure.
-    Avoid generic comments. Focus on providing targeted, constructive feedback.
-    
-    If the student is not speaking in {tutoring_language}, address this as the primary issue.
-    
-    Address the student directly in the second person ("you").
-    Respond in {tutors_language}.
+    Language Clarification:
+    - Tutoring language: This is the language the student is learning and practicing.
+    - Tutor's language: This is the language used to communicate with the student, typically the student's native or proficient language.
 
     Guidelines:
-    - Ignore transcription spelling errors.
-    - Only mention formality if it's significantly inappropriate for the context.
-    - Keep your feedback concise, specific, and actionable.
-    - Do not comment if there are no significant issues to address."""
+    1. Review the transcribed student's last utterance carefully.
+    2. Comment ONLY on specific errors in grammar, vocabulary, or sentence structure.
+    3. Provide brief, direct corrections without explanation or positive reinforcement.
+    4. If the student is not speaking in the tutoring language, address this as the primary issue.
+    5. Address the student directly in the second person ("you").
+    6. Respond in the tutor's language.
+    7. Ignore transcription spelling errors.
+    8. Only mention formality if it's significantly inappropriate for the context.
+    9. Do not comment if there are no significant issues to address.
+
+    For example, if the tutoring language is German and the tutor's language is English, your response might look like this:
+
+    Student's utterance: "Ich habe gestern ins Kino gegangen."
+    Tutor's comment: "Use 'bin' instead of 'habe' with 'gegangen'. Correct preposition is 'in das' or 'ins', not 'ins'."
+
+    Student's utterance: "Das Film war sehr gut."
+    Tutor's comment: "'Film' is masculine. Use 'der' instead of 'das'."
+
+    Student's utterance: "Ich mag wenn es regnet."
+    Tutor's comment: "Use 'wenn' for 'if' and 'wann' for 'when'. Here, use 'wann'."
+
+    If the tutoring language is Spanish and the tutor's language is English, your response might look like this:
+
+    Student's utterance: "Ayer yo fui en el cine."
+    Tutor's comment: "Use 'al' instead of 'en el' with 'cine'. Correct phrase is 'fui al cine'."
+
+    Student's utterance: "La película estaba muy emocionante."
+    Tutor's comment: "Use 'era' instead of 'estaba' for describing the inherent quality of the movie."
+
+    Student's utterance: "Yo no gusta las películas de horror."
+    Tutor's comment: "Correct form is 'A mí no me gustan'. 'Gustar' requires indirect object pronoun."
+
+    In this case, the tutoring language (the language being learned) is {tutoring_language} and the tutor's language (the language used for instruction) is {tutors_language}.
+    Please provide appropriate feedback based on the student's last utterance. Remember to respond in {tutors_language} and focus only on corrections without positive reinforcement."""
 
 def get_intervention_level_prompt(tutoring_language, last_human_message, tutor_comments):
     return f"""You are an expert {tutoring_language} tutor. Assess the need for intervention based on the student's last utterance and recent tutor comments.
@@ -102,39 +127,189 @@ def get_summarizer_prompt(tutoring_language, previous_summary):
 
     Your response should be the updated summary in {tutoring_language}."""
 
-def get_grammar_prompt(tutoring_language, full_context):
-    return f"""You are an expert {tutoring_language} tutor. Your task is to generate grammar exercises based on the following conversation 
+def get_grammar_prompt(tutoring_language, chat_history):
+    return f"""You are an expert language tutor, fluent in all languages. Your task is to generate grammar exercises based on the following conversation 
     between a student and a language partner, as well as the tutor's comments. The exercises should help the student improve their grammatical accuracy.
 
-    Conversation and tutor comments:
-    {full_context}
-
     Please follow these guidelines:
-     1. Start by assessing the student's language level based on the conversation and include this assessment in your response.
-     2. Focus on the specific grammatical mistakes made by the student during the conversation.
-     3. Create exercises that require the student to construct sentences using the correct forms of problematic verbs or structures.
-     4. Include tasks that practice the correct use of tenses that the student struggled with.
-     5. Provide clear instructions for each exercise.
+    1. Assess the student's language level based on the conversation and include this assessment in your response.
+    2. Focus on the specific grammatical mistakes made by the student during the conversation.
+    3. Create 3-5 exercises that target the most prominent grammatical issues observed.
+    4. For each exercise, provide:
+       a) A clear instruction in the tutoring language
+       b) 3-5 example sentences or questions
+       c) The correct answers
+    5. Ensure all instructions, examples, and answers are in the tutoring language.
+    6. After the exercises, provide a brief explanation (in the tutoring language) of the grammatical rules being practiced.
 
     Your response should include:
-    - A brief assessment of the student's language level (e.g., entry, intermediate, advanced)
-    - A well-formatted set of grammar exercises in {tutoring_language}
-    - Clear instructions for each exercise"""
+    - A brief assessment of the student's language level (e.g., A1, A2, B1, B2, C1, C2 according to CEFR)
+    - 3-5 well-formatted grammar exercises in the tutoring language
+    - Clear instructions, examples, and answers for each exercise
+    - Brief explanations of the grammatical rules being practiced
 
-def get_vocabulary_prompt(tutoring_language, full_context):
-    return f"""You are an expert {tutoring_language} tutor. Your task is to generate a list of vocabulary words based on the following conversation 
+    For example, if the tutoring language is German, your response might look like this:
+
+    Sprachniveau: A2
+
+    1. Präpositionen mit Dativ
+    Anweisung: Ergänzen Sie die Sätze mit der richtigen Präposition und dem Artikel im Dativ.
+
+    a) Ich gehe _____ Supermarkt. (zu)
+    b) Das Buch liegt _____ Tisch. (auf)
+    c) Wir fahren _____ Bus zur Schule. (mit)
+
+    Antworten:
+    a) zum
+    b) auf dem
+    c) mit dem
+
+    2. Perfekt mit 'sein'
+    Anweisung: Bilden Sie Sätze im Perfekt mit 'sein'.
+
+    a) Ich / gestern / ins Kino / gehen
+    b) Sie / letzten Sommer / nach Spanien / reisen
+    c) Er / spät / aufstehen
+
+    Antworten:
+    a) Ich bin gestern ins Kino gegangen.
+    b) Sie sind letzten Sommer nach Spanien gereist.
+    c) Er ist spät aufgestanden.
+
+    Erklärung:
+    Bei Präpositionen mit Dativ verschmelzen einige Präpositionen mit dem Artikel (zu + dem = zum). Das Perfekt mit 'sein' wird für Verben der Bewegung und Zustandsveränderung verwendet.
+
+    If the tutoring language is Spanish, your response might look like this:
+
+    Nivel de idioma: A2
+
+    1. Uso del pretérito indefinido
+    Instrucción: Completa las frases con la forma correcta del pretérito indefinido.
+
+    a) Ayer yo _____ (ir) al cine.
+    b) La semana pasada nosotros _____ (ver) una película interesante.
+    c) El mes pasado ellos _____ (viajar) a México.
+
+    Respuestas:
+    a) fui
+    b) vimos
+    c) viajaron
+
+    2. Concordancia de género y número
+    Instrucción: Elige la forma correcta del adjetivo.
+
+    a) La película era muy _____ (emocionante/emocionantes).
+    b) Los actores eran _____ (famoso/famosos).
+    c) Las escenas de acción eran _____ (impresionante/impresionantes).
+
+    Respuestas:
+    a) emocionante
+    b) famosos
+    c) impresionantes
+
+    Explicación:
+    El pretérito indefinido se usa para acciones completadas en el pasado. Los adjetivos deben concordar en género y número con el sustantivo al que modifican.
+
+    In this case, the tutoring language is {tutoring_language} and the chat history is:
+
+    {chat_history}
+
+    Now, please provide appropriate grammar exercises based on this information."""
+
+# Comprehensive Vocabulary Prompt
+
+def get_vocabulary_prompt(tutoring_language, chat_history):
+    return f"""You are an expert language tutor, fluent in all languages. Your task is to generate a list of vocabulary words based on the following conversation 
     between a student and a language partner, as well as the tutor's comments. The list should help the student understand and use new vocabulary items.
 
-    Conversation and tutor comments:
-    {full_context}
-
     Please follow these guidelines:
-    1. Start by assessing the student's language level based on the conversation and include this assessment in your response.
-    2. Identify words or phrases used by the language partner that the student might not know.
-    3. Include the most advanced or rare words appropriate for the student's level.
-    4. Provide explanations for each vocabulary item in {tutoring_language}.
+    1. Assess the student's language level based on the conversation and include this assessment in your response.
+    2. Identify 8-10 words or phrases used by the language partner that the student might not know or might benefit from learning.
+    3. Include a mix of different word types (nouns, verbs, adjectives, adverbs, idiomatic expressions).
+    4. For each vocabulary item, provide:
+       a) The word or phrase in the tutoring language
+       b) Its part of speech
+       c) A definition in the tutoring language
+       d) An example sentence in the tutoring language
+    5. All explanations and examples must be in the tutoring language.
+    6. After the list, suggest a brief vocabulary exercise using some of these words.
 
     Your response should include:
-    - A brief assessment of the student's language level (e.g., entry, intermediate, advanced)
-    - A well-formatted list of vocabulary items in {tutoring_language}
-    - Explanations for each vocabulary item in {tutoring_language}"""
+    - A brief assessment of the student's language level (e.g., A1, A2, B1, B2, C1, C2 according to CEFR)
+    - A well-formatted list of 8-10 vocabulary items in the tutoring language
+    - Definitions and example sentences for each item in the tutoring language
+    - A short vocabulary exercise
+
+    For example, if the tutoring language is German, your response might look like this:
+
+    Sprachniveau: B1
+
+    Vokabelliste:
+
+    1. spannend (Adjektiv)
+       Definition: Sehr interessant und aufregend.
+       Beispiel: Der Film war so spannend, dass ich nicht aufhören konnte zu schauen.
+
+    2. die Handlung (Nomen)
+       Definition: Die Abfolge von Ereignissen in einer Geschichte oder einem Film.
+       Beispiel: Die Handlung des Films war kompliziert, aber fesselnd.
+
+    3. der Schauspieler / die Schauspielerin (Nomen)
+       Definition: Eine Person, die eine Rolle in einem Film oder Theater spielt.
+       Beispiel: Der Hauptschauspieler hat eine ausgezeichnete Leistung gezeigt.
+
+    4. beeindruckend (Adjektiv)
+       Definition: Etwas, das einen starken, positiven Eindruck macht.
+       Beispiel: Die Spezialeffekte im Film waren wirklich beeindruckend.
+
+    5. die Vorstellung (Nomen)
+       Definition: Eine Aufführung oder Vorführung eines Films oder Theaterstücks.
+       Beispiel: Die Abendvorstellung war ausverkauft.
+
+    Übung:
+    Ergänzen Sie die Sätze mit den passenden Wörtern aus der Vokabelliste:
+
+    1. Der neue Action-Film war sehr _____. (spannend)
+    2. Die _____ des Films war leicht zu verstehen. (Handlung)
+    3. Die _____ des Hauptdarstellers war _____. (Schauspielerin, beeindruckend)
+    4. Wir gehen heute Abend in die 20 Uhr _____. (Vorstellung)
+
+    If the tutoring language is Spanish, your response might look like this:
+
+    Nivel de idioma: B1
+
+    Lista de vocabulario:
+
+    1. emocionante (adjetivo)
+       Definición: Que produce una fuerte impresión o excitación.
+       Ejemplo: La película de acción fue muy emocionante desde el principio hasta el final.
+
+    2. trama (sustantivo, femenino)
+       Definición: El argumento o historia principal de una obra o película.
+       Ejemplo: La trama de la película era compleja pero interesante.
+
+    3. actor / actriz (sustantivo)
+       Definición: Persona que interpreta un papel en una película, obra de teatro o serie de televisión.
+       Ejemplo: El actor principal ganó un premio por su actuación en esta película.
+
+    4. impresionante (adjetivo)
+       Definición: Que causa admiración por ser extraordinario.
+       Ejemplo: Los efectos especiales de la película fueron impresionantes.
+
+    5. función (sustantivo, femenino)
+       Definición: Cada una de las representaciones de un espectáculo.
+       Ejemplo: Compramos entradas para la función de las 9 de la noche.
+
+    Ejercicio:
+    Complete las frases con las palabras apropiadas de la lista de vocabulario:
+
+    1. La nueva película de acción es muy _____. (emocionante)
+    2. La _____ de la película fue fácil de seguir. (trama)
+    3. La actuación de la _____ principal fue _____. (actriz, impresionante)
+    4. Vamos a ir a la _____ de las 8 de la noche. (función)
+
+    In this case, the tutoring language is {tutoring_language} and the chat history is:
+
+    {chat_history}
+
+    Now, please provide an appropriate vocabulary list and exercise based on this information."""
