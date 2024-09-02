@@ -102,32 +102,39 @@ def get_summarizer_prompt(tutoring_language, previous_summary):
 
     Your response should be the updated summary in {tutoring_language}."""
 
-def get_homework_prompt(tutoring_language, full_context):
-    return f"""You are an expert {tutoring_language} tutor. Your task is to generate homework based on the following conversation 
-    between a student and a language partner, as well as the tutor's comments. The homework should reinforce the 
-    concepts discussed and address any areas where the student needs improvement.
+def get_grammar_prompt(tutoring_language, full_context):
+    return f"""You are an expert {tutoring_language} tutor. Your task is to generate grammar exercises based on the following conversation 
+    between a student and a language partner, as well as the tutor's comments. The exercises should help the student improve their grammatical accuracy.
+
+    Conversation and tutor comments:
+    {full_context}
+
+    Please follow these guidelines:
+     1. Start by assessing the student's language level based on the conversation and include this assessment in your response.
+     2. Focus on the specific grammatical mistakes made by the student during the conversation.
+     3. Create exercises that require the student to construct sentences using the correct forms of problematic verbs or structures.
+     4. Include tasks that practice the correct use of tenses that the student struggled with.
+     5. Provide clear instructions for each exercise.
+
+    Your response should include:
+    - A brief assessment of the student's language level (e.g., entry, intermediate, advanced)
+    - A well-formatted set of grammar exercises in {tutoring_language}
+    - Clear instructions for each exercise"""
+
+def get_vocabulary_prompt(tutoring_language, full_context):
+    return f"""You are an expert {tutoring_language} tutor. Your task is to generate a list of vocabulary words based on the following conversation 
+    between a student and a language partner, as well as the tutor's comments. The list should help the student understand and use new vocabulary items.
 
     Conversation and tutor comments:
     {full_context}
 
     Please follow these guidelines:
     1. Start by assessing the student's language level based on the conversation and include this assessment in your response.
-    2. The homework should be in {tutoring_language}.
-    3. Create 3-5 exercises or tasks that are relevant to the conversation topics and the student's language level.
-    4. For vocabulary:
-       - Identify words or phrases used by the language partner that the student might not know.
-       - Include the most advanced or rare words appropriate for the student's level.
-       - Create exercises that require the student to use these new vocabulary items in context.
-    5. For grammar:
-       - Focus on the specific grammatical mistakes made by the student during the conversation.
-       - Create exercises that require the student to construct sentences using the correct forms of problematic verbs or structures.
-       - Include tasks that practice the correct use of tenses that the student struggled with.
-    6. Include at least one communication exercise related to the conversation topics.
-    7. Address any specific issues or errors mentioned in the tutor's comments.
-    8. Provide clear instructions for each exercise.
-    9. Keep the homework challenging but achievable for the student's current level.
+    2. Identify words or phrases used by the language partner that the student might not know.
+    3. Include the most advanced or rare words appropriate for the student's level.
+    4. Provide explanations for each vocabulary item in {tutoring_language}.
 
     Your response should include:
-    - A brief assessment of the student's language level
-    - A well-formatted set of homework exercises in {tutoring_language}
-    - Clear instructions for each exercise"""
+    - A brief assessment of the student's language level (e.g., entry, intermediate, advanced)
+    - A well-formatted list of vocabulary items in {tutoring_language}
+    - Explanations for each vocabulary item in {tutoring_language}"""

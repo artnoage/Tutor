@@ -70,7 +70,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             raise ValueError("No human message found in chat history")
 
         async def get_tutors_comment():
-            llm = get_llm(provider, "llama-3.1-8b-instant" if provider == "groq" else "gpt-4o-mini", api_key)
+            llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
             comment_template = get_tutor_comment_prompt(tutoring_language, tutors_language)
             
             comment_prompt = ChatPromptTemplate.from_messages([
@@ -153,17 +153,29 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
     try:
         llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-2024-08-06", api_key)
 
-        homework_template = get_homework_prompt(tutoring_language,full_context)
+        # Call the grammar and vocabulary prompts in parallel
+        grammar_template = get_grammar_prompt(tutoring_language, full_context)
+        vocabulary_template = get_vocabulary_prompt(tutoring_language, full_context)
 
-        homework_prompt = ChatPromptTemplate.from_messages([
-            ("system", homework_template)
+        grammar_prompt = ChatPromptTemplate.from_messages([
+            ("system", grammar_template)
+        ])
+        vocabulary_prompt = ChatPromptTemplate.from_messages([
+            ("system", vocabulary_template)
         ])
 
-        chain = homework_prompt | llm
+        grammar_chain = grammar_prompt | llm
+        vocabulary_chain = vocabulary_prompt | llm
 
-        response = await chain.ainvoke({})
+        grammar_response, vocabulary_response = await asyncio.gather(
+            grammar_chain.ainvoke({}),
+            vocabulary_chain.ainvoke({})
+        )
 
-        return response.content
+        # Combine responses
+        combined_response = f"{grammar_response.content}\n\n{vocabulary_response.content}"
+
+        return combined_response
 
     except Exception as e:
         logger.error(f"An error occurred in generate_homework: {str(e)}")
