@@ -4,3 +4,4 @@ __pycache__
 backend/.env
 .aider*
 backemd/__pycache__
+config.json
