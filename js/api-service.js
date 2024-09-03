@@ -1,6 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+const API_URL = process.env.API_URL || 'http://127.0.0.1:8080';
+
 async function sendAudioToServer(audioBlob, formElements) {
     // Debug: Log the chatObject before sending
-
     const audioData = {
         tutoringLanguage: formElements.tutoringLanguageSelect.value,
         tutorsLanguage: formElements.tutorsLanguageSelect.value,
@@ -18,7 +22,7 @@ async function sendAudioToServer(audioBlob, formElements) {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.wav');
     formData.append('data', JSON.stringify(audioData));
-    
+
     // Add API keys to form data (sending empty strings if not available)
     // TODO: Implement proper API key management later
     formData.append('groq_api_key', '');
@@ -26,8 +30,7 @@ async function sendAudioToServer(audioBlob, formElements) {
 
     try {
         console.time('serverProcessing');
-        const response = await fetch('http://127.0.0.1:8080/process_audio', {
-        //const response = await fetch('https://tutorapi.metaskepsis.com/process_audio', {
+        const response = await fetch(`${API_URL}/process_audio`, {
             method: 'POST',
             body: formData
         });
