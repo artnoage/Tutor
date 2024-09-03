@@ -1,7 +1,21 @@
-import dotenv from 'dotenv';
-dotenv.config();
+// js/api-service.js
 
-const API_URL = process.env.API_URL || 'http://127.0.0.1:8080';
+let API_URL = 'http://127.0.0.1:8080'; // Default value
+
+async function loadConfig() {
+    try {
+        // Adjust the path to go up one level from the js folder to the root
+        const response = await fetch('../config.json');
+        const config = await response.json();
+        API_URL = config.API_URL || API_URL;
+    } catch (error) {
+        console.error('Failed to load configuration:', error);
+        // Fallback to default value already set
+    }
+}
+
+// Load config before exporting functions
+await loadConfig();
 
 async function sendAudioToServer(audioBlob, formElements) {
     // Debug: Log the chatObject before sending
@@ -69,7 +83,7 @@ async function sendHomeworkRequest(formElements) {
     };
 
     try {
-        const response = await fetch('https://tutorapi.metaskepsis.com/generate_homework', {
+        const response = await fetch(`${API_URL}/generate_homework`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
