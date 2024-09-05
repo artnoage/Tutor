@@ -79,6 +79,13 @@ class TutorController {
                 if (loadedChatObjects.length > 0) {
                     this.chatObjects = loadedChatObjects;
                     this.currentChatTimestamp = this.chatObjects[this.chatObjects.length - 1].timestamp;
+                } else {
+                    // If no chat objects are found, create a new one
+                    this.createNewChat().then(() => {
+                        if (this.uiCallbacks && this.uiCallbacks.onChatObjectsLoaded) {
+                            this.uiCallbacks.onChatObjectsLoaded();
+                        }
+                    });
                 }
                 if (this.uiCallbacks && this.uiCallbacks.onChatObjectsLoaded) {
                     this.uiCallbacks.onChatObjectsLoaded();

@@ -1,6 +1,6 @@
 import { tutorController } from './tutor-core.js';
 import { sendHomeworkRequest } from './api-service.js';
-import { saveSettings, loadSettings } from './settings-manager.js';
+import { saveSettings, loadSettings, checkAndUpdateVersion } from './settings-manager.js';
 import {
     updateChatList,
     updateChatDisplay,
@@ -167,14 +167,23 @@ function addMessageToHomeworkChat(sender, message) {
     elements.homeworkChatDisplay.scrollTop = elements.homeworkChatDisplay.scrollHeight;
 }
 
-// Initialize UI
-initializeUI();
+// Check version and initialize
+checkAndUpdateVersion().then((versionChanged) => {
+    if (versionChanged) {
+        // If version changed, we've already cleared the data
+        console.log("New version detected. All data has been cleared.");
+        updateInfoWindow("New version detected. All data has been cleared.");
+    }
+    
+    // Initialize UI
+    initializeUI();
 
-// Load saved settings
-loadSavedSettings();
+    // Load saved settings
+    loadSavedSettings();
 
-// Start monitoring interval
-const monitoringInterval = tutorController.startMonitoringInterval();
+    // Start monitoring interval
+    const monitoringInterval = tutorController.startMonitoringInterval();
+});
 
 // Function to load saved settings
 function loadSavedSettings() {
