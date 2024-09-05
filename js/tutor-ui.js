@@ -94,7 +94,10 @@ elements.playbackSpeedSlider.addEventListener('input', () => { updatePlaybackSpe
 elements.pauseTimeSlider.addEventListener('input', () => { updatePauseTime(); saveCurrentSettings(); });
 elements.tutoringLanguageSelect.addEventListener('change', () => { tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value); saveCurrentSettings(); });
 elements.tutorsLanguageSelect.addEventListener('change', () => { tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value); saveCurrentSettings(); });
-elements.interventionLevelSelect.addEventListener('change', () => { tutorController.setInterventionLevel(elements.interventionLevelSelect.value); saveCurrentSettings(); });
+elements.interventionLevelSelect.addEventListener('change', () => { 
+    tutorController.setInterventionLevel(elements.interventionLevelSelect.value); 
+    saveCurrentSettings(); 
+});
 elements.tutorsVoiceSelect.addEventListener('change', () => { 
     tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value); 
     saveCurrentSettings(); 
@@ -104,8 +107,14 @@ elements.partnersVoiceSelect.addEventListener('change', () => {
     saveCurrentSettings(); 
 });
 elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
-elements.disableTutorCheckbox.addEventListener('change', () => { tutorController.setDisableTutor(elements.disableTutorCheckbox.checked); saveCurrentSettings(); });
-elements.accentIgnoreCheckbox.addEventListener('change', () => { tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked); saveCurrentSettings(); });
+elements.disableTutorCheckbox.addEventListener('change', () => { 
+    tutorController.setDisableTutor(elements.disableTutorCheckbox.checked); 
+    saveCurrentSettings(); 
+});
+elements.accentIgnoreCheckbox.addEventListener('change', () => { 
+    tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked); 
+    saveCurrentSettings(); 
+});
 elements.modelSelect.addEventListener('change', () => { 
     tutorController.updateModel(elements.modelSelect.value); 
     saveCurrentSettings(); 

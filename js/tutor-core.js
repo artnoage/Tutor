@@ -210,6 +210,14 @@ class TutorController {
         this.partnersVoice = voice;
     }
 
+    updateModel(model) {
+        this.model = model;
+    }
+
+    setInterventionLevel(level) {
+        this.interventionLevel = level;
+    }
+
     async manualStop() {
         await this.audioManager.manualStop();
         if (this.uiCallbacks.onProcessingStart) {
