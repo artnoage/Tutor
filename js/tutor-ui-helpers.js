@@ -218,6 +218,22 @@ export function initializeUI() {
 
     document.getElementById('thinkingSpinner').classList.add('hidden');
 
+    tutorController.setFormElements({
+        tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
+        tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
+        tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
+        partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
+        interventionLevelSelect: document.getElementById('interventionLevelSelect'),
+        playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
+        pauseTimeSlider: document.getElementById('pauseTimeSlider'),
+        disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
+        accentIgnoreCheckbox: document.getElementById('accentIgnoreCheckbox'),
+        modelSelect: document.getElementById('modelSelect')
+    });
+
+    // Set default intervention level to medium
+    document.getElementById('interventionLevelSelect').value = 'medium';
+
     tutorController.setUICallbacks({
         onMonitoringStart: () => {
             console.log('Monitoring started');
