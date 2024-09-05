@@ -224,23 +224,15 @@ export function initializeUI() {
         tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
         partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
         interventionLevelSelect: document.getElementById('interventionLevelSelect'),
-    });
-
-    // Set default intervention level to medium
-    document.getElementById('interventionLevelSelect').value = 'medium';
-
-    tutorController.setFormElements({
-        tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
-        tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
-        tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
-        partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
-        interventionLevelSelect: document.getElementById('interventionLevelSelect'),
         playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
         pauseTimeSlider: document.getElementById('pauseTimeSlider'),
         disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
         accentIgnoreCheckbox: document.getElementById('accentIgnoreCheckbox'),
         modelSelect: document.getElementById('modelSelect')
     });
+
+    // Set default intervention level to medium
+    document.getElementById('interventionLevelSelect').value = 'medium';
 
     tutorController.setUICallbacks({
         onMonitoringStart: () => {
@@ -276,26 +268,25 @@ export function initializeUI() {
         },
         onChatObjectsLoaded: () => {
             updateChatList();
-            if (tutorController.chatObjects.length > 0) {
-                updateChatDisplay(tutorController.getCurrentChat());
-            } else {
-                // If chat history is empty, create a new chat
-                tutorController.createNewChat();
-            }
+            ensureAtLeastOneChat();
         },
         onInitialLoadComplete: () => {
-            if (tutorController.chatObjects.length === 0) {
-                tutorController.createNewChat();
-            }
+            ensureAtLeastOneChat();
             updateChatList();
             updateChatDisplay(tutorController.getCurrentChat());
         },
         onInfoUpdate: updateInfoWindow
     });
 
-    // Ensure a chat exists on page load
+    ensureAtLeastOneChat();
+}
+
+function ensureAtLeastOneChat() {
     if (tutorController.chatObjects.length === 0) {
-        tutorController.createNewChat();
+        tutorController.createNewChat().then(() => {
+            updateChatList();
+            updateChatDisplay(tutorController.getCurrentChat());
+        });
     }
 }
 
