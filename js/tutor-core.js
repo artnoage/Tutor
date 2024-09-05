@@ -134,7 +134,8 @@ class TutorController {
                 if (this.uiCallbacks && this.uiCallbacks.onInfoUpdate) {
                     this.uiCallbacks.onInfoUpdate("The last chat is empty. Please use it instead of creating a new one.");
                 }
-                return null;
+                this.currentChatTimestamp = lastChat.timestamp;
+                return lastChat;
             }
         }
 

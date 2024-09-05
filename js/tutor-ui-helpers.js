@@ -331,22 +331,21 @@ export function initializeUI() {
             ensureAtLeastOneChat();
         },
         onInitialLoadComplete: () => {
-            ensureAtLeastOneChat();
-            updateChatList();
-            updateChatDisplay(tutorController.getCurrentChat());
+            ensureAtLeastOneChat().then(() => {
+                updateChatList();
+                updateChatDisplay(tutorController.getCurrentChat());
+            });
         },
         onInfoUpdate: updateInfoWindow
     });
-
-    ensureAtLeastOneChat();
 }
 
-function ensureAtLeastOneChat() {
+async function ensureAtLeastOneChat() {
     if (tutorController.chatObjects.length === 0) {
-        tutorController.createNewChat().then(() => {
-            updateChatList();
-            updateChatDisplay(tutorController.getCurrentChat());
-        });
+        await tutorController.createNewChat();
+    }
+    if (!tutorController.currentChatTimestamp && tutorController.chatObjects.length > 0) {
+        tutorController.currentChatTimestamp = tutorController.chatObjects[0].timestamp;
     }
 }
 
