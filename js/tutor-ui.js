@@ -1,5 +1,6 @@
 import { tutorController } from './tutor-core.js';
 import { sendHomeworkRequest } from './api-service.js';
+import { saveSettings, loadSettings } from './settings-manager.js';
 import {
     updateChatList,
     updateChatDisplay,
@@ -89,17 +90,17 @@ elements.createChatButton.addEventListener('click', async () => {
     }
 });
 
-elements.playbackSpeedSlider.addEventListener('input', updatePlaybackSpeed);
-elements.pauseTimeSlider.addEventListener('input', updatePauseTime);
-elements.tutoringLanguageSelect.addEventListener('change', () => tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value));
-elements.tutorsLanguageSelect.addEventListener('change', () => tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value));
-elements.interventionLevelSelect.addEventListener('change', () => tutorController.updateInterventionLevel(elements.interventionLevelSelect.value));
-elements.tutorsVoiceSelect.addEventListener('change', () => tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value));
-elements.partnersVoiceSelect.addEventListener('change', () => tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value));
+elements.playbackSpeedSlider.addEventListener('input', () => { updatePlaybackSpeed(); saveCurrentSettings(); });
+elements.pauseTimeSlider.addEventListener('input', () => { updatePauseTime(); saveCurrentSettings(); });
+elements.tutoringLanguageSelect.addEventListener('change', () => { tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value); saveCurrentSettings(); });
+elements.tutorsLanguageSelect.addEventListener('change', () => { tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value); saveCurrentSettings(); });
+elements.interventionLevelSelect.addEventListener('change', () => { tutorController.updateInterventionLevel(elements.interventionLevelSelect.value); saveCurrentSettings(); });
+elements.tutorsVoiceSelect.addEventListener('change', () => { tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value); saveCurrentSettings(); });
+elements.partnersVoiceSelect.addEventListener('change', () => { tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value); saveCurrentSettings(); });
 elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
-elements.disableTutorCheckbox.addEventListener('change', () => tutorController.setDisableTutor(elements.disableTutorCheckbox.checked));
-elements.accentIgnoreCheckbox.addEventListener('change', () => tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked));
-elements.modelSelect.addEventListener('change', () => tutorController.updateModel(elements.modelSelect.value));
+elements.disableTutorCheckbox.addEventListener('change', () => { tutorController.setDisableTutor(elements.disableTutorCheckbox.checked); saveCurrentSettings(); });
+elements.accentIgnoreCheckbox.addEventListener('change', () => { tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked); saveCurrentSettings(); });
+elements.modelSelect.addEventListener('change', () => { tutorController.updateModel(elements.modelSelect.value); saveCurrentSettings(); });
 elements.deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 elements.deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
@@ -151,8 +152,60 @@ function addMessageToHomeworkChat(sender, message) {
 // Initialize UI
 initializeUI();
 
+// Load saved settings
+loadSavedSettings();
+
 // Start monitoring interval
 const monitoringInterval = tutorController.startMonitoringInterval();
+
+// Function to load saved settings
+function loadSavedSettings() {
+    const settings = loadSettings();
+    if (settings) {
+        elements.tutoringLanguageSelect.value = settings.tutoringLanguage || '';
+        elements.tutorsLanguageSelect.value = settings.tutorsLanguage || '';
+        elements.interventionLevelSelect.value = settings.interventionLevel || 'medium';
+        elements.tutorsVoiceSelect.value = settings.tutorsVoice || 'alloy';
+        elements.partnersVoiceSelect.value = settings.partnersVoice || 'nova';
+        elements.disableTutorCheckbox.checked = settings.disableTutor || false;
+        elements.accentIgnoreCheckbox.checked = settings.accentIgnore || true;
+        elements.modelSelect.value = settings.model || 'Grok';
+        elements.playbackSpeedSlider.value = settings.playbackSpeed || 1;
+        elements.pauseTimeSlider.value = settings.pauseTime || 2;
+
+        // Update controller with loaded settings
+        tutorController.setTutoringLanguage(settings.tutoringLanguage);
+        tutorController.updateTutorsLanguage(settings.tutorsLanguage);
+        tutorController.updateInterventionLevel(settings.interventionLevel);
+        tutorController.updateTutorsVoice(settings.tutorsVoice);
+        tutorController.updatePartnersVoice(settings.partnersVoice);
+        tutorController.setDisableTutor(settings.disableTutor);
+        tutorController.setAccentIgnore(settings.accentIgnore);
+        tutorController.updateModel(settings.model);
+        tutorController.setPlaybackSpeed(settings.playbackSpeed);
+        tutorController.setPauseTime(settings.pauseTime);
+
+        updatePlaybackSpeed();
+        updatePauseTime();
+    }
+}
+
+// Function to save current settings
+function saveCurrentSettings() {
+    const settings = {
+        tutoringLanguage: elements.tutoringLanguageSelect.value,
+        tutorsLanguage: elements.tutorsLanguageSelect.value,
+        interventionLevel: elements.interventionLevelSelect.value,
+        tutorsVoice: elements.tutorsVoiceSelect.value,
+        partnersVoice: elements.partnersVoiceSelect.value,
+        disableTutor: elements.disableTutorCheckbox.checked,
+        accentIgnore: elements.accentIgnoreCheckbox.checked,
+        model: elements.modelSelect.value,
+        playbackSpeed: elements.playbackSpeedSlider.value,
+        pauseTime: elements.pauseTimeSlider.value
+    };
+    saveSettings(settings);
+}
 
 // Clean up before page unload
 window.addEventListener('beforeunload', (event) => {
