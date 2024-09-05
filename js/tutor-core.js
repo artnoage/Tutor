@@ -202,6 +202,14 @@ class TutorController {
         // Add any additional logic needed when updating tutor's language
     }
 
+    updateTutorsVoice(voice) {
+        this.tutorsVoice = voice;
+    }
+
+    updatePartnersVoice(voice) {
+        this.partnersVoice = voice;
+    }
+
     async manualStop() {
         await this.audioManager.manualStop();
         if (this.uiCallbacks.onProcessingStart) {
