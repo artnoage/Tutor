@@ -143,7 +143,7 @@ class TutorController {
         this.currentChatTimestamp = newChat.timestamp;
         await this.saveChatObjects();
         
-        if (this.uiCallbacks.onChatCreated) {
+        if (this.uiCallbacks && this.uiCallbacks.onChatCreated) {
             this.uiCallbacks.onChatCreated(newChat.timestamp);
         }
         return newChat;

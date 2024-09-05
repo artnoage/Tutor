@@ -218,6 +218,50 @@ export function initializeUI() {
 
     document.getElementById('thinkingSpinner').classList.add('hidden');
 
+    tutorController.setUICallbacks({
+        onMonitoringStart: () => {
+            console.log('Monitoring started');
+            document.getElementById('statusDisplay').textContent = "Starting monitoring...";
+        },
+        onProcessingStart: showProcessingState,
+        onAudioPlayStart: () => {
+            document.getElementById('statusDisplay').textContent = "Playing audio...";
+        },
+        onRecordingDiscarded: (reason) => {
+            document.getElementById('statusDisplay').textContent = `Recording discarded: ${reason}. Restarting...`;
+            updateInfoWindow(`Recording discarded: ${reason}`);
+            hideProcessingState();
+        },
+        onSoundLevelUpdate: updateSoundLevelDisplay,
+        onError: (errorMessage) => {
+            document.getElementById('statusDisplay').textContent = "Error: " + errorMessage;
+            hideProcessingState();
+        },
+        onAPIResponseReceived: (chatObject) => {
+            updateChatDisplay(chatObject);
+            document.getElementById('statusDisplay').textContent = "Updated chat display with API response";
+            hideProcessingState();
+        },
+        onChatCreated: (timestamp) => {
+            updateChatList();
+            updateChatDisplay(tutorController.getCurrentChat());
+        },
+        onChatSwitched: (chatObject) => {
+            updateChatDisplay(chatObject);
+            updateChatList();
+        },
+        onChatObjectsLoaded: () => {
+            updateChatList();
+            ensureAtLeastOneChat();
+        },
+        onInitialLoadComplete: () => {
+            ensureAtLeastOneChat();
+            updateChatList();
+            updateChatDisplay(tutorController.getCurrentChat());
+        },
+        onInfoUpdate: updateInfoWindow
+    });
+
     tutorController.setFormElements({
         tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
         tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
