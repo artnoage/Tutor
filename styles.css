@@ -120,6 +120,15 @@
     display: none;
   }
   
+  /* Settings Overlay */
+  #settingsOverlay {
+    backdrop-filter: blur(5px);
+  }
+
+  #settingsOverlay > div {
+    max-width: 800px;
+  }
+
   /* Dropdown styles */
   .dropdown {
     @apply relative inline-block;

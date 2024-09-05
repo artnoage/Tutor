@@ -41,10 +41,21 @@ const elements = {
     deleteSelectedChatButton: document.getElementById('deleteSelectedChatButton'),
     giveHomeworkButton: document.getElementById('giveHomeworkButton'),
     downloadHomeworkButton: document.getElementById('downloadHomeworkButton'),
-    homeworkChatDisplay: document.getElementById('homeworkChatDisplay')
+    homeworkChatDisplay: document.getElementById('homeworkChatDisplay'),
+    settingsButton: document.getElementById('settingsButton'),
+    settingsOverlay: document.getElementById('settingsOverlay'),
+    closeSettingsButton: document.getElementById('closeSettingsButton')
 };
 
 // Event listeners
+elements.settingsButton.addEventListener('click', () => {
+    elements.settingsOverlay.classList.remove('hidden');
+});
+
+elements.closeSettingsButton.addEventListener('click', () => {
+    elements.settingsOverlay.classList.add('hidden');
+});
+
 elements.startTutorButton.addEventListener('click', () => {
     console.log('Start button clicked');
     tutorController.start();

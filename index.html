@@ -33,20 +33,7 @@
                 <button id="startTutorButton" class="btn btn-primary">Start Tutor</button>
                 <button id="sendButton" class="btn btn-success">Send</button>
                 <button id="stopTutorButton" class="btn btn-secondary" disabled>Stop Tutor</button>
-                <div class="flex space-x-4">
-                    <div class="form-control">
-                        <label class="label cursor-pointer">
-                            <span class="label-text">Disable tutor (for simple conversation)</span>
-                            <input type="checkbox" id="disableTutorCheckbox" class="checkbox checkbox-lg" />
-                        </label>
-                    </div>
-                    <div class="form-control">
-                        <label class="label cursor-pointer">
-                            <span class="label-text">I don't have the best accent in the world</span>
-                            <input type="checkbox" id="accentIgnoreCheckbox" class="checkbox checkbox-lg" checked />
-                        </label>
-                    </div>
-                </div>
+                <button id="settingsButton" class="btn btn-info">Settings</button>
                 <div id="thinkingSpinner" class="spinner hidden"></div>
             </div>
 
@@ -55,70 +42,80 @@
                 <div id="soundLevelDisplay" class="text-lg">Sound Level: N/A</div>
             </div>
 
-            <!-- Language Selects Group -->
-            <div class="flex space-x-4 mb-4">
-                <div class="flex-1">
-                    <label for="tutoringLanguageSelect">Tutoring Language:</label>
-                    <select id="tutoringLanguageSelect" class="select select-bordered w-full"></select>
-                </div>
-                <div class="flex-1">
-                    <label for="tutorsLanguageSelect">Tutor's Language:</label>
-                    <select id="tutorsLanguageSelect" class="select select-bordered w-full"></select>
-                </div>
-            </div>
-
-            <!-- Voices and Intervention Level Group -->
-            <div class="flex space-x-4 mb-4">
-                <div class="flex-1">
-                    <label for="tutorsVoiceSelect">Tutor's Voice:</label>
-                    <select id="tutorsVoiceSelect" class="select select-bordered w-full">
-                        <option value="alloy">Alloy</option>
-                        <option value="echo">Echo</option>
-                        <option value="fable">Fable</option>
-                        <option value="onyx">Onyx</option>
-                        <option value="nova">Nova</option>
-                        <option value="shimmer">Shimmer</option>
-                    </select>
-                </div>
-                <div class="flex-1">
-                    <label for="partnersVoiceSelect">Partner's Voice:</label>
-                    <select id="partnersVoiceSelect" class="select select-bordered w-full">
-                        <option value="nova">Nova</option>
-                        <option value="alloy">Alloy</option>
-                        <option value="echo">Echo</option>
-                        <option value="fable">Fable</option>
-                        <option value="onyx">Onyx</option>
-                        <option value="shimmer">Shimmer</option>
-                    </select>
-                </div>
-                <div class="flex-1">
-                    <label for="interventionLevelSelect">Tutor's Intervention Level:</label>
-                    <select id="interventionLevelSelect" class="select select-bordered w-full">
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </div>
-                <div class="flex-1">
-                    <label for="modelSelect">AI Model:</label>
-                    <select id="modelSelect" class="select select-bordered w-full">
-                        <option value="Grok">Grok</option>
-                        <option value="OpenAI">OpenAI</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Playback Speed and Pause Time -->
-            <div class="flex space-x-4 mb-4">
-                <div class="flex-1">
-                    <label for="playbackSpeedSlider">Playback Speed: </label>
-                    <input type="range" id="playbackSpeedSlider" min="0" max="1" step="0.1" value="1" class="range range-xs w-full">
-                    <span id="playbackSpeedDisplay">100%</span>
-                </div>
-                <div class="flex-1">
-                    <label for="pauseTimeSlider">Pause Time Before Send: </label>
-                    <input type="range" id="pauseTimeSlider" min="1" max="10" step="1" value="2" class="range range-xs w-full">
-                    <span id="pauseTimeDisplay">2 sec</span>
+            <!-- Settings Overlay -->
+            <div id="settingsOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
+                <div class="bg-base-200 p-6 rounded-lg w-3/4 max-h-3/4 overflow-y-auto">
+                    <h2 class="text-2xl font-bold mb-4">Settings</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="tutoringLanguageSelect">Tutoring Language:</label>
+                            <select id="tutoringLanguageSelect" class="select select-bordered w-full"></select>
+                        </div>
+                        <div>
+                            <label for="tutorsLanguageSelect">Tutor's Language:</label>
+                            <select id="tutorsLanguageSelect" class="select select-bordered w-full"></select>
+                        </div>
+                        <div>
+                            <label for="tutorsVoiceSelect">Tutor's Voice:</label>
+                            <select id="tutorsVoiceSelect" class="select select-bordered w-full">
+                                <option value="alloy">Alloy</option>
+                                <option value="echo">Echo</option>
+                                <option value="fable">Fable</option>
+                                <option value="onyx">Onyx</option>
+                                <option value="nova">Nova</option>
+                                <option value="shimmer">Shimmer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="partnersVoiceSelect">Partner's Voice:</label>
+                            <select id="partnersVoiceSelect" class="select select-bordered w-full">
+                                <option value="nova">Nova</option>
+                                <option value="alloy">Alloy</option>
+                                <option value="echo">Echo</option>
+                                <option value="fable">Fable</option>
+                                <option value="onyx">Onyx</option>
+                                <option value="shimmer">Shimmer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="interventionLevelSelect">Tutor's Intervention Level:</label>
+                            <select id="interventionLevelSelect" class="select select-bordered w-full">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="modelSelect">AI Model:</label>
+                            <select id="modelSelect" class="select select-bordered w-full">
+                                <option value="Grok">Grok</option>
+                                <option value="OpenAI">OpenAI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="playbackSpeedSlider">Playback Speed: </label>
+                            <input type="range" id="playbackSpeedSlider" min="0" max="1" step="0.1" value="1" class="range range-xs w-full">
+                            <span id="playbackSpeedDisplay">100%</span>
+                        </div>
+                        <div>
+                            <label for="pauseTimeSlider">Pause Time Before Send: </label>
+                            <input type="range" id="pauseTimeSlider" min="1" max="10" step="1" value="2" class="range range-xs w-full">
+                            <span id="pauseTimeDisplay">2 sec</span>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Disable tutor (for simple conversation)</span>
+                                <input type="checkbox" id="disableTutorCheckbox" class="checkbox checkbox-lg" />
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">I don't have the best accent in the world</span>
+                                <input type="checkbox" id="accentIgnoreCheckbox" class="checkbox checkbox-lg" checked />
+                            </label>
+                        </div>
+                    </div>
+                    <button id="closeSettingsButton" class="btn btn-primary mt-4">Close Settings</button>
                 </div>
             </div>
 
