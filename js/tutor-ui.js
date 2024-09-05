@@ -95,8 +95,14 @@ elements.pauseTimeSlider.addEventListener('input', () => { updatePauseTime(); sa
 elements.tutoringLanguageSelect.addEventListener('change', () => { tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value); saveCurrentSettings(); });
 elements.tutorsLanguageSelect.addEventListener('change', () => { tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value); saveCurrentSettings(); });
 elements.interventionLevelSelect.addEventListener('change', () => { tutorController.setInterventionLevel(elements.interventionLevelSelect.value); saveCurrentSettings(); });
-elements.tutorsVoiceSelect.addEventListener('change', () => { tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value); saveCurrentSettings(); });
-elements.partnersVoiceSelect.addEventListener('change', () => { tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value); saveCurrentSettings(); });
+elements.tutorsVoiceSelect.addEventListener('change', () => { 
+    tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value); 
+    saveCurrentSettings(); 
+});
+elements.partnersVoiceSelect.addEventListener('change', () => { 
+    tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value); 
+    saveCurrentSettings(); 
+});
 elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
 elements.disableTutorCheckbox.addEventListener('change', () => { tutorController.setDisableTutor(elements.disableTutorCheckbox.checked); saveCurrentSettings(); });
 elements.accentIgnoreCheckbox.addEventListener('change', () => { tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked); saveCurrentSettings(); });
@@ -180,8 +186,8 @@ function loadSavedSettings() {
         tutorController.setTutoringLanguage(settings.tutoringLanguage);
         tutorController.updateTutorsLanguage(settings.tutorsLanguage);
         tutorController.setInterventionLevel(settings.interventionLevel);
-        tutorController.updateTutorsVoice(settings.tutorsVoice);
-        tutorController.updatePartnersVoice(settings.partnersVoice);
+        tutorController.updateTutorsVoice(settings.tutorsVoice || 'alloy');
+        tutorController.updatePartnersVoice(settings.partnersVoice || 'nova');
         tutorController.setDisableTutor(settings.disableTutor);
         tutorController.setAccentIgnore(settings.accentIgnore);
         tutorController.updateModel(settings.model);
