@@ -100,7 +100,10 @@ elements.partnersVoiceSelect.addEventListener('change', () => { tutorController.
 elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
 elements.disableTutorCheckbox.addEventListener('change', () => { tutorController.setDisableTutor(elements.disableTutorCheckbox.checked); saveCurrentSettings(); });
 elements.accentIgnoreCheckbox.addEventListener('change', () => { tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked); saveCurrentSettings(); });
-elements.modelSelect.addEventListener('change', () => { tutorController.updateModel(elements.modelSelect.value); saveCurrentSettings(); });
+elements.modelSelect.addEventListener('change', () => { 
+    tutorController.updateModel(elements.modelSelect.value); 
+    saveCurrentSettings(); 
+});
 elements.deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 elements.deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
