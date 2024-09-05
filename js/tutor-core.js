@@ -197,6 +197,11 @@ class TutorController {
         // You might want to add additional logic here if needed
     }
 
+    updateTutorsLanguage(language) {
+        this.tutorsLanguage = language;
+        // Add any additional logic needed when updating tutor's language
+    }
+
     async manualStop() {
         await this.audioManager.manualStop();
         if (this.uiCallbacks.onProcessingStart) {
