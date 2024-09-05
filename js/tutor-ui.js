@@ -94,7 +94,7 @@ elements.playbackSpeedSlider.addEventListener('input', () => { updatePlaybackSpe
 elements.pauseTimeSlider.addEventListener('input', () => { updatePauseTime(); saveCurrentSettings(); });
 elements.tutoringLanguageSelect.addEventListener('change', () => { tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value); saveCurrentSettings(); });
 elements.tutorsLanguageSelect.addEventListener('change', () => { tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value); saveCurrentSettings(); });
-elements.interventionLevelSelect.addEventListener('change', () => { tutorController.updateInterventionLevel(elements.interventionLevelSelect.value); saveCurrentSettings(); });
+elements.interventionLevelSelect.addEventListener('change', () => { tutorController.setInterventionLevel(elements.interventionLevelSelect.value); saveCurrentSettings(); });
 elements.tutorsVoiceSelect.addEventListener('change', () => { tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value); saveCurrentSettings(); });
 elements.partnersVoiceSelect.addEventListener('change', () => { tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value); saveCurrentSettings(); });
 elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
@@ -179,7 +179,7 @@ function loadSavedSettings() {
         // Update controller with loaded settings
         tutorController.setTutoringLanguage(settings.tutoringLanguage);
         tutorController.updateTutorsLanguage(settings.tutorsLanguage);
-        tutorController.updateInterventionLevel(settings.interventionLevel);
+        tutorController.setInterventionLevel(settings.interventionLevel);
         tutorController.updateTutorsVoice(settings.tutorsVoice);
         tutorController.updatePartnersVoice(settings.partnersVoice);
         tutorController.setDisableTutor(settings.disableTutor);
