@@ -111,7 +111,7 @@ def get_best_expression_prompt(tutoring_language):
     Return only the corrected expression in {tutoring_language}
     Do not add any explanations or additional output"""
 
-def get_summarizer_prompt(tutoring_language, previous_summary):
+def get_summarizer_prompt(tutoring_language, previous_summary, chat_history):
     return f"""You are a conversation summarizer. Your task is to update the summary of a conversation 
     based on the most recent messages and the previous summary. The summary should be concise yet informative, 
     capturing the main points and any significant developments in the conversation.
@@ -125,7 +125,10 @@ def get_summarizer_prompt(tutoring_language, previous_summary):
 
     Previous summary: {previous_summary}
 
-    Your response should be the updated summary in {tutoring_language}."""
+    Recent chat history:
+    {chat_history}
+
+    Your response should be the updated summary in {tutoring_language}. Do not include any explanations or additional text, just provide the summary."""
 
 def get_grammar_prompt(tutoring_language, chat_history):
     return f"""You are an expert language tutor, fluent in all languages. Your task is to generate grammar exercises based on the following conversation 
@@ -313,3 +316,10 @@ def get_vocabulary_prompt(tutoring_language, chat_history):
     {chat_history}
 
     Now, please provide an appropriate vocabulary list and exercise based on this information."""
+
+def get_chat_name_prompt(summary):
+    return f"""Based on the following summary of a conversation, generate a short, catchy, and descriptive name for the chat. The name should be no more than 5-7 words long and should capture the main topic or theme of the conversation.
+
+Summary: {summary}
+
+Chat Name:"""

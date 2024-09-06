@@ -1,5 +1,6 @@
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
@@ -31,11 +32,28 @@ def get_llm(provider, model_name, api_key):
             timeout=None,
             max_retries=2,
         )
+    elif provider == "anthropic":
+        return ChatAnthropic(
+            model=model_name,
+            temperature=0,
+            api_key=api_key,
+            timeout=None,
+            max_retries=2,
+        )
     else:
         raise ValueError(f"Unsupported provider: {provider}")
 
 async def partner_chat(learning_language, chat_history, api_key, provider="groq", last_summary=""):
-    llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else  "gpt-4o-mini", api_key)
+    if provider == "groq":
+        model = "llama3-70b-8192"
+    elif provider == "openai":
+        model = "gpt-4o-mini"
+    elif provider == "anthropic":
+        model = "claude-3-5-sonnet-20240620"
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+    
+    llm = get_llm(provider, model, api_key)
 
     recent_chat_history = chat_history[-8:]
 
@@ -70,7 +88,16 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             raise ValueError("No human message found in chat history")
 
         async def get_tutors_comment():
-            llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
+            if provider == "groq":
+                model = "llama3-70b-8192"
+            elif provider == "openai":
+                model = "gpt-4o-mini"
+            elif provider == "anthropic":
+                model = "claude-3-5-sonnet-20240620"
+            else:
+                raise ValueError(f"Unsupported provider: {provider}")
+        
+            llm = get_llm(provider, model, api_key)
             comment_template = get_tutor_comment_prompt(tutoring_language, tutors_language)
             
             comment_prompt = ChatPromptTemplate.from_messages([
@@ -82,7 +109,16 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             return response.content
 
         async def get_intervention_level():
-            llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
+            if provider == "groq":
+                model = "llama3-70b-8192"
+            elif provider == "openai":
+                model = "gpt-4o-mini"
+            elif provider == "anthropic":
+                model = "claude-3-5-sonnet-20240620"
+            else:
+                raise ValueError(f"Unsupported provider: {provider}")
+        
+            llm = get_llm(provider, model, api_key)
             
             tutor_comments = [comment for comment in tutor_history if comment.startswith("Comment:")][-4:]
             tutor_comments_str = ' '.join(tutor_comments)
@@ -97,7 +133,16 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             return response.content
 
         async def get_best_expression():
-            llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
+            if provider == "groq":
+                model = "llama3-70b-8192"
+            elif provider == "openai":
+                model = "gpt-4o-mini"
+            elif provider == "anthropic":
+                model = "claude-3-5-sonnet-20240620"
+            else:
+                raise ValueError(f"Unsupported provider: {provider}")
+        
+            llm = get_llm(provider, model, api_key)
                 
             expression_template = get_best_expression_prompt(tutoring_language)
             expression_prompt = ChatPromptTemplate.from_messages([
@@ -127,31 +172,63 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
         raise
 
 async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="groq", api_key=None):
-    llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-mini", api_key)
+    logger.info(f"Summarizing conversation. Provider: {provider}, Tutoring language: {tutoring_language}")
+    logger.info(f"Previous summary: {previous_summary}")
+    logger.info(f"Chat history length: {len(chat_history)}")
+
+    if provider == "groq":
+        model = "llama3-70b-8192"
+    elif provider == "openai":
+        model = "gpt-4o-mini"
+    elif provider == "anthropic":
+        model = "claude-3-5-sonnet-20240620"
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+
+    llm = get_llm(provider, model, api_key)
 
     last_messages = chat_history[-5:] if len(chat_history) > 5 else chat_history
+    logger.info(f"Last messages to summarize: {last_messages}")
     
-    system_template = get_summarizer_prompt(tutoring_language, previous_summary)
+    chat_history_str = str("\n".join([f"{msg.type}: {msg.content}" for msg in last_messages]))
+    system_template = get_summarizer_prompt(tutoring_language, previous_summary, chat_history_str)
+    logger.info(f"System template: {system_template}")
 
     summarizer_template = ChatPromptTemplate.from_messages([
-        ("system", system_template),
-        MessagesPlaceholder(variable_name="chat_history")
+        ("system", system_template)
     ])
 
     chain = summarizer_template | llm
 
-    response = await chain.ainvoke(
-        {
-            "chat_history": last_messages
-        }
-    )
 
-    updated_summary = response.content
-    return updated_summary
+    try:
+        response = await chain.ainvoke({})
+        logger.info(f"Raw response from LLM: {response}")
+
+        updated_summary = response.content
+        logger.info(f"Updated summary: {updated_summary}")
+
+        if not updated_summary.strip():
+            logger.warning("Updated summary is empty or contains only whitespace")
+
+        return updated_summary
+    except Exception as e:
+        logger.error(f"Error in summarize_conversation: {str(e)}")
+        logger.error(traceback.format_exc())
+        return ""
 
 async def generate_homework(tutoring_language, full_context, provider="groq", api_key=None):
     try:
-        llm = get_llm(provider, "llama3-70b-8192" if provider == "groq" else "gpt-4o-2024-08-06", api_key)
+        if provider == "groq":
+            model = "llama3-70b-8192"
+        elif provider == "openai":
+            model = "gpt-4o-2024-08-06"
+        elif provider == "anthropic":
+            model = "claude-3-5-sonnet-20240620"
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+        
+        llm = get_llm(provider, model, api_key)
 
         # Call the grammar and vocabulary prompts in parallel
         grammar_template = get_grammar_prompt(tutoring_language, full_context)
@@ -181,3 +258,27 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
         logger.error(f"An error occurred in generate_homework: {str(e)}")
         logger.error(traceback.format_exc())
         raise
+
+async def generate_chat_name(summary, provider="groq", api_key=None, model=None):
+    try:
+        if not summary:
+            return "New Chat"
+
+        llm = get_llm(provider, model or ("llama3-70b-8192" if provider == "groq" else "gpt-4o-2024-08-06"), api_key)
+
+        chat_name_template = get_chat_name_prompt(summary)
+
+        chat_name_prompt = ChatPromptTemplate.from_messages([
+            ("system", chat_name_template)
+        ])
+
+        chat_name_chain = chat_name_prompt | llm
+
+        response = await chat_name_chain.ainvoke({})
+
+        return response.content.strip()
+
+    except Exception as e:
+        logger.error(f"An error occurred in generate_chat_name: {str(e)}")
+        logger.error(traceback.format_exc())
+        return "Empty Chat"  # Fallback name in case of any error
