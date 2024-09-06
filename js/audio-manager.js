@@ -238,3 +238,119 @@ export class AudioManager {
             this.mediaRecorder.stop();
         }
         if (this.audioContext)
+            if (this.audioContext) {
+                this.audioContext.close();
+                this.audioContext = null;
+            }
+            this.isRecording = false;
+            this.isProcessing = false;
+            this.audioChunks = [];
+            this.speechStartTime = null;
+            this.silenceStartTime = null;
+        }
+    
+        async playAudio(base64Audio, playbackSpeed) {
+            const audioBuffer = await this.decodeAudioData(base64Audio);
+            return this.playDecodedAudio(audioBuffer, playbackSpeed);
+        }
+    
+        decodeAudioData(base64Audio) {
+            return new Promise((resolve, reject) => {
+                const binaryString = atob(base64Audio);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                this.audioContext.decodeAudioData(bytes.buffer, resolve, reject);
+            });
+        }
+    
+        playDecodedAudio(audioBuffer, playbackSpeed) {
+            return new Promise((resolve) => {
+                const source = this.audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.playbackRate.value = playbackSpeed;
+                source.connect(this.audioContext.destination);
+                source.onended = resolve;
+                source.start(0);
+            });
+        }
+    
+        startMonitoringInterval(callback) {
+            return setInterval(() => {
+                if (this.isMonitoring) {
+                    const { average, isSilent } = this.monitorSound();
+                    callback(average, isSilent);
+                } else {
+                    callback(null, null);
+                }
+            }, this.MONITOR_TIME_INTERVAL);
+        }
+    
+        async trimAudioFromSpeechStart(audioBlob) {
+            if (!this.speechStartTime) {
+                return null; // No speech detected
+            }
+    
+            const audioBuffer = await this.blobToAudioBuffer(audioBlob);
+            const recordingStartTime = this.currentSessionTimestamp;
+            const trimStartTime = Math.max(0, this.speechStartTime - recordingStartTime - 300); // 300ms buffer
+            const trimStartSample = Math.floor(trimStartTime * audioBuffer.sampleRate / 1000);
+    
+            if (audioBuffer.length - trimStartSample < audioBuffer.sampleRate * this.MIN_VALID_DURATION) {
+                return null; // Audio too short after trimming
+            }
+    
+            const trimmedBuffer = this.audioContext.createBuffer(
+                audioBuffer.numberOfChannels,
+                audioBuffer.length - trimStartSample,
+                audioBuffer.sampleRate
+            );
+    
+            for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                const channelData = audioBuffer.getChannelData(channel);
+                trimmedBuffer.copyToChannel(channelData.slice(trimStartSample), channel);
+            }
+    
+            return new Blob([bufferToWave(trimmedBuffer)], {type: 'audio/wav'});
+        }
+    
+        async blobToAudioBuffer(blob) {
+            const arrayBuffer = await blob.arrayBuffer();
+            return new Promise((resolve, reject) => {
+                this.audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+            });
+        }
+    
+        async processAndSendAudio() {
+            console.log('Process and send audio called');
+            if (this.isProcessing) {
+                console.log('Skipping audio processing: already processing');
+                return;
+            }
+    
+            this.isProcessing = true;
+            const audioBlob = new Blob(this.audioChunks, {type: 'audio/wav'});
+    
+            try {
+                const trimmedBlob = await this.trimAudioFromSpeechStart(audioBlob);
+                if (trimmedBlob) {
+                    await this.onRecordingComplete({ discarded: false, audioBlob: trimmedBlob });
+                } else {
+                    console.log('Audio discarded: no speech detected or too short');
+                    await this.onRecordingComplete({ discarded: true, reason: "No speech detected or too short" });
+                }
+            } catch (error) {
+                console.error('Error processing audio:', error);
+            } finally {
+                this.isProcessing = false;
+                this.speechStartTime = null;
+                this.silenceStartTime = null;
+            }
+    
+            if (this.isMonitoring) {
+                this.startMonitoring();
+            }
+        }
+    }
