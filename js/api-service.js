@@ -1,6 +1,9 @@
 // js/api-service.js
 
-let API_URL = 'http://127.0.0.1:8080'; // Default value
+import { tutorController } from './tutor-core.js';
+import { settingsManager } from './settings-manager.js';
+
+export let API_URL = 'http://127.0.0.1:8080'; // Default value
 
 async function loadConfig() {
     try {
@@ -17,30 +20,33 @@ async function loadConfig() {
 // Load config before exporting functions
 await loadConfig();
 
+function getApiKey(model) {
+    const lowerModel = model.toLowerCase();
+    return settingsManager.getSetting(`${lowerModel}ApiKey`) || '';
+}
+
 async function sendAudioToServer(audioBlob, formElements) {
-    // Debug: Log the chatObject before sending
+    // Get the current chat object
+    const currentChat = tutorController.getCurrentChat();
+    
     const audioData = {
         tutoringLanguage: formElements.tutoringLanguageSelect.value,
         tutorsLanguage: formElements.tutorsLanguageSelect.value,
         tutorsVoice: formElements.tutorsVoiceSelect.value,
         partnersVoice: formElements.partnersVoiceSelect.value,
         interventionLevel: formElements.interventionLevelSelect.value,
-        chatObject: formElements.chatObject, // This should now be correctly structured
+        chatObject: currentChat, // Use the current chat object
         disableTutor: formElements.disableTutorCheckbox.checked,
         accentignore: formElements.accentIgnoreCheckbox.checked,
         model: formElements.modelSelect.value,
         playbackSpeed: formElements.playbackSpeedSlider.value,
-        pauseTime: formElements.pauseTimeSlider.value
+        pauseTime: formElements.pauseTimeSlider.value,
+        api_key: getApiKey(formElements.modelSelect.value)
     };
 
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.wav');
     formData.append('data', JSON.stringify(audioData));
-
-    // Add API keys to form data (sending empty strings if not available)
-    // TODO: Implement proper API key management later
-    formData.append('groq_api_key', '');
-    formData.append('openai_api_key', '');
 
     try {
         console.time('serverProcessing');
@@ -79,7 +85,8 @@ async function sendHomeworkRequest(formElements) {
         accentignore: formElements.accentIgnoreCheckbox.checked,
         model: formElements.modelSelect.value,
         playbackSpeed: formElements.playbackSpeedSlider.value,
-        pauseTime: formElements.pauseTimeSlider.value
+        pauseTime: formElements.pauseTimeSlider.value,
+        api_key: getApiKey(formElements.modelSelect.value)
     };
 
     try {
@@ -105,4 +112,40 @@ async function sendHomeworkRequest(formElements) {
     }
 }
 
-export { sendAudioToServer, sendHomeworkRequest };
+async function generateChatName(formElements) {
+    try {
+        const requestData = {
+            chat_history: formElements.chatObject.chat_history,
+            tutors_comments: formElements.chatObject.tutors_comments,
+            summary: formElements.chatObject.summary,
+            model: formElements.modelSelect.value,
+            tutoringLanguage: formElements.tutoringLanguageSelect.value,
+            api_key: getApiKey(formElements.modelSelect.value)
+        };
+
+        console.log('Sending request data:', requestData);  // Add this line for debugging
+
+        const response = await fetch(`${API_URL}/generate_chat_name`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+
+        const result = await response.json();
+        return result.chatName;
+    } catch (error) {
+        console.error('Error generating chat name:', error);
+        // Return a default chat name if there's an error
+        return `Chat ${new Date().toLocaleString()}`;
+    }
+}
+
+export { sendAudioToServer, sendHomeworkRequest, generateChatName };

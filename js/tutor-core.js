@@ -1,5 +1,5 @@
 import { AudioManager } from './audio-manager.js';
-import { sendAudioToServer } from './api-service.js';
+import { sendAudioToServer, generateChatName } from './api-service.js';
 
 const dbName = "TutorChatDB";
 const objectStoreName = "chatObjects";
@@ -79,13 +79,6 @@ class TutorController {
                 if (loadedChatObjects.length > 0) {
                     this.chatObjects = loadedChatObjects;
                     this.currentChatTimestamp = this.chatObjects[this.chatObjects.length - 1].timestamp;
-                } else {
-                    // If no chat objects are found, create a new one
-                    this.createNewChat().then(() => {
-                        if (this.uiCallbacks && this.uiCallbacks.onChatObjectsLoaded) {
-                            this.uiCallbacks.onChatObjectsLoaded();
-                        }
-                    });
                 }
                 if (this.uiCallbacks && this.uiCallbacks.onChatObjectsLoaded) {
                     this.uiCallbacks.onChatObjectsLoaded();
@@ -114,29 +107,43 @@ class TutorController {
             chat_history: [],
             tutors_comments: [],
             summary: [],
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            name: ''
         };
 
         if (this.chatObjects.length > 0) {
-            const lastChat = this.chatObjects[this.chatObjects.length - 1];
-            const isEmptyChat = 
-                JSON.stringify({
-                    chat_history: lastChat.chat_history,
-                    tutors_comments: lastChat.tutors_comments,
-                    summary: lastChat.summary
-                }) === JSON.stringify({
-                    chat_history: newChatTemplate.chat_history,
-                    tutors_comments: newChatTemplate.tutors_comments,
-                    summary: newChatTemplate.summary
-                });
+            // Sort chats by timestamp to ensure we're working with the most recent
+            this.chatObjects.sort((a, b) => b.timestamp - a.timestamp);
+            const lastChat = this.chatObjects[0];
+            const isEmptyChat = lastChat.chat_history.length === 0 && lastChat.tutors_comments.length === 0;
 
             if (isEmptyChat) {
-                if (this.uiCallbacks && this.uiCallbacks.onInfoUpdate) {
+                if (this.uiCallbacks.onInfoUpdate) {
                     this.uiCallbacks.onInfoUpdate("The last chat is empty. Please use it instead of creating a new one.");
                 }
-                this.currentChatTimestamp = lastChat.timestamp;
-                return lastChat;
+                return null;
             }
+
+            // Rename the previous chat
+            const lastSummary = lastChat.summary[lastChat.summary.length - 1];
+            const isEmptySummary = !lastSummary || lastSummary.trim() === '';
+
+            if (isEmptySummary) {
+                lastChat.name = "Empty Chat";
+            } else {
+                try {
+                    const formElementsForChatName = {
+                        chatObject: lastChat,
+                        modelSelect: { value: this.model },
+                        tutoringLanguageSelect: { value: this.tutoringLanguage }
+                    };
+                    lastChat.name = await generateChatName(formElementsForChatName);
+                } catch (error) {
+                    console.error('Error generating chat name:', error);
+                    lastChat.name = `Chat ${new Date(lastChat.timestamp).toLocaleString()}`;
+                }
+            }
+            await this.saveChatObjects();
         }
 
         const newChat = { ...newChatTemplate };
@@ -144,7 +151,7 @@ class TutorController {
         this.currentChatTimestamp = newChat.timestamp;
         await this.saveChatObjects();
         
-        if (this.uiCallbacks && this.uiCallbacks.onChatCreated) {
+        if (this.uiCallbacks.onChatCreated) {
             this.uiCallbacks.onChatCreated(newChat.timestamp);
         }
         return newChat;
@@ -173,6 +180,8 @@ class TutorController {
         const chat = this.chatObjects.find(chat => chat.timestamp === timestamp);
         if (chat) {
             this.currentChatTimestamp = timestamp;
+            // Sort chats by timestamp after switching
+            this.chatObjects.sort((a, b) => b.timestamp - a.timestamp);
             if (this.uiCallbacks.onChatSwitched) {
                 this.uiCallbacks.onChatSwitched(chat);
             }
@@ -205,11 +214,6 @@ class TutorController {
         // You might want to add additional logic here if needed
     }
 
-    updateTutorsLanguage(language) {
-        this.tutorsLanguage = language;
-        // Add any additional logic needed when updating tutor's language
-    }
-
     updateTutorsVoice(voice) {
         this.tutorsVoice = voice;
     }
@@ -218,12 +222,12 @@ class TutorController {
         this.partnersVoice = voice;
     }
 
-    updateModel(model) {
-        this.model = model;
+    updateInterventionLevel(level) {
+        this.interventionLevel = level;
     }
 
-    setInterventionLevel(level) {
-        this.interventionLevel = level;
+    updateModel(model) {
+        this.model = model;
     }
 
     async manualStop() {

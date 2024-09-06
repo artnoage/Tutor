@@ -8,7 +8,7 @@ export function updateChatList() {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         const timestamp = chat.timestamp ? new Date(chat.timestamp).toLocaleString() : 'Invalid Date';
-        chatItem.textContent = `Chat ${timestamp}`;
+        chatItem.textContent = chat.name || `Chat ${timestamp}`;
         chatItem.dataset.timestamp = chat.timestamp;
         chatItem.onclick = () => {
             tutorController.switchChat(chat.timestamp);
@@ -43,8 +43,10 @@ export function updateChatDisplay(chatObject) {
 }
 
 export function updateUIState(isActive) {
-    document.getElementById('startTutorButton').disabled = isActive;
-    document.getElementById('stopTutorButton').disabled = !isActive;
+    const toggleTutorButton = document.getElementById('toggleTutorButton');
+    toggleTutorButton.textContent = isActive ? 'Stop Tutor' : 'Start Tutor';
+    toggleTutorButton.classList.toggle('btn-primary', !isActive);
+    toggleTutorButton.classList.toggle('btn-secondary', isActive);
     document.getElementById('sendButton').disabled = !isActive;
     if (!isActive) {
         hideProcessingState();
@@ -204,20 +206,34 @@ export function populateLanguageSelects() {
     });
 }
 
+import { settingsManager } from './settings-manager.js';
+
 export function initializeUI() {
     populateMicrophoneSelect();
     populateLanguageSelects();
-    updatePlaybackSpeed();
-    updatePauseTime();
 
     const pauseTimeSlider = document.getElementById('pauseTimeSlider');
     pauseTimeSlider.min = 1;
     pauseTimeSlider.max = 10;
-    pauseTimeSlider.value = 2;
     pauseTimeSlider.step = 1;
 
     document.getElementById('thinkingSpinner').classList.add('hidden');
 
+    // Load settings
+    document.getElementById('tutoringLanguageSelect').value = settingsManager.getSetting('tutoringLanguage');
+    document.getElementById('tutorsLanguageSelect').value = settingsManager.getSetting('tutorsLanguage');
+    document.getElementById('tutorsVoiceSelect').value = settingsManager.getSetting('tutorsVoice');
+    document.getElementById('partnersVoiceSelect').value = settingsManager.getSetting('partnersVoice');
+    document.getElementById('interventionLevelSelect').value = settingsManager.getSetting('interventionLevel');
+    document.getElementById('playbackSpeedSlider').value = settingsManager.getSetting('playbackSpeed');
+    pauseTimeSlider.value = settingsManager.getSetting('pauseTime');
+    document.getElementById('disableTutorCheckbox').checked = settingsManager.getSetting('disableTutor');
+    document.getElementById('accentIgnoreCheckbox').checked = settingsManager.getSetting('accentIgnore');
+    document.getElementById('modelSelect').value = settingsManager.getSetting('model');
+
+    updatePlaybackSpeed();
+    updatePauseTime();
+
     tutorController.setFormElements({
         tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
         tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
@@ -225,14 +241,11 @@ export function initializeUI() {
         partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
         interventionLevelSelect: document.getElementById('interventionLevelSelect'),
         playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
-        pauseTimeSlider: document.getElementById('pauseTimeSlider'),
+        pauseTimeSlider: pauseTimeSlider,
         disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
         accentIgnoreCheckbox: document.getElementById('accentIgnoreCheckbox'),
         modelSelect: document.getElementById('modelSelect')
     });
-
-    // Set default intervention level to medium
-    document.getElementById('interventionLevelSelect').value = 'medium';
 
     tutorController.setUICallbacks({
         onMonitoringStart: () => {
@@ -268,84 +281,26 @@ export function initializeUI() {
         },
         onChatObjectsLoaded: () => {
             updateChatList();
-            ensureAtLeastOneChat();
-        },
-        onInitialLoadComplete: () => {
-            ensureAtLeastOneChat();
-            updateChatList();
-            updateChatDisplay(tutorController.getCurrentChat());
-        },
-        onInfoUpdate: updateInfoWindow
-    });
-
-    tutorController.setFormElements({
-        tutoringLanguageSelect: document.getElementById('tutoringLanguageSelect'),
-        tutorsLanguageSelect: document.getElementById('tutorsLanguageSelect'),
-        tutorsVoiceSelect: document.getElementById('tutorsVoiceSelect'),
-        partnersVoiceSelect: document.getElementById('partnersVoiceSelect'),
-        interventionLevelSelect: document.getElementById('interventionLevelSelect'),
-        playbackSpeedSlider: document.getElementById('playbackSpeedSlider'),
-        pauseTimeSlider: document.getElementById('pauseTimeSlider'),
-        disableTutorCheckbox: document.getElementById('disableTutorCheckbox'),
-        accentIgnoreCheckbox: document.getElementById('accentIgnoreCheckbox'),
-        modelSelect: document.getElementById('modelSelect')
-    });
-
-    // Set default intervention level to medium
-    document.getElementById('interventionLevelSelect').value = 'medium';
-
-    tutorController.setUICallbacks({
-        onMonitoringStart: () => {
-            console.log('Monitoring started');
-            document.getElementById('statusDisplay').textContent = "Starting monitoring...";
-        },
-        onProcessingStart: showProcessingState,
-        onAudioPlayStart: () => {
-            document.getElementById('statusDisplay').textContent = "Playing audio...";
-        },
-        onRecordingDiscarded: (reason) => {
-            document.getElementById('statusDisplay').textContent = `Recording discarded: ${reason}. Restarting...`;
-            updateInfoWindow(`Recording discarded: ${reason}`);
-            hideProcessingState();
-        },
-        onSoundLevelUpdate: updateSoundLevelDisplay,
-        onError: (errorMessage) => {
-            document.getElementById('statusDisplay').textContent = "Error: " + errorMessage;
-            hideProcessingState();
-        },
-        onAPIResponseReceived: (chatObject) => {
-            updateChatDisplay(chatObject);
-            document.getElementById('statusDisplay').textContent = "Updated chat display with API response";
-            hideProcessingState();
-        },
-        onChatCreated: (timestamp) => {
-            updateChatList();
-            updateChatDisplay(tutorController.getCurrentChat());
-        },
-        onChatSwitched: (chatObject) => {
-            updateChatDisplay(chatObject);
-            updateChatList();
-        },
-        onChatObjectsLoaded: () => {
-            updateChatList();
-            ensureAtLeastOneChat();
-        },
-        onInitialLoadComplete: () => {
-            ensureAtLeastOneChat().then(() => {
-                updateChatList();
+            if (tutorController.chatObjects.length > 0) {
                 updateChatDisplay(tutorController.getCurrentChat());
-            });
+            } else {
+                // If chat history is empty, create a new chat
+                tutorController.createNewChat();
+            }
+        },
+        onInitialLoadComplete: () => {
+            if (tutorController.chatObjects.length === 0) {
+                tutorController.createNewChat();
+            }
+            updateChatList();
+            updateChatDisplay(tutorController.getCurrentChat());
         },
         onInfoUpdate: updateInfoWindow
     });
-}
 
-async function ensureAtLeastOneChat() {
+    // Ensure a chat exists on page load
     if (tutorController.chatObjects.length === 0) {
-        await tutorController.createNewChat();
-    }
-    if (!tutorController.currentChatTimestamp && tutorController.chatObjects.length > 0) {
-        tutorController.currentChatTimestamp = tutorController.chatObjects[0].timestamp;
+        tutorController.createNewChat();
     }
 }
 
