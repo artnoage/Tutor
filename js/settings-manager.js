@@ -8,6 +8,10 @@ class SettingsManager {
     }
 
     loadSettings() {
+        /**
+         * Loads settings from local storage.
+         * If settings are not found or version mismatch, resets to defaults.
+         */
         const savedSettings = localStorage.getItem('tutorSettings');
         if (savedSettings) {
             const parsedSettings = JSON.parse(savedSettings);
@@ -23,11 +27,17 @@ class SettingsManager {
     }
 
     saveSettings() {
+        /**
+         * Saves current settings to local storage.
+         */
         this.settings.version = CURRENT_VERSION;
         localStorage.setItem('tutorSettings', JSON.stringify(this.settings));
     }
 
     resetToDefaults() {
+        /**
+         * Resets settings to default values.
+         */
         this.settings = {
             tutoringLanguage: 'English',
             tutorsLanguage: 'English',
@@ -48,6 +58,11 @@ class SettingsManager {
     }
 
     updateSetting(key, value) {
+        /**
+         * Updates a single setting.
+         * @param {string} key - The setting key to update.
+         * @param {*} value - The new value for the setting.
+         */
         if (key in this.settings) {
             this.settings[key] = value;
             this.saveSettings();
@@ -57,6 +72,12 @@ class SettingsManager {
     }
 
     async verifyApiKey(apiKey, model) {
+        /**
+         * Verifies an API key with the server.
+         * @param {string} apiKey - The API key to verify.
+         * @param {string} model - The model associated with the API key.
+         * @returns {Promise<boolean>} Whether the API key is valid.
+         */
         const formData = new FormData();
         formData.append('api_key', apiKey);
         formData.append('model', model);
@@ -80,6 +101,13 @@ class SettingsManager {
     }
 
     async updateSetting(key, value) {
+        /**
+         * Updates a setting, with special handling for API keys.
+         * @param {string} key - The setting key to update.
+         * @param {*} value - The new value for the setting.
+         * @returns {Promise<boolean>} Whether the update was successful.
+         * @throws {Error} If the API key is invalid.
+         */
         if (key.endsWith('ApiKey')) {
             const model = key.replace('ApiKey', '');
             const isValid = await this.verifyApiKey(value, model);
@@ -93,6 +121,11 @@ class SettingsManager {
     }
 
     getSetting(key) {
+        /**
+         * Retrieves the value of a setting.
+         * @param {string} key - The key of the setting to retrieve.
+         * @returns {*} The value of the setting.
+         */
         return this.settings[key];
     }
 }

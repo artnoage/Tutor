@@ -11,6 +11,23 @@ import os
 logger = logging.getLogger(__name__)
 
 def transcribe_audio(audio_content, language, api_key, new_parameter=None, provider="groq"):
+    """
+    Transcribes audio content using either Groq or OpenAI API.
+
+    Args:
+    audio_content (bytes): The audio content to transcribe.
+    language (str): The language of the audio.
+    api_key (str): The API key for authentication.
+    new_parameter (bool, optional): If True, includes the language in the transcription request. Defaults to None.
+    provider (str, optional): The provider to use for transcription ('groq' or 'openai'). Defaults to "groq".
+
+    Returns:
+    str: The transcribed text.
+
+    Raises:
+    HTTPException: If there's an error in the API call or if the API key is not provided.
+    ValueError: If an unsupported provider is specified.
+    """
     if provider == "groq":
         if not api_key:
             raise HTTPException(status_code=500, detail="GROQ_API_KEY is not provided")
@@ -84,6 +101,20 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
         raise ValueError(f"Unsupported provider: {provider}. Choose 'groq' or 'openai'.")
 
 def generate_tts(text, api_key, voice="onyx"):
+    """
+    Generates text-to-speech audio using OpenAI's API.
+
+    Args:
+    text (str): The text to convert to speech.
+    api_key (str): The OpenAI API key for authentication.
+    voice (str, optional): The voice to use for TTS. Defaults to "onyx".
+
+    Returns:
+    bytes: The generated audio content.
+
+    Raises:
+    HTTPException: If there's an error in the API call or if the API key is not provided.
+    """
     if not api_key:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not provided")
 
@@ -102,6 +133,15 @@ def generate_tts(text, api_key, voice="onyx"):
         raise HTTPException(status_code=500, detail=f"Error in OpenAI TTS API call: {str(e)}")
     
 def language_to_code(language_name):
+    """
+    Converts a language name to its corresponding ISO 639-1 code.
+
+    Args:
+    language_name (str): The full name of the language.
+
+    Returns:
+    str: The ISO 639-1 code for the language, or 'en' if not found.
+    """
     language_map = {
         "German": "de",
         "English": "en",

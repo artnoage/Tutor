@@ -2,6 +2,10 @@ import { tutorController } from './tutor-core.js';
 import { tutoringLanguageOptions, tutorsLanguageOptions } from './languages.js';
 
 export function updateChatList() {
+    /**
+     * Updates the chat list in the UI with the current chat objects.
+     * Sorts chats by timestamp and creates clickable chat items.
+     */
     const chatList = document.getElementById('chatList');
     chatList.innerHTML = '';
     tutorController.chatObjects.sort((a, b) => b.timestamp - a.timestamp).forEach((chat) => {
@@ -19,6 +23,10 @@ export function updateChatList() {
 }
 
 export function updateChatDisplay(chatObject) {
+    /**
+     * Updates the chat history and tutor's comments displays with the provided chat object.
+     * @param {Object} chatObject - The chat object containing chat history and tutor's comments.
+     */
     const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
     const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
 
@@ -43,6 +51,10 @@ export function updateChatDisplay(chatObject) {
 }
 
 export function updateUIState(isActive) {
+    /**
+     * Updates the UI state based on whether the tutor is active or not.
+     * @param {boolean} isActive - Indicates if the tutor is active.
+     */
     const toggleTutorButton = document.getElementById('toggleTutorButton');
     toggleTutorButton.textContent = isActive ? 'Stop Tutor' : 'Start Tutor';
     toggleTutorButton.classList.toggle('btn-primary', !isActive);
@@ -54,16 +66,27 @@ export function updateUIState(isActive) {
 }
 
 export function showProcessingState() {
+    /**
+     * Shows the processing state in the UI.
+     */
     document.getElementById('statusDisplay').textContent = "Processing...";
     document.getElementById('thinkingSpinner').classList.remove('hidden');
 }
 
 export function hideProcessingState() {
+    /**
+     * Hides the processing state in the UI.
+     */
     document.getElementById('thinkingSpinner').classList.add('hidden');
     document.getElementById('sendButton').disabled = false;
 }
 
 export function updateSoundLevelDisplay(average, isSilent) {
+    /**
+     * Updates the sound level display in the UI.
+     * @param {number|null} average - The average sound level.
+     * @param {boolean|null} isSilent - Indicates if the environment is silent.
+     */
     const soundLevelDisplay = document.getElementById('soundLevelDisplay');
     const statusDisplay = document.getElementById('statusDisplay');
 
@@ -79,6 +102,9 @@ export function updateSoundLevelDisplay(average, isSilent) {
 }
 
 export function updatePlaybackSpeed() {
+    /**
+     * Updates the playback speed display based on the slider value.
+     */
     const playbackSpeedSlider = document.getElementById('playbackSpeedSlider');
     const playbackSpeedDisplay = document.getElementById('playbackSpeedDisplay');
     const sliderValue = parseFloat(playbackSpeedSlider.value);
@@ -88,6 +114,9 @@ export function updatePlaybackSpeed() {
 }
 
 export function updatePauseTime() {
+    /**
+     * Updates the pause time display and sets the pause time in the tutor controller.
+     */
     const pauseTimeSlider = document.getElementById('pauseTimeSlider');
     const pauseTimeDisplay = document.getElementById('pauseTimeDisplay');
     const pauseTime = parseInt(pauseTimeSlider.value);
@@ -96,6 +125,10 @@ export function updatePauseTime() {
 }
 
 export function updateInfoWindow(message) {
+    /**
+     * Adds a new message to the info window.
+     * @param {string} message - The message to add to the info window.
+     */
     const infoWindow = document.getElementById('infoWindow');
     const newInfo = document.createElement('p');
     newInfo.textContent = message;
@@ -104,6 +137,9 @@ export function updateInfoWindow(message) {
 }
 
 export function highlightSelectedChat() {
+    /**
+     * Highlights the currently selected chat in the chat list.
+     */
     const chatList = document.getElementById('chatList');
     chatList.querySelectorAll('.chat-item').forEach(item => {
         item.classList.remove('chat-item-selected', 'scale-105', 'shadow-lg');
@@ -117,6 +153,9 @@ export function highlightSelectedChat() {
 }
 
 export function deleteLocalHistory() {
+    /**
+     * Deletes all local chat history and clears the cache.
+     */
     if (confirm("Are you sure you want to delete all local chat history and clear the cache? This action cannot be undone.")) {
         Promise.all([
             indexedDB.deleteDatabase("TutorChatDB"),
@@ -138,6 +177,9 @@ export function deleteLocalHistory() {
 }
 
 export function deleteSelectedChat() {
+    /**
+     * Deletes the currently selected chat.
+     */
     if (!tutorController.currentChatTimestamp) {
         alert("No chat selected to delete.");
         return;
@@ -161,6 +203,9 @@ export function deleteSelectedChat() {
 }
 
 export function populateMicrophoneSelect() {
+    /**
+     * Populates the microphone select dropdown with available audio input devices.
+     */
     const microphoneSelect = document.getElementById('microphoneSelect');
     const statusDisplay = document.getElementById('statusDisplay');
 
@@ -183,6 +228,9 @@ export function populateMicrophoneSelect() {
 }
 
 export function populateLanguageSelects() {
+    /**
+     * Populates the language select dropdowns with available language options.
+     */
     const tutoringLanguageSelect = document.getElementById('tutoringLanguageSelect');
     const tutorsLanguageSelect = document.getElementById('tutorsLanguageSelect');
     const languageSets = [
@@ -209,6 +257,9 @@ export function populateLanguageSelects() {
 import { settingsManager } from './settings-manager.js';
 
 export function initializeUI() {
+    /**
+     * Initializes the UI components and loads saved settings.
+     */
     populateMicrophoneSelect();
     populateLanguageSelects();
 
@@ -305,6 +356,10 @@ export function initializeUI() {
 }
 
 export function debugPrintChats(chatObjects) {
+    /**
+     * Prints debug information about the current chat objects.
+     * @param {Array} chatObjects - The array of chat objects to debug print.
+     */
     let debugInfo = "Current chat list:\n";
     chatObjects.sort((a, b) => b.timestamp - a.timestamp).forEach((chat, index) => {
         const timestamp = chat.timestamp ? new Date(chat.timestamp).toLocaleString() : 'Invalid Date';
@@ -312,7 +367,12 @@ export function debugPrintChats(chatObjects) {
     });
     updateInfoWindow(debugInfo);
 }
+
 export function updateHomeworkChatDisplay(chatObject) {
+    /**
+     * Updates the homework chat display with the provided chat object.
+     * @param {Object} chatObject - The chat object containing homework chat messages.
+     */
     const homeworkChatDisplay = document.getElementById('homeworkChatDisplay');
     homeworkChatDisplay.innerHTML = '';
     chatObject.homework_chat.forEach((message) => {

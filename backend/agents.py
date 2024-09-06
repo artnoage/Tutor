@@ -14,6 +14,20 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 def get_llm(provider, model_name, api_key):
+    """
+    Creates and returns a language model instance based on the specified provider.
+    
+    Args:
+    provider (str): The provider of the language model (groq, openai, or anthropic).
+    model_name (str): The name of the specific model to use.
+    api_key (str): The API key for authentication.
+
+    Returns:
+    An instance of the specified language model.
+
+    Raises:
+    ValueError: If an unsupported provider is specified.
+    """
     if provider == "groq":
         return ChatGroq(
             model=model_name,
@@ -44,6 +58,22 @@ def get_llm(provider, model_name, api_key):
         raise ValueError(f"Unsupported provider: {provider}")
 
 async def partner_chat(learning_language, chat_history, api_key, provider="groq", last_summary=""):
+    """
+    Generates a response from the AI partner in the specified learning language.
+
+    Args:
+    learning_language (str): The language being learned.
+    chat_history (list): The history of the conversation.
+    api_key (str): The API key for authentication.
+    provider (str, optional): The AI provider to use. Defaults to "groq".
+    last_summary (str, optional): The last summary of the conversation. Defaults to "".
+
+    Returns:
+    tuple: A tuple containing the AI's response and the updated chat history.
+
+    Raises:
+    ValueError: If an unsupported provider is specified.
+    """
     if provider == "groq":
         model = "llama3-70b-8192"
     elif provider == "openai":
@@ -79,6 +109,23 @@ async def partner_chat(learning_language, chat_history, api_key, provider="groq"
     return response, new_chat_history
 
 async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_history, provider="groq", api_key=None):
+    """
+    Generates tutor feedback based on the conversation history.
+
+    Args:
+    tutoring_language (str): The language being tutored.
+    tutors_language (str): The language the tutor uses for explanations.
+    chat_history (list): The history of the conversation.
+    tutor_history (list): The history of tutor comments.
+    provider (str, optional): The AI provider to use. Defaults to "groq".
+    api_key (str, optional): The API key for authentication. Defaults to None.
+
+    Returns:
+    dict: A dictionary containing tutor feedback, including comments, corrections, and intervention level.
+
+    Raises:
+    ValueError: If chat history is empty or no human message is found.
+    """
     try:
         if not isinstance(chat_history, list) or len(chat_history) == 0:
             raise ValueError("Chat history must be a non-empty list")
@@ -88,6 +135,9 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             raise ValueError("No human message found in chat history")
 
         async def get_tutors_comment():
+            """
+            Generates the tutor's comment on the last human message.
+            """
             if provider == "groq":
                 model = "llama3-70b-8192"
             elif provider == "openai":
@@ -109,6 +159,9 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             return response.content
 
         async def get_intervention_level():
+            """
+            Determines the level of intervention needed based on recent tutor comments.
+            """
             if provider == "groq":
                 model = "llama3-70b-8192"
             elif provider == "openai":
@@ -133,6 +186,9 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             return response.content
 
         async def get_best_expression():
+            """
+            Generates the best expression or correction for the last human message.
+            """
             if provider == "groq":
                 model = "llama3-70b-8192"
             elif provider == "openai":
@@ -172,6 +228,22 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
         raise
 
 async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="groq", api_key=None):
+    """
+    Summarizes the conversation based on the chat history and previous summary.
+
+    Args:
+    tutoring_language (str): The language being tutored.
+    chat_history (list): The history of the conversation.
+    previous_summary (str): The previous summary of the conversation.
+    provider (str, optional): The AI provider to use. Defaults to "groq".
+    api_key (str, optional): The API key for authentication. Defaults to None.
+
+    Returns:
+    str: An updated summary of the conversation.
+
+    Raises:
+    ValueError: If an unsupported provider is specified.
+    """
     logger.info(f"Summarizing conversation. Provider: {provider}, Tutoring language: {tutoring_language}")
     logger.info(f"Previous summary: {previous_summary}")
     logger.info(f"Chat history length: {len(chat_history)}")
@@ -218,6 +290,21 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
         return ""
 
 async def generate_homework(tutoring_language, full_context, provider="groq", api_key=None):
+    """
+    Generates homework based on the tutoring language and conversation context.
+
+    Args:
+    tutoring_language (str): The language being tutored.
+    full_context (str): The full context of the conversation.
+    provider (str, optional): The AI provider to use. Defaults to "groq".
+    api_key (str, optional): The API key for authentication. Defaults to None.
+
+    Returns:
+    str: Generated homework content combining grammar and vocabulary exercises.
+
+    Raises:
+    ValueError: If an unsupported provider is specified.
+    """
     try:
         if provider == "groq":
             model = "llama3-70b-8192"
@@ -260,6 +347,21 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
         raise
 
 async def generate_chat_name(summary, provider="groq", api_key=None, model=None):
+    """
+    Generates a name for the chat based on the conversation summary.
+
+    Args:
+    summary (str): The summary of the conversation.
+    provider (str, optional): The AI provider to use. Defaults to "groq".
+    api_key (str, optional): The API key for authentication. Defaults to None.
+    model (str, optional): The specific model to use. Defaults to None.
+
+    Returns:
+    str: A generated name for the chat.
+
+    Raises:
+    Exception: If an error occurs during the chat name generation process.
+    """
     try:
         if not summary:
             return "New Chat"

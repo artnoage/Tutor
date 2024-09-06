@@ -6,6 +6,10 @@ import { settingsManager } from './settings-manager.js';
 export let API_URL = 'http://127.0.0.1:8080'; // Default value
 
 async function loadConfig() {
+    /**
+     * Loads the configuration from a JSON file.
+     * Updates the API_URL if found in the config.
+     */
     try {
         // Adjust the path to go up one level from the js folder to the root
         const response = await fetch('../config.json');
@@ -21,11 +25,22 @@ async function loadConfig() {
 await loadConfig();
 
 function getApiKey(model) {
+    /**
+     * Retrieves the API key for the specified model.
+     * @param {string} model - The model name.
+     * @returns {string} The API key for the model.
+     */
     const lowerModel = model.toLowerCase();
     return settingsManager.getSetting(`${lowerModel}ApiKey`) || '';
 }
 
 async function sendAudioToServer(audioBlob, formElements) {
+    /**
+     * Sends recorded audio to the server for processing.
+     * @param {Blob} audioBlob - The audio data to send.
+     * @param {Object} formElements - Form elements containing user settings.
+     * @returns {Object} The processed result from the server.
+     */
     // Get the current chat object
     const currentChat = tutorController.getCurrentChat();
     
@@ -74,6 +89,11 @@ async function sendAudioToServer(audioBlob, formElements) {
 }
 
 async function sendHomeworkRequest(formElements) {
+    /**
+     * Sends a request to generate homework based on the current chat.
+     * @param {Object} formElements - Form elements containing user settings.
+     * @returns {string} The generated homework content.
+     */
     const requestData = {
         tutoringLanguage: formElements.tutoringLanguageSelect.value,
         tutorsLanguage: formElements.tutorsLanguageSelect.value,
@@ -113,6 +133,11 @@ async function sendHomeworkRequest(formElements) {
 }
 
 async function generateChatName(formElements) {
+    /**
+     * Generates a name for the chat based on its content.
+     * @param {Object} formElements - Form elements containing chat data and settings.
+     * @returns {string} The generated chat name.
+     */
     try {
         const requestData = {
             chat_history: formElements.chatObject.chat_history,
