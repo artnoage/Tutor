@@ -227,7 +227,12 @@ function updateApiKeyInput() {
     const apiKey = settingsManager.getSetting(`${model.toLowerCase()}ApiKey`) || '';
     elements.apiKeyInput.value = apiKey;
 }
-
+function addMessageToHomeworkChat(sender, message) {
+    const messageElement = document.createElement('p');
+    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    elements.homeworkChatDisplay.appendChild(messageElement);
+    elements.homeworkChatDisplay.scrollTop = elements.homeworkChatDisplay.scrollHeight;
+}
 
 // Initialize UI
 initializeUI();
