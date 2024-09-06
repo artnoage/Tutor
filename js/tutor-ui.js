@@ -1,6 +1,6 @@
 import { tutorController } from './tutor-core.js';
 import { sendHomeworkRequest } from './api-service.js';
-import { saveSettings, loadSettings, checkAndUpdateVersion } from './settings-manager.js';
+import { settingsManager } from './settings-manager.js';
 import {
     updateChatList,
     updateChatDisplay,
@@ -57,20 +57,22 @@ elements.closeSettingsButton.addEventListener('click', () => {
     elements.settingsOverlay.classList.add('hidden');
 });
 
-elements.startTutorButton.addEventListener('click', () => {
-    console.log('Start button clicked');
-    tutorController.start();
-    updateUIState(true);
-});
+elements.toggleTutorButton = document.getElementById('toggleTutorButton');
 
-elements.stopTutorButton.addEventListener('click', async () => {
-    try {
-        await tutorController.stop();
-        updateUIState(false);
-        elements.statusDisplay.textContent = "Stopped";
-    } catch (error) {
-        console.error("Error stopping tutor:", error);
-        elements.statusDisplay.textContent = "Error: Failed to stop tutor";
+elements.toggleTutorButton.addEventListener('click', async () => {
+    if (tutorController.isActive) {
+        try {
+            await tutorController.stop();
+            updateUIState(false);
+            elements.statusDisplay.textContent = "Stopped";
+        } catch (error) {
+            console.error("Error stopping tutor:", error);
+            elements.statusDisplay.textContent = "Error: Failed to stop tutor";
+        }
+    } else {
+        console.log('Start button clicked');
+        tutorController.start();
+        updateUIState(true);
     }
 });
 
@@ -90,35 +92,94 @@ elements.createChatButton.addEventListener('click', async () => {
     }
 });
 
-elements.playbackSpeedSlider.addEventListener('input', () => { updatePlaybackSpeed(); saveCurrentSettings(); });
-elements.pauseTimeSlider.addEventListener('input', () => { updatePauseTime(); saveCurrentSettings(); });
-elements.tutoringLanguageSelect.addEventListener('change', () => { tutorController.setTutoringLanguage(elements.tutoringLanguageSelect.value); saveCurrentSettings(); });
-elements.tutorsLanguageSelect.addEventListener('change', () => { tutorController.updateTutorsLanguage(elements.tutorsLanguageSelect.value); saveCurrentSettings(); });
-elements.interventionLevelSelect.addEventListener('change', () => { 
-    tutorController.setInterventionLevel(elements.interventionLevelSelect.value); 
-    saveCurrentSettings(); 
+elements.playbackSpeedSlider.addEventListener('input', (e) => {
+    updatePlaybackSpeed();
+    settingsManager.updateSetting('playbackSpeed', parseFloat(e.target.value));
+    updateSettingsInfoBox(`Playback speed updated to ${e.target.value}`);
 });
-elements.tutorsVoiceSelect.addEventListener('change', () => { 
-    tutorController.updateTutorsVoice(elements.tutorsVoiceSelect.value); 
-    saveCurrentSettings(); 
+elements.pauseTimeSlider.addEventListener('input', (e) => {
+    updatePauseTime();
+    settingsManager.updateSetting('pauseTime', parseInt(e.target.value));
+    updateSettingsInfoBox(`Pause time updated to ${e.target.value} seconds`);
 });
-elements.partnersVoiceSelect.addEventListener('change', () => { 
-    tutorController.updatePartnersVoice(elements.partnersVoiceSelect.value); 
-    saveCurrentSettings(); 
+elements.tutoringLanguageSelect.addEventListener('change', (e) => {
+    tutorController.setTutoringLanguage(e.target.value);
+    settingsManager.updateSetting('tutoringLanguage', e.target.value);
+    updateSettingsInfoBox(`Tutoring language updated to ${e.target.value}`);
 });
-elements.microphoneSelect.addEventListener('change', () => tutorController.setMicrophone(elements.microphoneSelect.value));
-elements.disableTutorCheckbox.addEventListener('change', () => { 
-    tutorController.setDisableTutor(elements.disableTutorCheckbox.checked); 
-    saveCurrentSettings(); 
+elements.tutorsLanguageSelect.addEventListener('change', (e) => {
+    tutorController.updateTutorsLanguage(e.target.value);
+    settingsManager.updateSetting('tutorsLanguage', e.target.value);
+    updateSettingsInfoBox(`Tutor's language updated to ${e.target.value}`);
 });
-elements.accentIgnoreCheckbox.addEventListener('change', () => { 
-    tutorController.setAccentIgnore(elements.accentIgnoreCheckbox.checked); 
-    saveCurrentSettings(); 
+elements.interventionLevelSelect.addEventListener('change', (e) => {
+    tutorController.updateInterventionLevel(e.target.value);
+    settingsManager.updateSetting('interventionLevel', e.target.value);
+    updateSettingsInfoBox(`Intervention level updated to ${e.target.value}`);
 });
-elements.modelSelect.addEventListener('change', () => { 
-    tutorController.updateModel(elements.modelSelect.value); 
-    saveCurrentSettings(); 
+elements.tutorsVoiceSelect.addEventListener('change', (e) => {
+    tutorController.updateTutorsVoice(e.target.value);
+    settingsManager.updateSetting('tutorsVoice', e.target.value);
+    updateSettingsInfoBox(`Tutor's voice updated to ${e.target.value}`);
 });
+elements.partnersVoiceSelect.addEventListener('change', (e) => {
+    tutorController.updatePartnersVoice(e.target.value);
+    settingsManager.updateSetting('partnersVoice', e.target.value);
+    updateSettingsInfoBox(`Partner's voice updated to ${e.target.value}`);
+});
+elements.microphoneSelect.addEventListener('change', (e) => {
+    tutorController.setMicrophone(e.target.value);
+    updateSettingsInfoBox(`Microphone updated to ${e.target.options[e.target.selectedIndex].text}`);
+});
+elements.disableTutorCheckbox.addEventListener('change', (e) => {
+    tutorController.setDisableTutor(e.target.checked);
+    settingsManager.updateSetting('disableTutor', e.target.checked);
+    updateSettingsInfoBox(`Tutor ${e.target.checked ? 'disabled' : 'enabled'}`);
+});
+elements.accentIgnoreCheckbox.addEventListener('change', (e) => {
+    tutorController.setAccentIgnore(e.target.checked);
+    settingsManager.updateSetting('accentIgnore', e.target.checked);
+    updateSettingsInfoBox(`Accent ignore ${e.target.checked ? 'enabled' : 'disabled'}`);
+});
+elements.modelSelect.addEventListener('change', (e) => {
+    tutorController.updateModel(e.target.value);
+    settingsManager.updateSetting('model', e.target.value);
+    updateApiKeyInput();
+    updateSettingsInfoBox(`AI model updated to ${e.target.value}`);
+});
+
+elements.apiKeyInput = document.getElementById('apiKeyInput');
+elements.sendApiKeyButton = document.getElementById('sendApiKeyButton');
+
+elements.settingsInfoBox = document.getElementById('settingsInfoBox');
+
+function updateSettingsInfoBox(message) {
+    elements.settingsInfoBox.textContent = message;
+}
+
+elements.sendApiKeyButton.addEventListener('click', async () => {
+    const model = elements.modelSelect.value;
+    const apiKey = elements.apiKeyInput.value;
+    try {
+        const updated = await settingsManager.updateSetting(`${model.toLowerCase()}ApiKey`, apiKey);
+        if (updated) {
+            updateSettingsInfoBox(`API key for ${model} verified and saved successfully.`);
+            elements.apiKeyInput.value = ''; // Clear the input after successful save
+        }
+    } catch (error) {
+        updateSettingsInfoBox(`Error: ${error.message}`);
+    }
+    elements.apiKeyInput.value = ''; // Clear the input regardless of success or failure
+});
+
+function updateApiKeyInput() {
+    const model = elements.modelSelect.value;
+    const apiKey = settingsManager.getSetting(`${model.toLowerCase()}ApiKey`) || '';
+    elements.apiKeyInput.value = apiKey;
+}
+
+// Call this function after initializing the UI
+updateApiKeyInput();
 elements.deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 elements.deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
@@ -167,72 +228,11 @@ function addMessageToHomeworkChat(sender, message) {
     elements.homeworkChatDisplay.scrollTop = elements.homeworkChatDisplay.scrollHeight;
 }
 
-// Check version and initialize
-checkAndUpdateVersion().then((versionChanged) => {
-    if (versionChanged) {
-        // If version changed, we've already cleared the data
-        console.log("New version detected. All data has been cleared.");
-        updateInfoWindow("New version detected. All data has been cleared.");
-    }
-    
-    // Initialize UI
-    initializeUI();
+// Initialize UI
+initializeUI();
 
-    // Load saved settings
-    loadSavedSettings();
-
-    // Start monitoring interval
-    const monitoringInterval = tutorController.startMonitoringInterval();
-});
-
-// Function to load saved settings
-function loadSavedSettings() {
-    const settings = loadSettings();
-    if (settings) {
-        elements.tutoringLanguageSelect.value = settings.tutoringLanguage || '';
-        elements.tutorsLanguageSelect.value = settings.tutorsLanguage || '';
-        elements.interventionLevelSelect.value = settings.interventionLevel || 'medium';
-        elements.tutorsVoiceSelect.value = settings.tutorsVoice || 'alloy';
-        elements.partnersVoiceSelect.value = settings.partnersVoice || 'nova';
-        elements.disableTutorCheckbox.checked = settings.disableTutor || false;
-        elements.accentIgnoreCheckbox.checked = settings.accentIgnore || true;
-        elements.modelSelect.value = settings.model || 'Grok';
-        elements.playbackSpeedSlider.value = settings.playbackSpeed || 1;
-        elements.pauseTimeSlider.value = settings.pauseTime || 2;
-
-        // Update controller with loaded settings
-        tutorController.setTutoringLanguage(settings.tutoringLanguage);
-        tutorController.updateTutorsLanguage(settings.tutorsLanguage);
-        tutorController.setInterventionLevel(settings.interventionLevel);
-        tutorController.updateTutorsVoice(settings.tutorsVoice || 'alloy');
-        tutorController.updatePartnersVoice(settings.partnersVoice || 'nova');
-        tutorController.setDisableTutor(settings.disableTutor);
-        tutorController.setAccentIgnore(settings.accentIgnore);
-        tutorController.updateModel(settings.model);
-        tutorController.setPlaybackSpeed(settings.playbackSpeed);
-        tutorController.setPauseTime(settings.pauseTime);
-
-        updatePlaybackSpeed();
-        updatePauseTime();
-    }
-}
-
-// Function to save current settings
-function saveCurrentSettings() {
-    const settings = {
-        tutoringLanguage: elements.tutoringLanguageSelect.value,
-        tutorsLanguage: elements.tutorsLanguageSelect.value,
-        interventionLevel: elements.interventionLevelSelect.value,
-        tutorsVoice: elements.tutorsVoiceSelect.value,
-        partnersVoice: elements.partnersVoiceSelect.value,
-        disableTutor: elements.disableTutorCheckbox.checked,
-        accentIgnore: elements.accentIgnoreCheckbox.checked,
-        model: elements.modelSelect.value,
-        playbackSpeed: elements.playbackSpeedSlider.value,
-        pauseTime: elements.pauseTimeSlider.value
-    };
-    saveSettings(settings);
-}
+// Start monitoring interval
+const monitoringInterval = tutorController.startMonitoringInterval();
 
 // Clean up before page unload
 window.addEventListener('beforeunload', (event) => {

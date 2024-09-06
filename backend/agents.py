@@ -260,11 +260,11 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     llm = get_llm(provider, model, api_key)
 
     last_messages = chat_history[-5:] if len(chat_history) > 5 else chat_history
-    logger.info(f"Last messages to summarize: {last_messages}")
+    logger.debug(f"Last messages to summarize: {last_messages}")
     
     chat_history_str = str("\n".join([f"{msg.type}: {msg.content}" for msg in last_messages]))
     system_template = get_summarizer_prompt(tutoring_language, previous_summary, chat_history_str)
-    logger.info(f"System template: {system_template}")
+    logger.debug(f"System template: {system_template}")
 
     summarizer_template = ChatPromptTemplate.from_messages([
         ("system", system_template)
