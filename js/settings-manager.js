@@ -1,4 +1,4 @@
-const CURRENT_VERSION = '1.0.4';
+const CURRENT_VERSION = '1.0.5';
 import { API_URL } from './api-service.js';
 
 class SettingsManager {
