@@ -20,7 +20,6 @@ import {
 } from './tutor-ui-helpers.js';
 
 // DOM element references
-// DOM element references
 const elements = {
     startTutorButton: document.getElementById('startTutorButton'),
     stopTutorButton: document.getElementById('stopTutorButton'),
@@ -45,7 +44,11 @@ const elements = {
     homeworkChatDisplay: document.getElementById('homeworkChatDisplay'),
     settingsButton: document.getElementById('settingsButton'),
     settingsOverlay: document.getElementById('settingsOverlay'),
-    closeSettingsButton: document.getElementById('closeSettingsButton')
+    closeSettingsButton: document.getElementById('closeSettingsButton'),
+    apiKeyInput: document.getElementById('apiKeyInput'),
+    sendApiKeyButton: document.getElementById('sendApiKeyButton'),
+    settingsInfoBox: document.getElementById('settingsInfoBox'),
+    toggleTutorButton: document.getElementById('toggleTutorButton')
 };
 
 // Event listeners
@@ -56,8 +59,6 @@ elements.settingsButton.addEventListener('click', () => {
 elements.closeSettingsButton.addEventListener('click', () => {
     elements.settingsOverlay.classList.add('hidden');
 });
-
-elements.toggleTutorButton = document.getElementById('toggleTutorButton');
 
 elements.toggleTutorButton.addEventListener('click', async () => {
     if (tutorController.isActive) {
@@ -85,7 +86,10 @@ elements.sendButton.addEventListener('click', () => {
 });
 
 elements.createChatButton.addEventListener('click', async () => {
-    const newChat = await tutorController.createNewChat();
+    const newChat = await tutorController.createNewChat(
+        elements.modelSelect,
+        elements.tutoringLanguageSelect
+    );
     if (newChat !== null) {
         await updateChatList();
         updateChatDisplay(newChat);
@@ -97,65 +101,66 @@ elements.playbackSpeedSlider.addEventListener('input', (e) => {
     settingsManager.updateSetting('playbackSpeed', parseFloat(e.target.value));
     updateSettingsInfoBox(`Playback speed updated to ${e.target.value}`);
 });
+
 elements.pauseTimeSlider.addEventListener('input', (e) => {
     updatePauseTime();
     settingsManager.updateSetting('pauseTime', parseInt(e.target.value));
     updateSettingsInfoBox(`Pause time updated to ${e.target.value} seconds`);
 });
+
 elements.tutoringLanguageSelect.addEventListener('change', (e) => {
     tutorController.setTutoringLanguage(e.target.value);
     settingsManager.updateSetting('tutoringLanguage', e.target.value);
     updateSettingsInfoBox(`Tutoring language updated to ${e.target.value}`);
 });
+
 elements.tutorsLanguageSelect.addEventListener('change', (e) => {
     tutorController.updateTutorsLanguage(e.target.value);
     settingsManager.updateSetting('tutorsLanguage', e.target.value);
     updateSettingsInfoBox(`Tutor's language updated to ${e.target.value}`);
 });
+
 elements.interventionLevelSelect.addEventListener('change', (e) => {
     tutorController.updateInterventionLevel(e.target.value);
     settingsManager.updateSetting('interventionLevel', e.target.value);
     updateSettingsInfoBox(`Intervention level updated to ${e.target.value}`);
 });
+
 elements.tutorsVoiceSelect.addEventListener('change', (e) => {
     tutorController.updateTutorsVoice(e.target.value);
     settingsManager.updateSetting('tutorsVoice', e.target.value);
     updateSettingsInfoBox(`Tutor's voice updated to ${e.target.value}`);
 });
+
 elements.partnersVoiceSelect.addEventListener('change', (e) => {
     tutorController.updatePartnersVoice(e.target.value);
     settingsManager.updateSetting('partnersVoice', e.target.value);
     updateSettingsInfoBox(`Partner's voice updated to ${e.target.value}`);
 });
+
 elements.microphoneSelect.addEventListener('change', (e) => {
     tutorController.setMicrophone(e.target.value);
     updateSettingsInfoBox(`Microphone updated to ${e.target.options[e.target.selectedIndex].text}`);
 });
+
 elements.disableTutorCheckbox.addEventListener('change', (e) => {
     tutorController.setDisableTutor(e.target.checked);
     settingsManager.updateSetting('disableTutor', e.target.checked);
     updateSettingsInfoBox(`Tutor ${e.target.checked ? 'disabled' : 'enabled'}`);
 });
+
 elements.accentIgnoreCheckbox.addEventListener('change', (e) => {
     tutorController.setAccentIgnore(e.target.checked);
     settingsManager.updateSetting('accentIgnore', e.target.checked);
     updateSettingsInfoBox(`Accent ignore ${e.target.checked ? 'enabled' : 'disabled'}`);
 });
+
 elements.modelSelect.addEventListener('change', (e) => {
     tutorController.updateModel(e.target.value);
     settingsManager.updateSetting('model', e.target.value);
     updateApiKeyInput();
     updateSettingsInfoBox(`AI model updated to ${e.target.value}`);
 });
-
-elements.apiKeyInput = document.getElementById('apiKeyInput');
-elements.sendApiKeyButton = document.getElementById('sendApiKeyButton');
-
-elements.settingsInfoBox = document.getElementById('settingsInfoBox');
-
-function updateSettingsInfoBox(message) {
-    elements.settingsInfoBox.textContent = message;
-}
 
 elements.sendApiKeyButton.addEventListener('click', async () => {
     const model = elements.modelSelect.value;
@@ -172,14 +177,6 @@ elements.sendApiKeyButton.addEventListener('click', async () => {
     elements.apiKeyInput.value = ''; // Clear the input regardless of success or failure
 });
 
-function updateApiKeyInput() {
-    const model = elements.modelSelect.value;
-    const apiKey = settingsManager.getSetting(`${model.toLowerCase()}ApiKey`) || '';
-    elements.apiKeyInput.value = apiKey;
-}
-
-// Call this function after initializing the UI
-updateApiKeyInput();
 elements.deleteLocalHistoryButton.addEventListener('click', deleteLocalHistory);
 elements.deleteSelectedChatButton.addEventListener('click', deleteSelectedChat);
 
@@ -221,15 +218,22 @@ elements.downloadHomeworkButton.addEventListener('click', () => {
     doc.save('homework_chat.pdf');
 });
 
-function addMessageToHomeworkChat(sender, message) {
-    const messageElement = document.createElement('p');
-    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-    elements.homeworkChatDisplay.appendChild(messageElement);
-    elements.homeworkChatDisplay.scrollTop = elements.homeworkChatDisplay.scrollHeight;
+function updateSettingsInfoBox(message) {
+    elements.settingsInfoBox.textContent = message;
 }
+
+function updateApiKeyInput() {
+    const model = elements.modelSelect.value;
+    const apiKey = settingsManager.getSetting(`${model.toLowerCase()}ApiKey`) || '';
+    elements.apiKeyInput.value = apiKey;
+}
+
 
 // Initialize UI
 initializeUI();
+
+// Update API key input after initializing the UI
+updateApiKeyInput();
 
 // Start monitoring interval
 const monitoringInterval = tutorController.startMonitoringInterval();

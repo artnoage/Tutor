@@ -147,9 +147,9 @@ async function generateChatName(formElements) {
             chat_history: formElements.chatObject.chat_history,
             tutors_comments: formElements.chatObject.tutors_comments,
             summary: formElements.chatObject.summary,
-            model: formElements.modelSelect ? formElements.modelSelect.value : 'default_model',
-            tutoringLanguage: formElements.tutoringLanguageSelect ? formElements.tutoringLanguageSelect.value : 'default_language',
-            api_key: getApiKey(formElements.modelSelect ? formElements.modelSelect.value : 'default_model')
+            model:  formElements.modelSelect.value,
+            tutoringLanguage: formElements.tutoringLanguageSelect.value,
+            api_key: getApiKey(formElements.modelSelect.value)
         };
 
         console.log('Sending request data:', requestData);

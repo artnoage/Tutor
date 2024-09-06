@@ -21,10 +21,6 @@ class TutorController {
     }
 
     async initDatabase() {
-        /**
-         * Initializes the IndexedDB database for storing chat objects.
-         * @returns {Promise} A promise that resolves when the database is initialized.
-         */
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(dbName, 1);
 
@@ -54,10 +50,6 @@ class TutorController {
     }
 
     async saveChatObjects() {
-        /**
-         * Saves the current chat objects to the IndexedDB database.
-         * @returns {Promise} A promise that resolves when the save operation is complete.
-         */
         await this.dbPromise;
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction([objectStoreName], "readwrite");
@@ -76,10 +68,6 @@ class TutorController {
     }
 
     async loadChatObjects() {
-        /**
-         * Loads chat objects from the IndexedDB database.
-         * @returns {Promise} A promise that resolves with the loaded chat objects.
-         */
         await this.dbPromise;
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction([objectStoreName], "readonly");
@@ -103,26 +91,14 @@ class TutorController {
     }
 
     setFormElements(elements) {
-        /**
-         * Sets the form elements used in the tutor interface.
-         * @param {Object} elements - An object containing references to form elements.
-         */
         this.formElements = elements;
     }
 
     setUICallbacks(callbacks) {
-        /**
-         * Sets the callback functions for UI updates.
-         * @param {Object} callbacks - An object containing callback functions.
-         */
         this.uiCallbacks = callbacks;
     }
 
-    async createNewChat() {
-        /**
-         * Creates a new chat object and adds it to the chat list.
-         * @returns {Object|null} The newly created chat object, or null if creation was not possible.
-         */
+    async createNewChat(modelSelect, tutoringLanguageSelect) {
         if (!this.isInitialized) {
             await this.dbPromise;
         }
@@ -136,7 +112,6 @@ class TutorController {
         };
 
         if (this.chatObjects.length > 0) {
-            // Sort chats by timestamp to ensure we're working with the most recent
             this.chatObjects.sort((a, b) => b.timestamp - a.timestamp);
             const lastChat = this.chatObjects[0];
             const isEmptyChat = lastChat.chat_history.length === 0 && lastChat.tutors_comments.length === 0;
@@ -148,7 +123,6 @@ class TutorController {
                 return null;
             }
 
-            // Rename the previous chat
             const lastSummary = lastChat.summary[lastChat.summary.length - 1];
             const isEmptySummary = !lastSummary || lastSummary.trim() === '';
 
@@ -158,8 +132,8 @@ class TutorController {
                 try {
                     const formElementsForChatName = {
                         chatObject: lastChat,
-                        modelSelect: { value: this.model },
-                        tutoringLanguageSelect: { value: this.tutoringLanguage }
+                        modelSelect: { value: modelSelect.value },
+                        tutoringLanguageSelect: { value: tutoringLanguageSelect.value }
                     };
                     lastChat.name = await generateChatName(formElementsForChatName);
                 } catch (error) {
@@ -182,21 +156,15 @@ class TutorController {
     }
 
     async start() {
-        /**
-         * Starts the tutor session.
-         */
         this.isActive = true;
         await this.dbPromise;
         if (this.chatObjects.length === 0) {
-            await this.createNewChat();
+            await this.createNewChat(this.formElements.modelSelect, this.formElements.tutoringLanguageSelect);
         }
         this.audioManager.start(this.onRecordingComplete.bind(this));
     }
 
     async stop() {
-        /**
-         * Stops the tutor session.
-         */
         this.isActive = false;
         await this.audioManager.stop();
         
@@ -207,14 +175,9 @@ class TutorController {
     }
 
     switchChat(timestamp) {
-        /**
-         * Switches to a different chat based on the provided timestamp.
-         * @param {number} timestamp - The timestamp of the chat to switch to.
-         */
         const chat = this.chatObjects.find(chat => chat.timestamp === timestamp);
         if (chat) {
             this.currentChatTimestamp = timestamp;
-            // Sort chats by timestamp after switching
             this.chatObjects.sort((a, b) => b.timestamp - a.timestamp);
             if (this.uiCallbacks.onChatSwitched) {
                 this.uiCallbacks.onChatSwitched(chat);
@@ -223,91 +186,47 @@ class TutorController {
     }
 
     getCurrentChat() {
-        /**
-         * Gets the current chat object.
-         * @returns {Object|null} The current chat object, or null if not found.
-         */
         return this.chatObjects.find(chat => chat.timestamp === this.currentChatTimestamp) || null;
     }
 
     setMicrophone(deviceId) {
-        /**
-         * Sets the microphone device to use for audio input.
-         * @param {string} deviceId - The ID of the microphone device.
-         */
         this.audioManager.setMicrophone(deviceId);
     }
 
     setPauseTime(time) {
-        /**
-         * Sets the pause time between audio recordings.
-         * @param {number} time - The pause time in seconds.
-         */
         this.pauseTime = time;
         this.audioManager.setPauseTime(time);
     }
 
     setDisableTutor(disable) {
-        /**
-         * Enables or disables the tutor functionality.
-         * @param {boolean} disable - Whether to disable the tutor.
-         */
         this.disableTutor = disable;
     }
 
     setAccentIgnore(ignore) {
-        /**
-         * Sets whether to ignore accents in speech recognition.
-         * @param {boolean} ignore - Whether to ignore accents.
-         */
         this.accentIgnore = ignore;
     }
 
     setTutoringLanguage(language) {
-        /**
-         * Sets the language being tutored.
-         * @param {string} language - The language to tutor.
-         */
         this.tutoringLanguage = language;
-        // You might want to add additional logic here if needed
     }
 
     updateTutorsVoice(voice) {
-        /**
-         * Updates the voice used for the tutor's speech.
-         * @param {string} voice - The voice identifier to use.
-         */
         this.tutorsVoice = voice;
     }
 
     updatePartnersVoice(voice) {
-        /**
-         * Updates the voice used for the partner's speech.
-         * @param {string} voice - The voice identifier to use.
-         */
         this.partnersVoice = voice;
     }
 
     updateInterventionLevel(level) {
-        /**
-         * Updates the intervention level of the tutor.
-         * @param {string} level - The intervention level to set.
-         */
         this.interventionLevel = level;
     }
 
     updateModel(model) {
-        /**
-         * Updates the AI model used for processing.
-         * @param {string} model - The model identifier to use.
-         */
         this.model = model;
     }
 
     async manualStop() {
-        /**
-         * Manually stops the current recording session.
-         */
         await this.audioManager.manualStop();
         if (this.uiCallbacks.onProcessingStart) {
             this.uiCallbacks.onProcessingStart();
@@ -315,11 +234,6 @@ class TutorController {
     }
 
     async processAndPlayAudio(audioData) {
-        /**
-         * Processes the recorded audio data and plays the response.
-         * @param {Blob} audioData - The audio data to process.
-         * @returns {Object} An object indicating the success of the operation.
-         */
         try {
             if (this.uiCallbacks.onProcessingStart) {
                 this.uiCallbacks.onProcessingStart();
@@ -376,10 +290,6 @@ class TutorController {
     }
 
     async onRecordingComplete(result) {
-        /**
-         * Handles the completion of an audio recording.
-         * @param {Object} result - The result of the recording process.
-         */
         if (result.discarded) {
             if (this.uiCallbacks.onRecordingDiscarded) {
                 this.uiCallbacks.onRecordingDiscarded(result.reason);
@@ -395,10 +305,6 @@ class TutorController {
     }
 
     startMonitoringInterval() {
-        /**
-         * Starts the interval for monitoring sound levels.
-         * @returns {number} The ID of the interval.
-         */
         return this.audioManager.startMonitoringInterval((average, isSilent) => {
             if (this.uiCallbacks.onSoundLevelUpdate) {
                 this.uiCallbacks.onSoundLevelUpdate(average, isSilent);
