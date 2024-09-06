@@ -3,5 +3,5 @@ node_modules
 __pycache__
 backend/.env
 .aider*
-backemd/__pycache__
+backend/__pycache__
 config.json
