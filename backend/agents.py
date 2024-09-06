@@ -346,7 +346,7 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
         logger.error(traceback.format_exc())
         raise
 
-async def generate_chat_name(summary, provider="groq", api_key=None, model=None):
+async def generate_chat_name(summary, provider="groq", api_key=None):
     """
     Generates a name for the chat based on the conversation summary.
 
@@ -366,7 +366,16 @@ async def generate_chat_name(summary, provider="groq", api_key=None, model=None)
         if not summary:
             return "New Chat"
 
-        llm = get_llm(provider, model or ("llama3-70b-8192" if provider == "groq" else "gpt-4o-2024-08-06"), api_key)
+        if provider == "groq":
+            model = "llama3-70b-8192"
+        elif provider == "openai":
+            model = "gpt-4o-2024-08-06"
+        elif provider == "anthropic":
+            model = "claude-3-5-sonnet-20240620"
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+        
+        llm = get_llm(provider, model, api_key)
 
         chat_name_template = get_chat_name_prompt(summary)
 

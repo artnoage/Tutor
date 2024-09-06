@@ -189,31 +189,16 @@ async def process_audio(
         
         # Use the API key from audio_data if it's not empty, otherwise use the previous method
         api_key = audio_data.api_key
-        model = audio_data.model.lower()
+        provider = audio_data.model.lower()
         
-        if api_key and api_key.strip():
-            if model == "openai":
-                provider = "openai"
-            elif model == "groq":
-                provider = "groq"
-            elif model == "anthropic":
-                provider = "anthropic"
-            else:
-                raise ValueError(f"Unsupported model: {model}")
-            
-            logger.info(f"Using {provider.capitalize()} API key: {api_key[:5]}...")  # Log first 5 characters for security
-        else:
+        if not api_key.strip():
             # Use the previous method to get the API key
-            if model == "openai":
+            if provider == "openai":
                 api_key = OPENAI_API_KEY
-                provider = "openai"
-            elif model == "groq":
+            elif provider == "groq":
                 api_key = get_random_groq_api_key()
-                provider = "groq"
             else:
-                raise ValueError(f"Unsupported model for previous method: {model}")
-            
-            logger.info(f"Using previous method for {provider.capitalize()} API key")
+                raise ValueError(f"For this provider use your key: {provider}")
         
         # Transcribe the audio
         logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
@@ -362,14 +347,18 @@ async def generate_homework_endpoint(request_data: AudioData):
         full_context = "\n".join(interwoven_context)
 
         # Select the appropriate API key based on the model
-        if request_data.model.lower() == "openai":
-            api_key = OPENAI_API_KEY
-            provider = "openai"
-            logger.info("Using OpenAI API key")
-        else:
-            api_key = get_random_groq_api_key()
-            provider = "groq"
-            logger.info(f"Using Groq API key: {api_key[:5]}...")  # Log first 5 characters for security
+        api_key = request_data.api_key
+        provider = request_data.model.lower()
+        
+        if not api_key.strip():
+            # Use the previous method to get the API key
+            if provider == "openai":
+                api_key = OPENAI_API_KEY
+            elif provider == "groq":
+                api_key = get_random_groq_api_key()
+            else:
+                raise ValueError(f"For this provider use your key: {provider}")
+            
 
         # Generate homework using the new agent function
         homework = await generate_homework(
@@ -412,8 +401,7 @@ async def generate_chat_name_endpoint(request_data: dict):
         chat_name = await generate_chat_name(
             latest_summary,
             provider=provider,
-            api_key=api_key,
-            model=model
+            api_key=api_key
         )
 
         return JSONResponse({
