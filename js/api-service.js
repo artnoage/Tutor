@@ -139,16 +139,20 @@ async function generateChatName(formElements) {
      * @returns {string} The generated chat name.
      */
     try {
+        console.log('Form elements received:', formElements);
+        console.log('Model select value:', formElements.modelSelect ? formElements.modelSelect.value : 'undefined');
+        console.log('Tutoring language select value:', formElements.tutoringLanguageSelect ? formElements.tutoringLanguageSelect.value : 'undefined');
+        
         const requestData = {
             chat_history: formElements.chatObject.chat_history,
             tutors_comments: formElements.chatObject.tutors_comments,
             summary: formElements.chatObject.summary,
-            model: formElements.modelSelect.value,
-            tutoringLanguage: formElements.tutoringLanguageSelect.value,
-            api_key: getApiKey(formElements.modelSelect.value)
+            model: formElements.modelSelect ? formElements.modelSelect.value : 'default_model',
+            tutoringLanguage: formElements.tutoringLanguageSelect ? formElements.tutoringLanguageSelect.value : 'default_language',
+            api_key: getApiKey(formElements.modelSelect ? formElements.modelSelect.value : 'default_model')
         };
 
-        console.log('Sending request data:', requestData);  // Add this line for debugging
+        console.log('Sending request data:', requestData);
 
         const response = await fetch(`${API_URL}/generate_chat_name`, {
             method: 'POST',
