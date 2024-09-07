@@ -339,8 +339,18 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
             vocabulary_chain.ainvoke({})
         )
 
-        # Combine responses
-        combined_response = f"{grammar_response.content}\n\n{vocabulary_response.content}"
+        # Format and combine responses
+        combined_response = f"""
+# Grammar Exercises
+
+{grammar_response.content.strip()}
+
+---
+
+# Vocabulary Exercises
+
+{vocabulary_response.content.strip()}
+"""
 
         return combined_response
 
