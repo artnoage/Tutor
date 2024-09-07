@@ -145,73 +145,30 @@ def get_grammar_prompt(tutoring_language, chat_history):
     5. Ensure all instructions, examples, and answers are in the tutoring language.
     6. After the exercises, provide a brief explanation (in the tutoring language) of the grammatical rules being practiced.
 
-    Your response should include:
-    - A brief assessment of the student's language level (e.g., A1, A2, B1, B2, C1, C2 according to CEFR)
-    - 3-5 well-formatted grammar exercises in the tutoring language
-    - Clear instructions, examples, and answers for each exercise
-    - Brief explanations of the grammatical rules being practiced
+    Your response should be formatted as follows:
 
-    For example, if the tutoring language is German, your response might look like this:
+    ## Language Level Assessment
+    [Brief assessment of the student's language level (e.g., A1, A2, B1, B2, C1, C2 according to CEFR)]
 
-    Sprachniveau: A2
+    ## Grammar Exercises
 
-    1. Präpositionen mit Dativ
-    Anweisung: Ergänzen Sie die Sätze mit der richtigen Präposition und dem Artikel im Dativ.
+    ### Exercise 1: [Topic]
+    **Instructions:** [Clear instructions in the tutoring language]
 
-    a) Ich gehe _____ Supermarkt. (zu)
-    b) Das Buch liegt _____ Tisch. (auf)
-    c) Wir fahren _____ Bus zur Schule. (mit)
+    1. [Example sentence or question]
+    2. [Example sentence or question]
+    3. [Example sentence or question]
 
-    Antworten:
-    a) zum
-    b) auf dem
-    c) mit dem
+    **Answers:**
+    1. [Correct answer]
+    2. [Correct answer]
+    3. [Correct answer]
 
-    2. Perfekt mit 'sein'
-    Anweisung: Bilden Sie Sätze im Perfekt mit 'sein'.
+    ### Exercise 2: [Topic]
+    [Repeat the structure for each exercise]
 
-    a) Ich / gestern / ins Kino / gehen
-    b) Sie / letzten Sommer / nach Spanien / reisen
-    c) Er / spät / aufstehen
-
-    Antworten:
-    a) Ich bin gestern ins Kino gegangen.
-    b) Sie sind letzten Sommer nach Spanien gereist.
-    c) Er ist spät aufgestanden.
-
-    Erklärung:
-    Bei Präpositionen mit Dativ verschmelzen einige Präpositionen mit dem Artikel (zu + dem = zum). Das Perfekt mit 'sein' wird für Verben der Bewegung und Zustandsveränderung verwendet.
-
-    If the tutoring language is Spanish, your response might look like this:
-
-    Nivel de idioma: A2
-
-    1. Uso del pretérito indefinido
-    Instrucción: Completa las frases con la forma correcta del pretérito indefinido.
-
-    a) Ayer yo _____ (ir) al cine.
-    b) La semana pasada nosotros _____ (ver) una película interesante.
-    c) El mes pasado ellos _____ (viajar) a México.
-
-    Respuestas:
-    a) fui
-    b) vimos
-    c) viajaron
-
-    2. Concordancia de género y número
-    Instrucción: Elige la forma correcta del adjetivo.
-
-    a) La película era muy _____ (emocionante/emocionantes).
-    b) Los actores eran _____ (famoso/famosos).
-    c) Las escenas de acción eran _____ (impresionante/impresionantes).
-
-    Respuestas:
-    a) emocionante
-    b) famosos
-    c) impresionantes
-
-    Explicación:
-    El pretérito indefinido se usa para acciones completadas en el pasado. Los adjetivos deben concordar en género y número con el sustantivo al que modifican.
+    ## Grammar Explanations
+    [Brief explanations of the grammatical rules being practiced]
 
     In this case, the tutoring language is {tutoring_language} and the chat history is:
 
@@ -237,79 +194,25 @@ def get_vocabulary_prompt(tutoring_language, chat_history):
     5. All explanations and examples must be in the tutoring language.
     6. After the list, suggest a brief vocabulary exercise using some of these words.
 
-    Your response should include:
-    - A brief assessment of the student's language level (e.g., A1, A2, B1, B2, C1, C2 according to CEFR)
-    - A well-formatted list of 8-10 vocabulary items in the tutoring language
-    - Definitions and example sentences for each item in the tutoring language
-    - A short vocabulary exercise
+    Your response should be formatted as follows:
 
-    For example, if the tutoring language is German, your response might look like this:
+    ## Language Level Assessment
+    [Brief assessment of the student's language level (e.g., A1, A2, B1, B2, C1, C2 according to CEFR)]
 
-    Sprachniveau: B1
+    ## Vocabulary List
 
-    Vokabelliste:
+    1. **[Word or Phrase]** ([Part of Speech])
+       **Definition:** [Definition in the tutoring language]
+       **Example:** [Example sentence in the tutoring language]
 
-    1. spannend (Adjektiv)
-       Definition: Sehr interessant und aufregend.
-       Beispiel: Der Film war so spannend, dass ich nicht aufhören konnte zu schauen.
+    2. **[Word or Phrase]** ([Part of Speech])
+       **Definition:** [Definition in the tutoring language]
+       **Example:** [Example sentence in the tutoring language]
 
-    2. die Handlung (Nomen)
-       Definition: Die Abfolge von Ereignissen in einer Geschichte oder einem Film.
-       Beispiel: Die Handlung des Films war kompliziert, aber fesselnd.
+    [Repeat for all 8-10 vocabulary items]
 
-    3. der Schauspieler / die Schauspielerin (Nomen)
-       Definition: Eine Person, die eine Rolle in einem Film oder Theater spielt.
-       Beispiel: Der Hauptschauspieler hat eine ausgezeichnete Leistung gezeigt.
-
-    4. beeindruckend (Adjektiv)
-       Definition: Etwas, das einen starken, positiven Eindruck macht.
-       Beispiel: Die Spezialeffekte im Film waren wirklich beeindruckend.
-
-    5. die Vorstellung (Nomen)
-       Definition: Eine Aufführung oder Vorführung eines Films oder Theaterstücks.
-       Beispiel: Die Abendvorstellung war ausverkauft.
-
-    Übung:
-    Ergänzen Sie die Sätze mit den passenden Wörtern aus der Vokabelliste:
-
-    1. Der neue Action-Film war sehr _____. (spannend)
-    2. Die _____ des Films war leicht zu verstehen. (Handlung)
-    3. Die _____ des Hauptdarstellers war _____. (Schauspielerin, beeindruckend)
-    4. Wir gehen heute Abend in die 20 Uhr _____. (Vorstellung)
-
-    If the tutoring language is Spanish, your response might look like this:
-
-    Nivel de idioma: B1
-
-    Lista de vocabulario:
-
-    1. emocionante (adjetivo)
-       Definición: Que produce una fuerte impresión o excitación.
-       Ejemplo: La película de acción fue muy emocionante desde el principio hasta el final.
-
-    2. trama (sustantivo, femenino)
-       Definición: El argumento o historia principal de una obra o película.
-       Ejemplo: La trama de la película era compleja pero interesante.
-
-    3. actor / actriz (sustantivo)
-       Definición: Persona que interpreta un papel en una película, obra de teatro o serie de televisión.
-       Ejemplo: El actor principal ganó un premio por su actuación en esta película.
-
-    4. impresionante (adjetivo)
-       Definición: Que causa admiración por ser extraordinario.
-       Ejemplo: Los efectos especiales de la película fueron impresionantes.
-
-    5. función (sustantivo, femenino)
-       Definición: Cada una de las representaciones de un espectáculo.
-       Ejemplo: Compramos entradas para la función de las 9 de la noche.
-
-    Ejercicio:
-    Complete las frases con las palabras apropiadas de la lista de vocabulario:
-
-    1. La nueva película de acción es muy _____. (emocionante)
-    2. La _____ de la película fue fácil de seguir. (trama)
-    3. La actuación de la _____ principal fue _____. (actriz, impresionante)
-    4. Vamos a ir a la _____ de las 8 de la noche. (función)
+    ## Vocabulary Exercise
+    [Brief vocabulary exercise using some of the words from the list]
 
     In this case, the tutoring language is {tutoring_language} and the chat history is:
 
