@@ -233,12 +233,15 @@ elements.clearHomeworkButton.addEventListener('click', () => {
     updateSettingsInfoBox('Homework chat cleared');
 });
 
-elements.cleanHomeworkButton.addEventListener('click', () => {
-    const homeworkChat = elements.homeworkChatDisplay.innerHTML;
-    const cleanedHomework = homeworkChat.replace(/<p><strong>Tutor:<\/strong>/g, '<p><strong>Tutor:</strong><br>');
-    elements.homeworkChatDisplay.innerHTML = cleanedHomework;
-    updateSettingsInfoBox('Homework chat cleaned');
-});
+elements.cleanHomeworkButton = document.getElementById('cleanHomeworkButton');
+if (elements.cleanHomeworkButton) {
+    elements.cleanHomeworkButton.addEventListener('click', () => {
+        const homeworkChat = elements.homeworkChatDisplay.innerHTML;
+        const cleanedHomework = homeworkChat.replace(/<p><strong>Tutor:<\/strong>/g, '<p><strong>Tutor:</strong><br>');
+        elements.homeworkChatDisplay.innerHTML = cleanedHomework;
+        updateSettingsInfoBox('Homework chat cleaned');
+    });
+}
 
 function updateSettingsInfoBox(message) {
     elements.settingsInfoBox.textContent = message;
