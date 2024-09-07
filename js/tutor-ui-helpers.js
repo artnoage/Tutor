@@ -30,7 +30,9 @@ export function updateChatDisplay(chatObject) {
     const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
     const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
 
+    // Clear both chat history and tutor's comments displays
     chatHistoryDisplay.innerHTML = '';
+    tutorsCommentsDisplay.innerHTML = '';
     chatObject.chat_history.forEach((message, index) => {
         const messageElement = document.createElement('p');
         let prefix = message.type === 'HumanMessage' ? 'You: ' : 
