@@ -636,6 +636,15 @@ a:hover {
   grid-column: 5 / 6;
   resize: none;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#homeworkChatDisplay {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 150px);
+  /* Adjust 150px based on the height of other elements in the sidebar */
 }
 
 .resize-handle {
