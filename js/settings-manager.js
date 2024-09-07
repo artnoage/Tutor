@@ -1,4 +1,4 @@
-const CURRENT_VERSION = '1.0.5';
+const CURRENT_VERSION = '1.0.7';
 import { API_URL } from './api-service.js';
 
 class SettingsManager {
@@ -39,7 +39,7 @@ class SettingsManager {
          * Resets settings to default values.
          */
         this.settings = {
-            tutoringLanguage: 'English',
+            tutoringLanguage: 'German',
             tutorsLanguage: 'English',
             tutorsVoice: 'alloy',
             partnersVoice: 'nova',

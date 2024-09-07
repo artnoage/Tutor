@@ -267,7 +267,8 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     logger.debug(f"System template: {system_template}")
 
     summarizer_template = ChatPromptTemplate.from_messages([
-        ("system", system_template)
+        ("system", system_template),
+        ("human","Please proceed:")
     ])
 
     chain = summarizer_template | llm
@@ -322,10 +323,12 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
         vocabulary_template = get_vocabulary_prompt(tutoring_language, full_context)
 
         grammar_prompt = ChatPromptTemplate.from_messages([
-            ("system", grammar_template)
+            ("system", grammar_template),
+             ("human","Please proceed:")
         ])
         vocabulary_prompt = ChatPromptTemplate.from_messages([
-            ("system", vocabulary_template)
+            ("system", vocabulary_template),
+             ("human","Please proceed:")
         ])
 
         grammar_chain = grammar_prompt | llm
@@ -380,7 +383,8 @@ async def generate_chat_name(summary, provider="groq", api_key=None):
         chat_name_template = get_chat_name_prompt(summary)
 
         chat_name_prompt = ChatPromptTemplate.from_messages([
-            ("system", chat_name_template)
+            ("system", chat_name_template),
+             ("human","Please proceed:")
         ])
 
         chat_name_chain = chat_name_prompt | llm
