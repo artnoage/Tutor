@@ -198,6 +198,7 @@ elements.giveHomeworkButton.addEventListener('click', async () => {
             playbackSpeedSlider: elements.playbackSpeedSlider,
             pauseTimeSlider: elements.pauseTimeSlider
         };
+        elements.homeworkChatDisplay.innerHTML = ''; // Clear existing homework
         const homework = await sendHomeworkRequest(formElements);
         addMessageToHomeworkChat('Tutor', homework);
     } catch (error) {
@@ -214,7 +215,15 @@ elements.downloadHomeworkButton.addEventListener('click', () => {
     const doc = new jsPDF();
     
     const splitText = doc.splitTextToSize(homeworkChat, 180);
-    doc.text(splitText, 15, 15);
+    let y = 15;
+    splitText.forEach((line) => {
+        if (y > 280) {
+            doc.addPage();
+            y = 15;
+        }
+        doc.text(line, 15, y);
+        y += 7;
+    });
     
     doc.save('homework_chat.pdf');
 });
@@ -222,6 +231,13 @@ elements.downloadHomeworkButton.addEventListener('click', () => {
 elements.clearHomeworkButton.addEventListener('click', () => {
     elements.homeworkChatDisplay.innerHTML = '';
     updateSettingsInfoBox('Homework chat cleared');
+});
+
+elements.cleanHomeworkButton.addEventListener('click', () => {
+    const homeworkChat = elements.homeworkChatDisplay.innerHTML;
+    const cleanedHomework = homeworkChat.replace(/<p><strong>Tutor:<\/strong>/g, '<p><strong>Tutor:</strong><br>');
+    elements.homeworkChatDisplay.innerHTML = cleanedHomework;
+    updateSettingsInfoBox('Homework chat cleaned');
 });
 
 function updateSettingsInfoBox(message) {
