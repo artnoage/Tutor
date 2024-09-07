@@ -41,6 +41,7 @@ const elements = {
     deleteSelectedChatButton: document.getElementById('deleteSelectedChatButton'),
     giveHomeworkButton: document.getElementById('giveHomeworkButton'),
     downloadHomeworkButton: document.getElementById('downloadHomeworkButton'),
+    clearHomeworkButton: document.getElementById('clearHomeworkButton'),
     homeworkChatDisplay: document.getElementById('homeworkChatDisplay'),
     settingsButton: document.getElementById('settingsButton'),
     settingsOverlay: document.getElementById('settingsOverlay'),
@@ -216,6 +217,11 @@ elements.downloadHomeworkButton.addEventListener('click', () => {
     doc.text(splitText, 15, 15);
     
     doc.save('homework_chat.pdf');
+});
+
+elements.clearHomeworkButton.addEventListener('click', () => {
+    elements.homeworkChatDisplay.innerHTML = '';
+    updateSettingsInfoBox('Homework chat cleared');
 });
 
 function updateSettingsInfoBox(message) {
