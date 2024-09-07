@@ -29,10 +29,12 @@ export function updateChatDisplay(chatObject) {
      */
     const chatHistoryDisplay = document.getElementById('chatHistoryDisplay');
     const tutorsCommentsDisplay = document.getElementById('tutorsCommentsDisplay');
+    const homeworkChatDisplay = document.getElementById('homeworkChatDisplay');
 
-    // Clear both chat history and tutor's comments displays
+    // Clear chat history, tutor's comments, and homework chat displays
     chatHistoryDisplay.innerHTML = '';
     tutorsCommentsDisplay.innerHTML = '';
+    homeworkChatDisplay.innerHTML = '';
     chatObject.chat_history.forEach((message, index) => {
         const messageElement = document.createElement('p');
         let prefix = message.type === 'HumanMessage' ? 'You: ' : 
@@ -331,6 +333,9 @@ export function initializeUI() {
         onChatSwitched: (chatObject) => {
             updateChatDisplay(chatObject);
             updateChatList();
+        },
+        onHomeworkChatCleared: () => {
+            document.getElementById('homeworkChatDisplay').innerHTML = '';
         },
         onChatObjectsLoaded: () => {
             updateChatList();

@@ -182,6 +182,10 @@ class TutorController {
             if (this.uiCallbacks.onChatSwitched) {
                 this.uiCallbacks.onChatSwitched(chat);
             }
+            // Clear homework chat display
+            if (this.uiCallbacks.onHomeworkChatCleared) {
+                this.uiCallbacks.onHomeworkChatCleared();
+            }
         }
     }
 
