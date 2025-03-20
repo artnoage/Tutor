@@ -19,8 +19,8 @@ import traceback
 import httpx
 from agents import get_llm
 
-# Load environment variables
-load_dotenv()
+load_dotenv(dotenv_path=".env",override=True) 
+print(os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
