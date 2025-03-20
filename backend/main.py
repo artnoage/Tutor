@@ -177,7 +177,8 @@ async def process_audio(
         learning_language = language_to_code(audio_data.tutoringLanguage)
         logger.info(f"Learning language code: {learning_language}")
         
-        # Use the API key from audio_data if it's not empty, otherwise use the environment variable
+        # Use the API key from audio_data if it's not empty, otherwise use the OpenRouter API key
+        # IMPORTANT: For text-to-text operations, use OpenRouter API key, not OpenAI API key
         api_key = audio_data.api_key
         provider = "openrouter"  # Use openrouter for text-to-text operations
         
@@ -189,7 +190,7 @@ async def process_audio(
             
         logger.info(f"Using API key for text-to-text: {api_key[:5]}..." if api_key else "No API key provided")
         
-        # Transcribe the audio
+        # Transcribe the audio - always use OpenAI API key for speech-to-text
         logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
         logger.info("Starting transcribe_audio task")
         transcription = transcribe_audio(audio_content, learning_language, OPENAI_API_KEY, new_parameter=audio_data.accentignore, provider="openai")
@@ -228,6 +229,7 @@ async def process_audio(
         logger.info(f"Tutor feedback: {tutor_feedback}")
         
         async def generate_audio(text, voice):
+            # Always use OpenAI API key for text-to-speech
             logger.info(f"Generating audio for voice: {voice}")
             return await asyncio.to_thread(generate_tts, text, OPENAI_API_KEY, voice)
 
@@ -335,7 +337,8 @@ async def generate_homework_endpoint(request_data: AudioData):
         # Join the interwoven context
         full_context = "\n".join(interwoven_context)
 
-        # Use the API key from request_data if it's not empty, otherwise use the environment variable
+        # Use the API key from request_data if it's not empty, otherwise use the OpenRouter API key
+        # IMPORTANT: For text-to-text operations, use OpenRouter API key, not OpenAI API key
         api_key = request_data.api_key
         provider = "openrouter"  # Use openrouter for text-to-text operations
         

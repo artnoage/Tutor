@@ -37,7 +37,8 @@ def get_llm(provider, model_name, api_key):
         # Log the API key being used (first 5 chars only for security)
         logger.info(f"Using API key for OpenRouter: {api_key[:5]}..." if api_key else "Using default OpenRouter API key")
         
-        # Ensure we have a valid API key
+        # Ensure we have a valid API key - use the provided key or the OpenRouter API key from env
+        # IMPORTANT: Do NOT use the OpenAI API key for OpenRouter
         if not api_key or not api_key.strip():
             api_key = OPENROUTER_API_KEY
             if not api_key:
