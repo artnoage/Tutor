@@ -35,47 +35,43 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
     """
     # Always use OpenAI for speech-to-text
     provider = "openai"
-        if not api_key:
-            raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not provided")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not provided")
 
-        logger.debug(f"Using OPENAI_API_KEY: {api_key[:5]}...")
+    logger.debug(f"Using OPENAI_API_KEY: {api_key[:5]}...")
 
-        try:
-            # Initialize OpenAI client
-            client = OpenAI(api_key=api_key)
+    try:
+        # Initialize OpenAI client
+        client = OpenAI(api_key=api_key)
+        
+        # Create a temporary file to store the audio content
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
+            temp_audio_file.write(audio_content)
+            temp_audio_file_path = temp_audio_file.name
+
+        # Open the temporary file and send it to OpenAI API
+        with open(temp_audio_file_path, "rb") as audio_file:
+            transcription_params = {
+                "model": "whisper-1",
+                "file": audio_file,
+                "response_format": "text"
+            }
             
-            # Create a temporary file to store the audio content
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
-                temp_audio_file.write(audio_content)
-                temp_audio_file_path = temp_audio_file.name
+            # Include language in the request if new_parameter is True
+            if new_parameter:
+                transcription_params["language"] = language_to_code(language)
 
-            # Open the temporary file and send it to OpenAI API
-            with open(temp_audio_file_path, "rb") as audio_file:
-                transcription_params = {
-                    "model": "whisper-1",
-                    "file": audio_file,
-                    "response_format": "text"
-                }
-                
-                # Include language in the request if new_parameter is True
-                if new_parameter:
-                    transcription_params["language"] = language_to_code(language)
+            # Get the transcription from OpenAI
+            transcription = client.audio.transcriptions.create(**transcription_params)
 
-                # Get the transcription from OpenAI
-                transcription = client.audio.transcriptions.create(**transcription_params)
+        # Clean up the temporary file
+        os.unlink(temp_audio_file_path)
 
-            # Clean up the temporary file
-            os.unlink(temp_audio_file_path)
-
-            logger.info("Transcription extracted successfully using OpenAI")
-            return transcription
-        except Exception as e:
-            logger.error(f"Error in OpenAI API call: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Error in OpenAI API call: {str(e)}")
-    
-    else:
-        # Raise an error if an unsupported provider is specified
-        raise ValueError(f"Unsupported provider: {provider}. Only OpenAI is supported.")
+        logger.info("Transcription extracted successfully using OpenAI")
+        return transcription
+    except Exception as e:
+        logger.error(f"Error in OpenAI API call: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error in OpenAI API call: {str(e)}")
 
 def generate_tts(text, api_key, voice="onyx"):
     """
