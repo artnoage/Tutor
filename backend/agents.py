@@ -34,15 +34,18 @@ def get_llm(provider, model_name, api_key):
         # Use OpenRouter for text-to-text operations
         from openai import OpenAI
         
-        # Log the API key being used (first 5 chars only for security)
-        logger.info(f"Using API key for OpenRouter: {api_key[:5]}..." if api_key else "Using default OpenRouter API key")
-        
         # Ensure we have a valid API key - use the provided key or the OpenRouter API key from env
         # IMPORTANT: Do NOT use the OpenAI API key for OpenRouter
         if not api_key or not api_key.strip():
             api_key = OPENROUTER_API_KEY
             if not api_key:
                 raise ValueError("No API key provided for OpenRouter")
+        
+        # Log the API key being used (first 5 chars only for security)
+        logger.info(f"Using API key for OpenRouter: {api_key[:5]}..." if api_key and len(api_key) > 5 else "Invalid API key format")
+        
+        # Print the full API key for debugging (REMOVE THIS IN PRODUCTION)
+        logger.debug(f"DEBUG - Full API key: {api_key}")
         
         return ChatOpenAI(
             model=model_name,
@@ -81,6 +84,9 @@ async def partner_chat(learning_language, chat_history, api_key, provider="openr
         provider = "openrouter"  # Force provider to be openrouter
     
     model = "mistralai/mistral-small-3.1-24b-instruct"
+    
+    # Log the API key being used (first 5 chars only for security)
+    logger.info(f"Partner chat using API key: {api_key[:5]}..." if api_key and len(api_key) > 5 else "No valid API key provided")
     
     llm = get_llm(provider, model, api_key)
 

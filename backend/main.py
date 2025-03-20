@@ -61,6 +61,12 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 logger.info(f"OPENAI_API_KEY loaded: {'Yes' if OPENAI_API_KEY else 'No'}")
 logger.info(f"OPENROUTER_API_KEY loaded: {'Yes' if OPENROUTER_API_KEY else 'No'}")
 
+# Debug: Print first 5 chars of each key
+if OPENAI_API_KEY:
+    logger.info(f"OPENAI_API_KEY starts with: {OPENAI_API_KEY[:5]}...")
+if OPENROUTER_API_KEY:
+    logger.info(f"OPENROUTER_API_KEY starts with: {OPENROUTER_API_KEY[:5]}...")
+
 if not OPENAI_API_KEY:
     logger.error("OPENAI_API_KEY is not set in the environment variables")
     raise ValueError("OPENAI_API_KEY is not set in the environment variables")
@@ -187,8 +193,13 @@ async def process_audio(
             api_key = OPENROUTER_API_KEY
             if not api_key:
                 raise HTTPException(status_code=500, detail="No API key provided for OpenRouter")
+        
+        # Ensure we're not accidentally using the OpenAI API key for OpenRouter
+        if api_key == OPENAI_API_KEY:
+            logger.warning("Detected OpenAI API key being used for OpenRouter! Switching to OpenRouter API key.")
+            api_key = OPENROUTER_API_KEY
             
-        logger.info(f"Using API key for text-to-text: {api_key[:5]}..." if api_key else "No API key provided")
+        logger.info(f"Using API key for text-to-text: {api_key[:5]}..." if api_key and len(api_key) > 5 else "No valid API key provided")
         
         # Transcribe the audio - always use OpenAI API key for speech-to-text
         logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
@@ -210,8 +221,8 @@ async def process_audio(
         partner_task = asyncio.create_task(partner_chat(
             audio_data.tutoringLanguage,
             chat_history,
-            provider=provider,
             api_key=api_key,
+            provider=provider,
             last_summary=last_summary))
         
         logger.info("Starting tutor_chat task")
@@ -347,8 +358,13 @@ async def generate_homework_endpoint(request_data: AudioData):
             api_key = OPENROUTER_API_KEY
             if not api_key:
                 raise HTTPException(status_code=500, detail="No API key provided for OpenRouter")
+        
+        # Ensure we're not accidentally using the OpenAI API key for OpenRouter
+        if api_key == OPENAI_API_KEY:
+            logger.warning("Detected OpenAI API key being used for OpenRouter! Switching to OpenRouter API key.")
+            api_key = OPENROUTER_API_KEY
             
-        logger.info(f"Using API key for homework generation: {api_key[:5]}..." if api_key else "No API key provided")
+        logger.info(f"Using API key for homework generation: {api_key[:5]}..." if api_key and len(api_key) > 5 else "No valid API key provided")
             
 
         # Generate homework using the new agent function
@@ -383,8 +399,13 @@ async def generate_chat_name_endpoint(request_data: dict):
         
         if not api_key:
             raise HTTPException(status_code=500, detail="No API key provided for OpenRouter")
+        
+        # Double-check we're using the correct API key
+        if api_key == OPENAI_API_KEY:
+            logger.error("Detected OpenAI API key being used for OpenRouter! This is a configuration error.")
+            raise HTTPException(status_code=500, detail="API key configuration error")
             
-        logger.info(f"Using OpenRouter API key for chat name generation: {api_key[:5]}..." if api_key else "No API key provided")
+        logger.info(f"Using OpenRouter API key for chat name generation: {api_key[:5]}..." if api_key and len(api_key) > 5 else "No valid API key provided")
 
         # Generate chat name using the new agent function
         chat_name = await generate_chat_name(
