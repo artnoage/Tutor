@@ -15,15 +15,13 @@ import os
 import re
 import traceback
 import httpx
-from agents import get_llm
-from openai import OpenAI
+
 
 load_dotenv(dotenv_path=".env",override=True) 
 print(os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-from agents import get_llm
 
 @app.post("/verify_api_key")
 async def verify_api_key(api_key: str = Form(...), model: str = Form(...)):
