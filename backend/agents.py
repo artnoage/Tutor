@@ -32,19 +32,28 @@ def get_llm(provider, model_name, api_key):
     """
     if provider == "openrouter":
         # Use OpenRouter for text-to-text operations
+        from openai import OpenAI
+        
+        # Log the API key being used (first 5 chars only for security)
+        logger.info(f"Using API key for OpenRouter: {api_key[:5]}..." if api_key else "Using default OpenRouter API key")
+        
+        # Ensure we have a valid API key
+        if not api_key or not api_key.strip():
+            api_key = OPENROUTER_API_KEY
+            if not api_key:
+                raise ValueError("No API key provided for OpenRouter")
+        
         return ChatOpenAI(
             model=model_name,
             temperature=0,
-            api_key=api_key or OPENROUTER_API_KEY,
+            api_key=api_key,
             max_tokens=None,
             timeout=None,
             max_retries=2,
             base_url="https://openrouter.ai/api/v1",
-            model_kwargs={
-                "extra_headers": {
-                    "HTTP-Referer": "https://language-tutor.app",
-                    "X-Title": "Language Tutor App",
-                }
+            default_headers={
+                "HTTP-Referer": "https://language-tutor.app",
+                "X-Title": "Language Tutor App"
             }
         )
     else:

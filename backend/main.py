@@ -38,7 +38,11 @@ async def verify_api_key(api_key: str = Form(...), model: str = Form(...)):
         elif model.lower() == "openrouter":
             # For OpenRouter API keys, verify against OpenRouter API
             url = "https://openrouter.ai/api/v1/models"
-            headers = {"Authorization": f"Bearer {api_key}"}
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": "https://language-tutor.app",
+                "X-Title": "Language Tutor App"
+            }
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers)
@@ -180,6 +184,8 @@ async def process_audio(
         if not api_key or not api_key.strip():
             # For text-to-text operations, use OpenRouter API key
             api_key = OPENROUTER_API_KEY
+            if not api_key:
+                raise HTTPException(status_code=500, detail="No API key provided for OpenRouter")
             
         logger.info(f"Using API key for text-to-text: {api_key[:5]}..." if api_key else "No API key provided")
         
@@ -336,6 +342,8 @@ async def generate_homework_endpoint(request_data: AudioData):
         if not api_key or not api_key.strip():
             # For text-to-text operations, use OpenRouter API key
             api_key = OPENROUTER_API_KEY
+            if not api_key:
+                raise HTTPException(status_code=500, detail="No API key provided for OpenRouter")
             
         logger.info(f"Using API key for homework generation: {api_key[:5]}..." if api_key else "No API key provided")
             
@@ -369,6 +377,10 @@ async def generate_chat_name_endpoint(request_data: dict):
         # Use OpenRouter API key for text-to-text operations
         api_key = OPENROUTER_API_KEY
         provider = "openrouter"  # Use openrouter for text-to-text operations
+        
+        if not api_key:
+            raise HTTPException(status_code=500, detail="No API key provided for OpenRouter")
+            
         logger.info(f"Using OpenRouter API key for chat name generation: {api_key[:5]}..." if api_key else "No API key provided")
 
         # Generate chat name using the new agent function
