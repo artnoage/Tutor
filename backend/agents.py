@@ -1,6 +1,4 @@
-from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
@@ -18,7 +16,7 @@ def get_llm(provider, model_name, api_key):
     Creates and returns a language model instance based on the specified provider.
     
     Args:
-    provider (str): The provider of the language model (groq, openai, or anthropic).
+    provider (str): The provider of the language model (only openai is supported).
     model_name (str): The name of the specific model to use.
     api_key (str): The API key for authentication.
 
@@ -28,16 +26,7 @@ def get_llm(provider, model_name, api_key):
     Raises:
     ValueError: If an unsupported provider is specified.
     """
-    if provider == "groq":
-        return ChatGroq(
-            model=model_name,
-            temperature=0,
-            api_key=api_key,
-            max_tokens=None,
-            timeout=None,
-            max_retries=2,
-        )
-    elif provider == "openai":
+    if provider == "openai":
         return ChatOpenAI(
             model=model_name,
             temperature=0,
@@ -46,18 +35,10 @@ def get_llm(provider, model_name, api_key):
             timeout=None,
             max_retries=2,
         )
-    elif provider == "anthropic":
-        return ChatAnthropic(
-            model=model_name,
-            temperature=0,
-            api_key=api_key,
-            timeout=None,
-            max_retries=2,
-        )
     else:
-        raise ValueError(f"Unsupported provider: {provider}")
+        raise ValueError(f"Unsupported provider: {provider}. Only OpenAI is supported.")
 
-async def partner_chat(learning_language, chat_history, api_key, provider="groq", last_summary=""):
+async def partner_chat(learning_language, chat_history, api_key, provider="openai", last_summary=""):
     """
     Generates a response from the AI partner in the specified learning language.
 
@@ -65,7 +46,7 @@ async def partner_chat(learning_language, chat_history, api_key, provider="groq"
     learning_language (str): The language being learned.
     chat_history (list): The history of the conversation.
     api_key (str): The API key for authentication.
-    provider (str, optional): The AI provider to use. Defaults to "groq".
+    provider (str, optional): The AI provider to use. Defaults to "openai".
     last_summary (str, optional): The last summary of the conversation. Defaults to "".
 
     Returns:
@@ -74,14 +55,10 @@ async def partner_chat(learning_language, chat_history, api_key, provider="groq"
     Raises:
     ValueError: If an unsupported provider is specified.
     """
-    if provider == "groq":
-        model = "llama3-70b-8192"
-    elif provider == "openai":
-        model = "gpt-4o-mini"
-    elif provider == "anthropic":
-        model = "claude-3-5-sonnet-20240620"
-    else:
-        raise ValueError(f"Unsupported provider: {provider}")
+    if provider != "openai":
+        provider = "openai"  # Force provider to be openai
+    
+    model = "gpt-4o-mini"
     
     llm = get_llm(provider, model, api_key)
 
@@ -108,7 +85,7 @@ async def partner_chat(learning_language, chat_history, api_key, provider="groq"
 
     return response, new_chat_history
 
-async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_history, provider="groq", api_key=None):
+async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_history, provider="openai", api_key=None):
     """
     Generates tutor feedback based on the conversation history.
 
@@ -117,7 +94,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
     tutors_language (str): The language the tutor uses for explanations.
     chat_history (list): The history of the conversation.
     tutor_history (list): The history of tutor comments.
-    provider (str, optional): The AI provider to use. Defaults to "groq".
+    provider (str, optional): The AI provider to use. Defaults to "openai".
     api_key (str, optional): The API key for authentication. Defaults to None.
 
     Returns:
@@ -138,14 +115,10 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             """
             Generates the tutor's comment on the last human message.
             """
-            if provider == "groq":
-                model = "llama3-70b-8192"
-            elif provider == "openai":
-                model = "gpt-4o-mini"
-            elif provider == "anthropic":
-                model = "claude-3-5-sonnet-20240620"
-            else:
-                raise ValueError(f"Unsupported provider: {provider}")
+            if provider != "openai":
+                provider = "openai"  # Force provider to be openai
+            
+            model = "gpt-4o-mini"
         
             llm = get_llm(provider, model, api_key)
             comment_template = get_tutor_comment_prompt(tutoring_language, tutors_language)
@@ -162,14 +135,10 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             """
             Determines the level of intervention needed based on recent tutor comments.
             """
-            if provider == "groq":
-                model = "llama3-70b-8192"
-            elif provider == "openai":
-                model = "gpt-4o-mini"
-            elif provider == "anthropic":
-                model = "claude-3-5-sonnet-20240620"
-            else:
-                raise ValueError(f"Unsupported provider: {provider}")
+            if provider != "openai":
+                provider = "openai"  # Force provider to be openai
+            
+            model = "gpt-4o-mini"
         
             llm = get_llm(provider, model, api_key)
             
@@ -189,14 +158,10 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             """
             Generates the best expression or correction for the last human message.
             """
-            if provider == "groq":
-                model = "llama3-70b-8192"
-            elif provider == "openai":
-                model = "gpt-4o-mini"
-            elif provider == "anthropic":
-                model = "claude-3-5-sonnet-20240620"
-            else:
-                raise ValueError(f"Unsupported provider: {provider}")
+            if provider != "openai":
+                provider = "openai"  # Force provider to be openai
+            
+            model = "gpt-4o-mini"
         
             llm = get_llm(provider, model, api_key)
                 
@@ -227,7 +192,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
         logger.error(traceback.format_exc())
         raise
 
-async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="groq", api_key=None):
+async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="openai", api_key=None):
     """
     Summarizes the conversation based on the chat history and previous summary.
 
@@ -235,7 +200,7 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     tutoring_language (str): The language being tutored.
     chat_history (list): The history of the conversation.
     previous_summary (str): The previous summary of the conversation.
-    provider (str, optional): The AI provider to use. Defaults to "groq".
+    provider (str, optional): The AI provider to use. Defaults to "openai".
     api_key (str, optional): The API key for authentication. Defaults to None.
 
     Returns:
@@ -248,14 +213,10 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     logger.info(f"Previous summary: {previous_summary}")
     logger.info(f"Chat history length: {len(chat_history)}")
 
-    if provider == "groq":
-        model = "llama3-70b-8192"
-    elif provider == "openai":
-        model = "gpt-4o-mini"
-    elif provider == "anthropic":
-        model = "claude-3-5-sonnet-20240620"
-    else:
-        raise ValueError(f"Unsupported provider: {provider}")
+    if provider != "openai":
+        provider = "openai"  # Force provider to be openai
+    
+    model = "gpt-4o-mini"
 
     llm = get_llm(provider, model, api_key)
 
@@ -290,14 +251,14 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
         logger.error(traceback.format_exc())
         return ""
 
-async def generate_homework(tutoring_language, full_context, provider="groq", api_key=None):
+async def generate_homework(tutoring_language, full_context, provider="openai", api_key=None):
     """
     Generates homework based on the tutoring language and conversation context.
 
     Args:
     tutoring_language (str): The language being tutored.
     full_context (str): The full context of the conversation.
-    provider (str, optional): The AI provider to use. Defaults to "groq".
+    provider (str, optional): The AI provider to use. Defaults to "openai".
     api_key (str, optional): The API key for authentication. Defaults to None.
 
     Returns:
@@ -307,14 +268,10 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
     ValueError: If an unsupported provider is specified.
     """
     try:
-        if provider == "groq":
-            model = "llama3-70b-8192"
-        elif provider == "openai":
-            model = "gpt-4o-2024-08-06"
-        elif provider == "anthropic":
-            model = "claude-3-5-sonnet-20240620"
-        else:
-            raise ValueError(f"Unsupported provider: {provider}")
+        if provider != "openai":
+            provider = "openai"  # Force provider to be openai
+        
+        model = "gpt-4o-2024-08-06"
         
         llm = get_llm(provider, model, api_key)
 
@@ -359,13 +316,13 @@ async def generate_homework(tutoring_language, full_context, provider="groq", ap
         logger.error(traceback.format_exc())
         raise
 
-async def generate_chat_name(summary, provider="groq", api_key=None):
+async def generate_chat_name(summary, provider="openai", api_key=None):
     """
     Generates a name for the chat based on the conversation summary.
 
     Args:
     summary (str): The summary of the conversation.
-    provider (str, optional): The AI provider to use. Defaults to "groq".
+    provider (str, optional): The AI provider to use. Defaults to "openai".
     api_key (str, optional): The API key for authentication. Defaults to None.
     model (str, optional): The specific model to use. Defaults to None.
 
@@ -379,14 +336,10 @@ async def generate_chat_name(summary, provider="groq", api_key=None):
         if not summary:
             return "New Chat"
 
-        if provider == "groq":
-            model = "llama3-70b-8192"
-        elif provider == "openai":
-            model = "gpt-4o-2024-08-06"
-        elif provider == "anthropic":
-            model = "claude-3-5-sonnet-20240620"
-        else:
-            raise ValueError(f"Unsupported provider: {provider}")
+        if provider != "openai":
+            provider = "openai"  # Force provider to be openai
+        
+        model = "gpt-4o-2024-08-06"
         
         llm = get_llm(provider, model, api_key)
 

@@ -12,19 +12,19 @@ import os
 # Set up logging for this module
 logger = logging.getLogger(__name__)
 
-def transcribe_audio(audio_content, language, api_key, new_parameter=None, provider="groq"):
+def transcribe_audio(audio_content, language, api_key, new_parameter=None, provider="openai"):
     """
-    Transcribes audio content using either Groq or OpenAI API.
+    Transcribes audio content using OpenAI API.
 
-    This function handles audio transcription by sending the audio content to the specified provider's API.
-    It supports both Groq and OpenAI as transcription providers and includes error handling and logging.
+    This function handles audio transcription by sending the audio content to the OpenAI API.
+    It includes error handling and logging.
 
     Args:
     audio_content (bytes): The audio content to transcribe.
     language (str): The language of the audio.
     api_key (str): The API key for authentication.
     new_parameter (bool, optional): If True, includes the language in the transcription request. Defaults to None.
-    provider (str, optional): The provider to use for transcription ('groq' or 'openai'). Defaults to "groq".
+    provider (str, optional): The provider to use for transcription (only 'openai' is supported). Defaults to "openai".
 
     Returns:
     str: The transcribed text.
@@ -33,44 +33,8 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
     HTTPException: If there's an error in the API call or if the API key is not provided.
     ValueError: If an unsupported provider is specified.
     """
-    if provider == "groq":
-        if not api_key:
-            raise HTTPException(status_code=500, detail="GROQ_API_KEY is not provided")
-
-        logger.debug(f"Using GROQ_API_KEY: {api_key[:5]}...")
-        logger.debug(f"New parameter value: {new_parameter}")
-
-        try:
-            # Set up the API request for Groq
-            url = "https://api.groq.com/openai/v1/audio/transcriptions"
-            headers = {
-                "Authorization": f"Bearer {api_key}"
-            }
-            files = {
-                "file": ("audio.wav", io.BytesIO(audio_content), "audio/wav")
-            }
-            data = {
-                "model": "whisper-large-v3",
-                "response_format": "text"
-            }
-            
-            # Include language in the request if new_parameter is True
-            if new_parameter:
-                data["language"] = language
-
-            # Send the request to Groq API
-            response = requests.post(url, headers=headers, files=files, data=data)
-            response.raise_for_status()
-            
-            # Extract and return the transcription
-            transcription_text = response.text.strip()
-            logger.info("Transcription extracted successfully using Groq")
-            return transcription_text
-        except requests.RequestException as e:
-            logger.error(f"Error in Groq API call: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Error in Groq API call: {str(e)}")
-    
-    elif provider == "openai":
+    if provider != "openai":
+        provider = "openai"  # Force provider to be openai
         if not api_key:
             raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not provided")
 
@@ -111,7 +75,7 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
     
     else:
         # Raise an error if an unsupported provider is specified
-        raise ValueError(f"Unsupported provider: {provider}. Choose 'groq' or 'openai'.")
+        raise ValueError(f"Unsupported provider: {provider}. Only OpenAI is supported.")
 
 def generate_tts(text, api_key, voice="onyx"):
     """

@@ -11,8 +11,6 @@ from typing import List, Dict
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 import uvicorn
 import asyncio
-import random
-import json
 import os
 import re
 import traceback
@@ -32,48 +30,21 @@ async def verify_api_key(api_key: str = Form(...), model: str = Form(...)):
         if model.lower() == "openai":
             url = "https://api.openai.com/v1/models"
             headers = {"Authorization": f"Bearer {api_key}"}
-        elif model.lower() == "anthropic":
-            url = "https://api.anthropic.com/v1/messages"
-            headers = {
-                "x-api-key": api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json"
-            }
-            # Anthropic requires a POST request with a minimal payload
-            data = {
-                "model": "claude-3-opus-20240229",
-                "max_tokens": 1,
-                "messages": [{"role": "user", "content": "Hello"}]
-            }
-        elif model.lower() == "groq":
-            url = "https://api.groq.com/openai/v1/models"
-            headers = {"Authorization": f"Bearer {api_key}"}
         else:
-            raise HTTPException(status_code=400, detail="Unsupported model")
+            raise HTTPException(status_code=400, detail="Unsupported model. Only OpenAI is supported.")
 
         async with httpx.AsyncClient() as client:
-            if model.lower() == "anthropic":
-                response = await client.post(url, headers=headers, json=data)
-            else:
-                response = await client.get(url, headers=headers)
+            response = await client.get(url, headers=headers)
 
         return {"valid": response.status_code == 200}
     except Exception as e:
         logger.error(f"Error verifying API key: {str(e)}")
         return {"valid": False, "error": str(e)}
 
-# Load API keys and add logging
-GROQ_API_KEYS = json.loads(os.getenv("GROQ_API_KEYs", "[]"))
+# Load API key and add logging
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-logger.info(f"GROQ_API_KEYs loaded: {len(GROQ_API_KEYS)} keys")
 logger.info(f"OPENAI_API_KEY loaded: {'Yes' if OPENAI_API_KEY else 'No'}")
-
-def get_random_groq_api_key():
-    if not GROQ_API_KEYS:
-        logger.error("No GROQ API keys available")
-        raise ValueError("No GROQ API keys available")
-    return random.choice(GROQ_API_KEYS)
 
 if not OPENAI_API_KEY:
     logger.error("OPENAI_API_KEY is not set in the environment variables")
@@ -187,22 +158,16 @@ async def process_audio(
         learning_language = language_to_code(audio_data.tutoringLanguage)
         logger.info(f"Learning language code: {learning_language}")
         
-        # Use the API key from audio_data if it's not empty, otherwise use the previous method
+        # Use the API key from audio_data if it's not empty, otherwise use the environment variable
         api_key = audio_data.api_key
-        provider = audio_data.model.lower()
+        provider = "openai"  # Force provider to be openai
         
         if not api_key.strip():
-            # Use the previous method to get the API key
-            if provider == "openai":
-                api_key = OPENAI_API_KEY
-            elif provider == "groq":
-                api_key = get_random_groq_api_key()
-            else:
-                raise ValueError(f"For this provider use your key: {provider}")
+            api_key = OPENAI_API_KEY
         
         # Transcribe the audio
         logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
-        logger.info("Starting transcribe_audio task {api_key}")
+        logger.info("Starting transcribe_audio task")
         transcription = transcribe_audio(audio_content, learning_language, OPENAI_API_KEY, new_parameter=audio_data.accentignore, provider="openai")
         logger.info(f"Transcription: {transcription}")
         
@@ -346,18 +311,12 @@ async def generate_homework_endpoint(request_data: AudioData):
         # Join the interwoven context
         full_context = "\n".join(interwoven_context)
 
-        # Select the appropriate API key based on the model
+        # Use the API key from request_data if it's not empty, otherwise use the environment variable
         api_key = request_data.api_key
-        provider = request_data.model.lower()
+        provider = "openai"  # Force provider to be openai
         
         if not api_key.strip():
-            # Use the previous method to get the API key
-            if provider == "openai":
-                api_key = OPENAI_API_KEY
-            elif provider == "groq":
-                api_key = get_random_groq_api_key()
-            else:
-                raise ValueError(f"For this provider use your key: {provider}")
+            api_key = OPENAI_API_KEY
             
 
         # Generate homework using the new agent function
@@ -386,16 +345,10 @@ async def generate_chat_name_endpoint(request_data: dict):
         # Get the latest summary
         latest_summary = request_data.get('summary', [])[-1] if request_data.get('summary') else ""
 
-        # Select the appropriate API key based on the model
-        model = request_data.get('model', '').lower()
-        if model == "openai":
-            api_key = OPENAI_API_KEY
-            provider = "openai"
-            logger.info("Using OpenAI API key")
-        else:
-            api_key = get_random_groq_api_key()
-            provider = "groq"
-            logger.info(f"Using Groq API key: {api_key[:5]}...")  # Log first 5 characters for security
+        # Use OpenAI API key
+        api_key = OPENAI_API_KEY
+        provider = "openai"
+        logger.info("Using OpenAI API key")
 
         # Generate chat name using the new agent function
         chat_name = await generate_chat_name(
