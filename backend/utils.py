@@ -33,8 +33,8 @@ def transcribe_audio(audio_content, language, api_key, new_parameter=None, provi
     HTTPException: If there's an error in the API call or if the API key is not provided.
     ValueError: If an unsupported provider is specified.
     """
-    if provider != "openai":
-        provider = "openai"  # Force provider to be openai
+    # Always use OpenAI for speech-to-text
+    provider = "openai"
         if not api_key:
             raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not provided")
 
@@ -100,7 +100,7 @@ def generate_tts(text, api_key, voice="onyx"):
 
     logger.debug(f"Using OPENAI_API_KEY: {api_key[:5]}...")  # Log first 5 chars for security
     try:
-        # Initialize OpenAI client
+        # Initialize OpenAI client - always use OpenAI for TTS
         client = OpenAI(api_key=api_key)
         
         # Make the API call to generate speech

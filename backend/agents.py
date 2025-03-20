@@ -5,11 +5,15 @@ from dotenv import load_dotenv
 import logging
 import traceback
 import asyncio
+import os
 from prompts import *
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# Get OpenRouter API key from environment
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 def get_llm(provider, model_name, api_key):
     """
@@ -27,13 +31,19 @@ def get_llm(provider, model_name, api_key):
     ValueError: If an unsupported provider is specified.
     """
     if provider == "openai":
+        # Use OpenRouter for text-to-text operations
         return ChatOpenAI(
-            model=model_name,
+            model=f"openai/{model_name}",
             temperature=0,
-            api_key=api_key,
+            api_key=api_key or OPENROUTER_API_KEY,
             max_tokens=None,
             timeout=None,
             max_retries=2,
+            base_url="https://openrouter.ai/api/v1",
+            extra_headers={
+                "HTTP-Referer": "https://language-tutor.app",
+                "X-Title": "Language Tutor App",
+            }
         )
     else:
         raise ValueError(f"Unsupported provider: {provider}. Only OpenAI is supported.")

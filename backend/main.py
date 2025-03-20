@@ -16,6 +16,7 @@ import re
 import traceback
 import httpx
 from agents import get_llm
+from openai import OpenAI
 
 load_dotenv(dotenv_path=".env",override=True) 
 print(os.getenv("OPENAI_API_KEY"))
@@ -28,27 +29,43 @@ from agents import get_llm
 async def verify_api_key(api_key: str = Form(...), model: str = Form(...)):
     try:
         if model.lower() == "openai":
+            # For OpenAI API keys, verify against OpenAI API
             url = "https://api.openai.com/v1/models"
             headers = {"Authorization": f"Bearer {api_key}"}
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers)
+            
+            return {"valid": response.status_code == 200}
+        elif model.lower() == "openrouter":
+            # For OpenRouter API keys, verify against OpenRouter API
+            url = "https://openrouter.ai/api/v1/models"
+            headers = {"Authorization": f"Bearer {api_key}"}
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers)
+            
+            return {"valid": response.status_code == 200}
         else:
-            raise HTTPException(status_code=400, detail="Unsupported model. Only OpenAI is supported.")
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, headers=headers)
-
-        return {"valid": response.status_code == 200}
+            raise HTTPException(status_code=400, detail="Unsupported model. Only OpenAI and OpenRouter are supported.")
     except Exception as e:
         logger.error(f"Error verifying API key: {str(e)}")
         return {"valid": False, "error": str(e)}
 
-# Load API key and add logging
+# Load API keys and add logging
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 logger.info(f"OPENAI_API_KEY loaded: {'Yes' if OPENAI_API_KEY else 'No'}")
+logger.info(f"OPENROUTER_API_KEY loaded: {'Yes' if OPENROUTER_API_KEY else 'No'}")
 
 if not OPENAI_API_KEY:
     logger.error("OPENAI_API_KEY is not set in the environment variables")
     raise ValueError("OPENAI_API_KEY is not set in the environment variables")
+
+if not OPENROUTER_API_KEY:
+    logger.error("OPENROUTER_API_KEY is not set in the environment variables")
+    raise ValueError("OPENROUTER_API_KEY is not set in the environment variables")
 
 # Ensure .env file is loaded
 logger.info(f"Current working directory: {os.getcwd()}")
@@ -160,10 +177,11 @@ async def process_audio(
         
         # Use the API key from audio_data if it's not empty, otherwise use the environment variable
         api_key = audio_data.api_key
-        provider = "openai"  # Force provider to be openai
+        provider = "openai"  # Provider name remains "openai" for compatibility
         
         if not api_key.strip():
-            api_key = OPENAI_API_KEY
+            # For text-to-text operations, use OpenRouter API key
+            api_key = OPENROUTER_API_KEY
         
         # Transcribe the audio
         logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
@@ -313,10 +331,11 @@ async def generate_homework_endpoint(request_data: AudioData):
 
         # Use the API key from request_data if it's not empty, otherwise use the environment variable
         api_key = request_data.api_key
-        provider = "openai"  # Force provider to be openai
+        provider = "openai"  # Provider name remains "openai" for compatibility
         
         if not api_key.strip():
-            api_key = OPENAI_API_KEY
+            # For text-to-text operations, use OpenRouter API key
+            api_key = OPENROUTER_API_KEY
             
 
         # Generate homework using the new agent function
@@ -345,10 +364,10 @@ async def generate_chat_name_endpoint(request_data: dict):
         # Get the latest summary
         latest_summary = request_data.get('summary', [])[-1] if request_data.get('summary') else ""
 
-        # Use OpenAI API key
-        api_key = OPENAI_API_KEY
-        provider = "openai"
-        logger.info("Using OpenAI API key")
+        # Use OpenRouter API key for text-to-text operations
+        api_key = OPENROUTER_API_KEY
+        provider = "openai"  # Provider name remains "openai" for compatibility
+        logger.info("Using OpenRouter API key for text-to-text operations")
 
         # Generate chat name using the new agent function
         chat_name = await generate_chat_name(
