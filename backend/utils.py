@@ -1,11 +1,6 @@
-# Import necessary libraries for audio processing, API interactions, and utility functions
-import io
-import requests
 from fastapi import HTTPException
 from openai import OpenAI
 import logging
-from pydantic import BaseModel
-from typing import List
 import tempfile
 import os
 
