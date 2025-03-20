@@ -40,9 +40,11 @@ def get_llm(provider, model_name, api_key):
             timeout=None,
             max_retries=2,
             base_url="https://openrouter.ai/api/v1",
-            extra_headers={
-                "HTTP-Referer": "https://language-tutor.app",
-                "X-Title": "Language Tutor App",
+            model_kwargs={
+                "extra_headers": {
+                    "HTTP-Referer": "https://language-tutor.app",
+                    "X-Title": "Language Tutor App",
+                }
             }
         )
     else:

@@ -177,9 +177,11 @@ async def process_audio(
         api_key = audio_data.api_key
         provider = "openrouter"  # Use openrouter for text-to-text operations
         
-        if not api_key.strip():
+        if not api_key or not api_key.strip():
             # For text-to-text operations, use OpenRouter API key
             api_key = OPENROUTER_API_KEY
+            
+        logger.info(f"Using API key for text-to-text: {api_key[:5]}..." if api_key else "No API key provided")
         
         # Transcribe the audio
         logger.info(f"Starting audio transcription (accentignore: {audio_data.accentignore})")
@@ -331,9 +333,11 @@ async def generate_homework_endpoint(request_data: AudioData):
         api_key = request_data.api_key
         provider = "openrouter"  # Use openrouter for text-to-text operations
         
-        if not api_key.strip():
+        if not api_key or not api_key.strip():
             # For text-to-text operations, use OpenRouter API key
             api_key = OPENROUTER_API_KEY
+            
+        logger.info(f"Using API key for homework generation: {api_key[:5]}..." if api_key else "No API key provided")
             
 
         # Generate homework using the new agent function
@@ -365,7 +369,7 @@ async def generate_chat_name_endpoint(request_data: dict):
         # Use OpenRouter API key for text-to-text operations
         api_key = OPENROUTER_API_KEY
         provider = "openrouter"  # Use openrouter for text-to-text operations
-        logger.info("Using OpenRouter API key for text-to-text operations")
+        logger.info(f"Using OpenRouter API key for chat name generation: {api_key[:5]}..." if api_key else "No API key provided")
 
         # Generate chat name using the new agent function
         chat_name = await generate_chat_name(
