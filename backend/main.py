@@ -175,7 +175,7 @@ async def process_audio(
         
         # Use the API key from audio_data if it's not empty, otherwise use the environment variable
         api_key = audio_data.api_key
-        provider = "openai"  # Provider name remains "openai" for compatibility
+        provider = "openrouter"  # Use openrouter for text-to-text operations
         
         if not api_key.strip():
             # For text-to-text operations, use OpenRouter API key
@@ -329,7 +329,7 @@ async def generate_homework_endpoint(request_data: AudioData):
 
         # Use the API key from request_data if it's not empty, otherwise use the environment variable
         api_key = request_data.api_key
-        provider = "openai"  # Provider name remains "openai" for compatibility
+        provider = "openrouter"  # Use openrouter for text-to-text operations
         
         if not api_key.strip():
             # For text-to-text operations, use OpenRouter API key
@@ -364,7 +364,7 @@ async def generate_chat_name_endpoint(request_data: dict):
 
         # Use OpenRouter API key for text-to-text operations
         api_key = OPENROUTER_API_KEY
-        provider = "openai"  # Provider name remains "openai" for compatibility
+        provider = "openrouter"  # Use openrouter for text-to-text operations
         logger.info("Using OpenRouter API key for text-to-text operations")
 
         # Generate chat name using the new agent function

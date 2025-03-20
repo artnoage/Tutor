@@ -20,7 +20,7 @@ def get_llm(provider, model_name, api_key):
     Creates and returns a language model instance based on the specified provider.
     
     Args:
-    provider (str): The provider of the language model (only openai is supported).
+    provider (str): The provider of the language model (only openrouter is supported for text-to-text).
     model_name (str): The name of the specific model to use.
     api_key (str): The API key for authentication.
 
@@ -30,10 +30,10 @@ def get_llm(provider, model_name, api_key):
     Raises:
     ValueError: If an unsupported provider is specified.
     """
-    if provider == "openai":
+    if provider == "openrouter":
         # Use OpenRouter for text-to-text operations
         return ChatOpenAI(
-            model=f"openai/{model_name}",
+            model=model_name,
             temperature=0,
             api_key=api_key or OPENROUTER_API_KEY,
             max_tokens=None,
@@ -46,9 +46,9 @@ def get_llm(provider, model_name, api_key):
             }
         )
     else:
-        raise ValueError(f"Unsupported provider: {provider}. Only OpenAI is supported.")
+        raise ValueError(f"Unsupported provider: {provider}. Only OpenRouter is supported for text-to-text operations.")
 
-async def partner_chat(learning_language, chat_history, api_key, provider="openai", last_summary=""):
+async def partner_chat(learning_language, chat_history, api_key, provider="openrouter", last_summary=""):
     """
     Generates a response from the AI partner in the specified learning language.
 
@@ -56,7 +56,7 @@ async def partner_chat(learning_language, chat_history, api_key, provider="opena
     learning_language (str): The language being learned.
     chat_history (list): The history of the conversation.
     api_key (str): The API key for authentication.
-    provider (str, optional): The AI provider to use. Defaults to "openai".
+    provider (str, optional): The AI provider to use. Defaults to "openrouter".
     last_summary (str, optional): The last summary of the conversation. Defaults to "".
 
     Returns:
@@ -65,10 +65,10 @@ async def partner_chat(learning_language, chat_history, api_key, provider="opena
     Raises:
     ValueError: If an unsupported provider is specified.
     """
-    if provider != "openai":
-        provider = "openai"  # Force provider to be openai
+    if provider != "openrouter":
+        provider = "openrouter"  # Force provider to be openrouter
     
-    model = "gpt-4o-mini"
+    model = "mistralai/mistral-small-3.1-24b-instruct"
     
     llm = get_llm(provider, model, api_key)
 
@@ -95,7 +95,7 @@ async def partner_chat(learning_language, chat_history, api_key, provider="opena
 
     return response, new_chat_history
 
-async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_history, provider="openai", api_key=None):
+async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_history, provider="openrouter", api_key=None):
     """
     Generates tutor feedback based on the conversation history.
 
@@ -104,7 +104,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
     tutors_language (str): The language the tutor uses for explanations.
     chat_history (list): The history of the conversation.
     tutor_history (list): The history of tutor comments.
-    provider (str, optional): The AI provider to use. Defaults to "openai".
+    provider (str, optional): The AI provider to use. Defaults to "openrouter".
     api_key (str, optional): The API key for authentication. Defaults to None.
 
     Returns:
@@ -126,10 +126,10 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             Generates the tutor's comment on the last human message.
             """
             current_provider = provider
-            if current_provider != "openai":
-                current_provider = "openai"  # Force provider to be openai
+            if current_provider != "openrouter":
+                current_provider = "openrouter"  # Force provider to be openrouter
             
-            model = "gpt-4o-mini"
+            model = "mistralai/mistral-small-3.1-24b-instruct"
         
             llm = get_llm(current_provider, model, api_key)
             comment_template = get_tutor_comment_prompt(tutoring_language, tutors_language)
@@ -147,10 +147,10 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             Determines the level of intervention needed based on recent tutor comments.
             """
             current_provider = provider
-            if current_provider != "openai":
-                current_provider = "openai"  # Force provider to be openai
+            if current_provider != "openrouter":
+                current_provider = "openrouter"  # Force provider to be openrouter
             
-            model = "gpt-4o-mini"
+            model = "mistralai/mistral-small-3.1-24b-instruct"
         
             llm = get_llm(current_provider, model, api_key)
             
@@ -171,10 +171,10 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             Generates the best expression or correction for the last human message.
             """
             current_provider = provider
-            if current_provider != "openai":
-                current_provider = "openai"  # Force provider to be openai
+            if current_provider != "openrouter":
+                current_provider = "openrouter"  # Force provider to be openrouter
             
-            model = "gpt-4o-mini"
+            model = "mistralai/mistral-small-3.1-24b-instruct"
         
             llm = get_llm(current_provider, model, api_key)
                 
@@ -205,7 +205,7 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
         logger.error(traceback.format_exc())
         raise
 
-async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="openai", api_key=None):
+async def summarize_conversation(tutoring_language, chat_history, previous_summary, provider="openrouter", api_key=None):
     """
     Summarizes the conversation based on the chat history and previous summary.
 
@@ -213,7 +213,7 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     tutoring_language (str): The language being tutored.
     chat_history (list): The history of the conversation.
     previous_summary (str): The previous summary of the conversation.
-    provider (str, optional): The AI provider to use. Defaults to "openai".
+    provider (str, optional): The AI provider to use. Defaults to "openrouter".
     api_key (str, optional): The API key for authentication. Defaults to None.
 
     Returns:
@@ -226,10 +226,10 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
     logger.info(f"Previous summary: {previous_summary}")
     logger.info(f"Chat history length: {len(chat_history)}")
 
-    if provider != "openai":
-        provider = "openai"  # Force provider to be openai
+    if provider != "openrouter":
+        provider = "openrouter"  # Force provider to be openrouter
     
-    model = "gpt-4o-mini"
+    model = "mistralai/mistral-small-3.1-24b-instruct"
 
     llm = get_llm(provider, model, api_key)
 
@@ -264,14 +264,14 @@ async def summarize_conversation(tutoring_language, chat_history, previous_summa
         logger.error(traceback.format_exc())
         return ""
 
-async def generate_homework(tutoring_language, full_context, provider="openai", api_key=None):
+async def generate_homework(tutoring_language, full_context, provider="openrouter", api_key=None):
     """
     Generates homework based on the tutoring language and conversation context.
 
     Args:
     tutoring_language (str): The language being tutored.
     full_context (str): The full context of the conversation.
-    provider (str, optional): The AI provider to use. Defaults to "openai".
+    provider (str, optional): The AI provider to use. Defaults to "openrouter".
     api_key (str, optional): The API key for authentication. Defaults to None.
 
     Returns:
@@ -281,10 +281,10 @@ async def generate_homework(tutoring_language, full_context, provider="openai", 
     ValueError: If an unsupported provider is specified.
     """
     try:
-        if provider != "openai":
-            provider = "openai"  # Force provider to be openai
+        if provider != "openrouter":
+            provider = "openrouter"  # Force provider to be openrouter
         
-        model = "gpt-4o-2024-08-06"
+        model = "mistralai/mistral-small-3.1-24b-instruct"
         
         llm = get_llm(provider, model, api_key)
 
@@ -329,13 +329,13 @@ async def generate_homework(tutoring_language, full_context, provider="openai", 
         logger.error(traceback.format_exc())
         raise
 
-async def generate_chat_name(summary, provider="openai", api_key=None):
+async def generate_chat_name(summary, provider="openrouter", api_key=None):
     """
     Generates a name for the chat based on the conversation summary.
 
     Args:
     summary (str): The summary of the conversation.
-    provider (str, optional): The AI provider to use. Defaults to "openai".
+    provider (str, optional): The AI provider to use. Defaults to "openrouter".
     api_key (str, optional): The API key for authentication. Defaults to None.
     model (str, optional): The specific model to use. Defaults to None.
 
@@ -349,10 +349,10 @@ async def generate_chat_name(summary, provider="openai", api_key=None):
         if not summary:
             return "New Chat"
 
-        if provider != "openai":
-            provider = "openai"  # Force provider to be openai
+        if provider != "openrouter":
+            provider = "openrouter"  # Force provider to be openrouter
         
-        model = "gpt-4o-2024-08-06"
+        model = "mistralai/mistral-small-3.1-24b-instruct"
         
         llm = get_llm(provider, model, api_key)
 
