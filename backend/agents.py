@@ -115,12 +115,13 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             """
             Generates the tutor's comment on the last human message.
             """
-            if provider != "openai":
-                provider = "openai"  # Force provider to be openai
+            current_provider = provider
+            if current_provider != "openai":
+                current_provider = "openai"  # Force provider to be openai
             
             model = "gpt-4o-mini"
         
-            llm = get_llm(provider, model, api_key)
+            llm = get_llm(current_provider, model, api_key)
             comment_template = get_tutor_comment_prompt(tutoring_language, tutors_language)
             
             comment_prompt = ChatPromptTemplate.from_messages([
@@ -135,12 +136,13 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             """
             Determines the level of intervention needed based on recent tutor comments.
             """
-            if provider != "openai":
-                provider = "openai"  # Force provider to be openai
+            current_provider = provider
+            if current_provider != "openai":
+                current_provider = "openai"  # Force provider to be openai
             
             model = "gpt-4o-mini"
         
-            llm = get_llm(provider, model, api_key)
+            llm = get_llm(current_provider, model, api_key)
             
             tutor_comments = [comment for comment in tutor_history if comment.startswith("Comment:")][-4:]
             tutor_comments_str = ' '.join(tutor_comments)
@@ -158,12 +160,13 @@ async def tutor_chat(tutoring_language, tutors_language, chat_history, tutor_his
             """
             Generates the best expression or correction for the last human message.
             """
-            if provider != "openai":
-                provider = "openai"  # Force provider to be openai
+            current_provider = provider
+            if current_provider != "openai":
+                current_provider = "openai"  # Force provider to be openai
             
             model = "gpt-4o-mini"
         
-            llm = get_llm(provider, model, api_key)
+            llm = get_llm(current_provider, model, api_key)
                 
             expression_template = get_best_expression_prompt(tutoring_language)
             expression_prompt = ChatPromptTemplate.from_messages([
