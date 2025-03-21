@@ -6,5 +6,8 @@ export default defineConfig({
   },
   esbuild: {
     target: 'esnext', // Ensure esbuild also targets modern browsers
+  },
+  server: {
+    port: 8002
   }
 });
