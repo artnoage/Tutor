@@ -1,7 +1,7 @@
 .env
-node_modules
+#node_modules
 __pycache__
 backend/.env
 .aider*
 backend/__pycache__
-config.json
+#config.json
