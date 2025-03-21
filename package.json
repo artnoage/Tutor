@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A web application to learn german",
   "scripts": {
-    "start": "node ./node_modules/.bin/vite",
-    "build": "node ./node_modules/.bin/vite build",
-    "preview": "node ./node_modules/.bin/vite preview"
+    "start": "./node_modules/.bin/vite",
+    "build": "./node_modules/.bin/vite build",
+    "preview": "./node_modules/.bin/vite preview"
   },
   "author": "Metaskepsis",
   "license": "ISC",
