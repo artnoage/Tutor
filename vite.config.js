@@ -8,6 +8,8 @@ export default defineConfig({
     target: 'esnext', // Ensure esbuild also targets modern browsers
   },
   server: {
-    port: 8002
+    port: 8002,
+    host: '0.0.0.0',
+    cors: true
   }
 });
