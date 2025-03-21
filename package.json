@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A web application to learn german",
   "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "npx vite",
+    "build": "npx vite build",
+    "preview": "npx vite preview"
   },
   "author": "Metaskepsis",
   "license": "ISC",
