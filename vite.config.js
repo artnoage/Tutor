@@ -19,9 +19,18 @@ export default defineConfig({
     assetsDir: '', // Place assets directly in the output directory
     emptyOutDir: false, // Prevent Vite from emptying the output directory
     rollupOptions: {
+      input: {
+        main: './index.html',
+        'tutor-core': './js/tutor-core.js',
+        'tutor-ui-helpers': './js/tutor-ui-helpers.js',
+        'tutor-ui': './js/tutor-ui.js',
+        'sidebar-resize': './js/sidebar-resize.js',
+        'audio-manager': './js/audio-manager.js',
+        'api-service': './js/api-service.js'
+      },
       output: {
-        entryFileNames: 'js/[name].js',
-        chunkFileNames: 'js/[name].js',
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].js',
         assetFileNames: '[name].[ext]',
         manualChunks: undefined
       }
@@ -62,7 +71,7 @@ export default defineConfig({
       }
     }
   },
-  base: '/', // Use absolute paths for production
+  base: './', // Use relative paths for production
   publicDir: 'public', // Serve files from the public directory
   // Log more details for debugging
   logLevel: 'info',
