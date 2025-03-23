@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "npx tailwindcss -i ./styles.css -o ./dist/output.css && vite build",
+    "build": "npx tailwindcss -i ./styles.css -o ./dist/output.css && vite build --base=/tutor/",
     "preview": "vite preview",
     "css": "npx tailwindcss -i ./styles.css -o ./dist/output.css --watch",
     "serve": "vite --port 8002 --host 0.0.0.0",

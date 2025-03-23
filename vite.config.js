@@ -40,11 +40,11 @@ export default defineConfig({
     allowedHosts: ['www.metaskepsis.com', 'metaskepsis.com', 'all'], // Explicitly allow metaskepsis.com
     strictPort: true, // Don't try another port if 8002 is in use
     proxy: {
-      // Proxy API requests to the backend server
-      '/tutor/api': {
+      // Proxy API requests to your backend server
+      '/api': {
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/tutor\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, options) => {
           // Additional proxy configuration
           proxy.on('error', (err, req, res) => {
@@ -61,9 +61,10 @@ export default defineConfig({
           });
         }
       }
-    }
+    },
+    middlewareMode: false
   },
-  base: '/tutor/',
+  base: '', // Use empty base for development
   publicDir: null, // Disable the public directory feature
   // Log more details for debugging
   logLevel: 'info'
