@@ -39,6 +39,7 @@ export default defineConfig({
     hmr: false, // Disable HMR completely
     allowedHosts: ['www.metaskepsis.com', 'metaskepsis.com', 'all'], // Explicitly allow metaskepsis.com
     strictPort: true, // Don't try another port if 8002 is in use
+    middlewareMode: true, // Use true instead of 'html' (deprecated)
     proxy: {
       // Proxy API requests to your backend server
       '/api': {
@@ -61,15 +62,10 @@ export default defineConfig({
           });
         }
       }
-    },
-    middlewareMode: false
+    }
   },
   base: '', // Use empty base for development
   publicDir: null, // Disable the public directory feature
   // Log more details for debugging
-  logLevel: 'info',
-  // Prevent Vite from injecting its client script
-  server: {
-    middlewareMode: 'html'
-  }
+  logLevel: 'info'
 });
