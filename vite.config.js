@@ -55,7 +55,7 @@ export default defineConfig({
     }
   },
   base: './', // Use relative paths instead of empty base
-  publicDir: './', // Serve files from the root directory
+  publicDir: 'public', // Serve files from the public directory
   // Log more details for debugging
   logLevel: 'info',
   // Disable client injection
