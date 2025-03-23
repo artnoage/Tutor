@@ -14,7 +14,7 @@ if (!fs.existsSync(resolve(__dirname, 'public'))) {
 
 // Create or update the config files
 const configContent = JSON.stringify({
-  "API_URL": "/api"
+  "API_URL": "/tutor/api"
 }, null, 2);
 
 fs.writeFileSync(configPath, configContent);
@@ -59,6 +59,6 @@ export default defineConfig({
       }
     }
   },
-  base: './',
+  base: '/tutor/',
   publicDir: './'
 });
