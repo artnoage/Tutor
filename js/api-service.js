@@ -4,40 +4,22 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-// Initialize API URL with a default value
-let API_URL = '/tutor/api';
+// Determine API URL based on the current URL
+const currentPath = window.location.pathname;
+let API_URL;
 
-// Try to load configuration from config.json, but don't block if it fails
-(async function() {
-    try {
-        // Use a timestamp to prevent caching
-        const timestamp = Date.now();
-        const response = await fetch(`./config.json?t=${timestamp}`, {
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            },
-            cache: 'no-store'
-        });
-        
-        if (response.ok) {
-            const config = await response.json();
-            if (config.apiEndpoint) {
-                API_URL = config.apiEndpoint;
-                console.log('Loaded API URL from config:', API_URL);
-            }
-        } else {
-            console.log('Config file not found, using default API URL:', API_URL);
-        }
-    } catch (error) {
-        console.log('Error loading config, using default API URL:', API_URL);
-    }
-})();
+// If the path includes '/tutor/', use '/tutor/api'
+if (currentPath.includes('/tutor/')) {
+    API_URL = '/tutor/api';
+} else {
+    // Otherwise use '/api'
+    API_URL = '/api';
+}
+
+console.log('API URL configured as:', API_URL);
 
 // Export the API URL
 export { API_URL };
-console.log('API URL initially configured as:', API_URL);
 
 function getApiKey(model) {
     /**
