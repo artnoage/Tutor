@@ -68,10 +68,8 @@ export default defineConfig({
   publicDir: null, // Disable the public directory feature
   // Log more details for debugging
   logLevel: 'info',
-  // Disable client injection
-  cacheDir: null,
-  clearScreen: false,
-  optimizeDeps: {
-    disabled: true
+  // Prevent Vite from injecting its client script
+  server: {
+    middlewareMode: 'html'
   }
 });

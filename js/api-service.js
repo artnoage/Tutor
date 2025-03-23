@@ -1,7 +1,8 @@
 // js/api-service.js
 
-import { tutorController } from './tutor-core.js';
-import { settingsManager } from './settings-manager.js';
+// Use global variables instead of imports to avoid circular dependencies
+const tutorController = window.tutorController;
+const settingsManager = window.settingsManager;
 
 export let API_URL = '/api'; // Default value - will be proxied through Vite server
 
