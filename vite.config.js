@@ -17,14 +17,25 @@ export default defineConfig({
     allowedHosts: ['www.metaskepsis.com'],
     fs: {
       // Allow serving files from one level up to the project root
-      allow: ['..']
+      allow: ['..', '.']
+    },
+    watch: {
+      usePolling: true
     }
   },
   optimizeDeps: {
-    include: []
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './'),
+      'js': resolve(__dirname, './js')
+    }
   },
   base: './',
-  publicDir: 'public',
-  // Explicitly define the root directory
-  root: './'
+  publicDir: 'public'
 });

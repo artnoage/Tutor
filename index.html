@@ -174,10 +174,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
-        import './js/tutor-core.js';
-        import './js/tutor-ui-helpers.js';
-        import './js/tutor-ui.js';
-        import './js/sidebar-resize.js';
+        // Use absolute paths for imports to ensure Vite can resolve them
+        import '/js/tutor-core.js';
+        import '/js/tutor-ui-helpers.js';
+        import '/js/tutor-ui.js';
+        import '/js/sidebar-resize.js';
     </script>
 </body>
 </html>
