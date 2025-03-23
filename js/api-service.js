@@ -4,29 +4,40 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-// Set API URL directly based on the current hostname and path
-const currentHost = window.location.hostname;
-const currentPath = window.location.pathname;
+// Initialize API URL with a default value
+let API_URL = '/tutor/api';
 
-// Determine API URL based on environment
-let apiUrl = '/api';
-if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
-    // For production (external domain)
-    console.log(`Running on external domain (${currentHost}), using production API_URL`);
-    apiUrl = '/tutor/api';
-} else if (currentPath.startsWith('/tutor/')) {
-    // For local development when accessed via /tutor/ path
-    console.log(`Running on local path ${currentPath}, using /tutor/api endpoint`);
-    apiUrl = '/tutor/api';
-} else {
-    // For direct local development
-    console.log(`Running on local domain (${currentHost}), using development API_URL`);
-    apiUrl = '/api';
-}
+// Try to load configuration from config.json, but don't block if it fails
+(async function() {
+    try {
+        // Use a timestamp to prevent caching
+        const timestamp = Date.now();
+        const response = await fetch(`./config.json?t=${timestamp}`, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            },
+            cache: 'no-store'
+        });
+        
+        if (response.ok) {
+            const config = await response.json();
+            if (config.apiEndpoint) {
+                API_URL = config.apiEndpoint;
+                console.log('Loaded API URL from config:', API_URL);
+            }
+        } else {
+            console.log('Config file not found, using default API URL:', API_URL);
+        }
+    } catch (error) {
+        console.log('Error loading config, using default API URL:', API_URL);
+    }
+})();
 
 // Export the API URL
-export let API_URL = apiUrl;
-console.log('API URL configured:', API_URL);
+export { API_URL };
+console.log('API URL initially configured as:', API_URL);
 
 function getApiKey(model) {
     /**
