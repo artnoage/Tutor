@@ -5,12 +5,7 @@ export default defineConfig({
   build: {
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
-    assetsDir: 'assets',
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html')
-      }
-    }
+    assetsDir: 'assets'
   },
   esbuild: {
     target: 'esnext', // Ensure esbuild also targets modern browsers
@@ -19,17 +14,8 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    allowedHosts: ['www.metaskepsis.com'],
-    watch: {
-      usePolling: true
-    }
+    allowedHosts: ['www.metaskepsis.com']
   },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './'),
-      '@js': resolve(__dirname, './js')
-    }
-  },
-  publicDir: 'public',
-  base: '/'
+  base: './',
+  publicDir: 'public'
 });
