@@ -35,13 +35,8 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    hmr: {
-      // Disable WebSocket connection for HMR
-      protocol: 'http',
-      host: 'localhost',
-      port: 8002
-    },
-    allowedHosts: ['www.metaskepsis.com'],
+    hmr: false, // Disable HMR completely when running behind Nginx
+    allowedHosts: 'all', // Allow all hosts
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
