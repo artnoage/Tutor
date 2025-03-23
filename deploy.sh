@@ -3,11 +3,15 @@
 # Build the project
 npm run build
 
-# Copy the built files to the server directory
-cp -r dist/* /var/www/html/tutor/
+# Create a local deployment directory
+mkdir -p ./deployed
 
-# Copy the JS files to ensure they're available
-mkdir -p /var/www/html/tutor/js
-cp -r js/* /var/www/html/tutor/js/
+# Copy the built files to the local deployment directory
+cp -r dist/* ./deployed/
 
-echo "Deployment complete!"
+# Create js directory and copy JS files
+mkdir -p ./deployed/js
+cp -r js/* ./deployed/js/
+
+echo "Local deployment complete! Files are in ./deployed/"
+echo "To deploy to the server, use: sudo cp -r ./deployed/* /var/www/html/tutor/"
