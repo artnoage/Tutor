@@ -6,7 +6,7 @@ import fs from 'fs';
 const configPath = resolve(__dirname, 'config.json');
 if (!fs.existsSync(configPath)) {
   fs.writeFileSync(configPath, JSON.stringify({
-    "API_URL": "http://localhost:8080"
+    "API_URL": "/api"
   }, null, 2));
   console.log('Created default config.json file');
 }
@@ -25,7 +25,15 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    allowedHosts: ['www.metaskepsis.com']
+    allowedHosts: ['www.metaskepsis.com'],
+    proxy: {
+      // Proxy API requests to the backend server
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   base: './',
   publicDir: './',

@@ -3,7 +3,7 @@
 import { tutorController } from './tutor-core.js';
 import { settingsManager } from './settings-manager.js';
 
-export let API_URL = 'http://localhost:8080'; // Default value
+export let API_URL = '/api'; // Default value - will be proxied through Vite server
 
 async function loadConfig() {
     /**
