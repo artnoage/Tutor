@@ -16,8 +16,16 @@ export default defineConfig({
   build: {
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
-    assetsDir: 'assets',
-    emptyOutDir: false // Prevent Vite from emptying the output directory
+    assetsDir: '', // Place assets directly in the output directory
+    emptyOutDir: false, // Prevent Vite from emptying the output directory
+    rollupOptions: {
+      output: {
+        entryFileNames: 'js/[name].js',
+        chunkFileNames: 'js/[name].js',
+        assetFileNames: '[name].[ext]',
+        manualChunks: undefined
+      }
+    }
   },
   esbuild: {
     target: 'esnext' // Ensure esbuild also targets modern browsers
@@ -54,7 +62,7 @@ export default defineConfig({
       }
     }
   },
-  base: './', // Use relative paths instead of empty base
+  base: '/', // Use absolute paths for production
   publicDir: 'public', // Serve files from the public directory
   // Log more details for debugging
   logLevel: 'info',
