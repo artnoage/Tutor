@@ -22,10 +22,10 @@ export default defineConfig({
     rollupOptions: {
       external: [
         // Don't try to bundle these files
-        '/tutor/js/tutor-core.js',
-        '/tutor/js/tutor-ui-helpers.js',
-        '/tutor/js/tutor-ui.js',
-        '/tutor/js/sidebar-resize.js'
+        './js/tutor-core.js',
+        './js/tutor-ui-helpers.js',
+        './js/tutor-ui.js',
+        './js/sidebar-resize.js'
       ]
     }
   },
@@ -64,7 +64,7 @@ export default defineConfig({
     }
   },
   base: '/tutor/',
-  publicDir: './', // Serve files directly from the root directory
+  publicDir: null, // Disable the public directory feature
   // Log more details for debugging
   logLevel: 'info'
 });
