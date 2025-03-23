@@ -17,6 +17,7 @@ export default defineConfig({
     host: '0.0.0.0',
     cors: true,
     hmr: false, // Disable HMR completely
+    ws: false, // Disable WebSocket connection completely
     allowedHosts: ['www.metaskepsis.com', 'metaskepsis.com', 'all'], // Explicitly allow metaskepsis.com
     strictPort: true, // Don't try another port if 8002 is in use
     proxy: {
@@ -43,8 +44,14 @@ export default defineConfig({
       }
     }
   },
-  base: '', // Use empty base for development
+  base: './', // Use relative paths instead of empty base
   publicDir: './', // Serve files from the root directory
   // Log more details for debugging
-  logLevel: 'info'
+  logLevel: 'info',
+  // Disable client injection
+  cacheControl: 'no-store',
+  // Explicitly disable client injection
+  optimizeDeps: {
+    exclude: ['@vite/client']
+  }
 });
