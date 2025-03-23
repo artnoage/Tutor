@@ -35,7 +35,12 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    allowedHosts: ['www.metaskepsis.com'],
+    hmr: {
+      // Disable WebSocket connection for HMR
+      protocol: 'http',
+      host: 'localhost',
+      port: 8002
+    },
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
@@ -59,7 +64,5 @@ export default defineConfig({
     }
   },
   base: './',
-  publicDir: './',
-  // Ensure config.json is properly served
-  assetsInclude: ['**/*.json']
+  publicDir: './'
 });
