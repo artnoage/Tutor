@@ -1,10 +1,6 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
-import fs from 'fs';
 
-// No longer need config.json
 
-// No longer need to create config.json since we're not using it
 
 export default defineConfig({
   build: {
