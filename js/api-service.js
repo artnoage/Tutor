@@ -11,25 +11,44 @@ async function loadConfig() {
      * Updates the API_URL if found in the config.
      */
     try {
-        console.log('Attempting to load config from ./config.json');
-        const response = await fetch('./config.json', { 
-            headers: { 'Accept': 'application/json' },
-            cache: 'no-store'
-        });
+        // Try multiple possible locations for the config file
+        const possiblePaths = ['./config.json', '/config.json', '../config.json'];
+        let config = null;
         
-        if (!response.ok) {
-            throw new Error(`Failed to load config: ${response.status} ${response.statusText}`);
+        for (const path of possiblePaths) {
+            try {
+                console.log(`Attempting to load config from ${path}`);
+                const response = await fetch(path, { 
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                });
+                
+                if (!response.ok) {
+                    console.warn(`Config not found at ${path}: ${response.status}`);
+                    continue;
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.warn(`Invalid content type at ${path}: ${contentType}`);
+                    continue;
+                }
+                
+                config = await response.json();
+                console.log(`Successfully loaded config from ${path}`);
+                break;
+            } catch (e) {
+                console.warn(`Error loading config from ${path}:`, e.message);
+            }
         }
         
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error(`Invalid content type: ${contentType}`);
-        }
-        
-        const config = await response.json();
-        if (config.API_URL) {
+        // If we found a valid config, use it
+        if (config && config.API_URL) {
             console.log(`Setting API_URL to ${config.API_URL} from config`);
             API_URL = config.API_URL;
+        } else {
+            // If no config was found, use a hardcoded default
+            console.log('No valid config found, using default API_URL');
         }
     } catch (error) {
         console.warn('Using default API_URL:', API_URL, 'Error:', error.message);
@@ -44,6 +63,11 @@ async function loadConfig() {
         console.log('Configuration loaded successfully');
     } catch (error) {
         console.error('Error during configuration loading:', error);
+        // Ensure we have a valid API URL even if config loading fails
+        if (!API_URL || API_URL === '') {
+            API_URL = '/api';
+            console.log('Using fallback API_URL:', API_URL);
+        }
     }
 })();
 

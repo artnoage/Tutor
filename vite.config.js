@@ -2,14 +2,24 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import fs from 'fs';
 
-// Ensure config.json exists
+// Ensure config.json exists in both the root and public directories
 const configPath = resolve(__dirname, 'config.json');
-if (!fs.existsSync(configPath)) {
-  fs.writeFileSync(configPath, JSON.stringify({
-    "API_URL": "/api"
-  }, null, 2));
-  console.log('Created default config.json file');
+const publicConfigPath = resolve(__dirname, 'public', 'config.json');
+
+// Create the public directory if it doesn't exist
+if (!fs.existsSync(resolve(__dirname, 'public'))) {
+  fs.mkdirSync(resolve(__dirname, 'public'), { recursive: true });
+  console.log('Created public directory');
 }
+
+// Create or update the config files
+const configContent = JSON.stringify({
+  "API_URL": "/api"
+}, null, 2);
+
+fs.writeFileSync(configPath, configContent);
+fs.writeFileSync(publicConfigPath, configContent);
+console.log('Created/updated config.json files in root and public directories');
 
 export default defineConfig({
   build: {
