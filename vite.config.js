@@ -16,20 +16,16 @@ export default defineConfig({
   build: {
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
-    assetsDir: 'assets', // Place assets in an assets directory
+    assetsDir: '', // Place assets directly in the output directory
     emptyOutDir: true, // Empty the output directory before building
     rollupOptions: {
       input: {
-        main: './index.html',
-        'tutor-core': './js/tutor-core.js',
-        'tutor-ui-helpers': './js/tutor-ui-helpers.js',
-        'tutor-ui': './js/tutor-ui.js',
-        'sidebar-resize': './js/sidebar-resize.js'
+        main: './index.html'
       },
       output: {
-        entryFileNames: 'js/[name].js',
-        chunkFileNames: 'js/[name]-[hash].js',
-        assetFileNames: 'assets/[name].[ext]',
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: '[name].[ext]',
         manualChunks: undefined
       }
     }
