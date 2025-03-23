@@ -66,6 +66,11 @@ async function loadConfig() {
         // Use same-origin API endpoint when deployed
         API_URL = '/api';
         console.log('Using same-origin API endpoint:', API_URL);
+        
+        // Special handling for metaskepsis.com
+        if (currentHost === 'www.metaskepsis.com') {
+            console.log('Detected metaskepsis.com domain, using proxy API endpoint');
+        }
     }
     
     console.log('Final API_URL:', API_URL);

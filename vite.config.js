@@ -41,6 +41,7 @@ export default defineConfig({
       host: 'localhost',
       port: 8002
     },
+    allowedHosts: ['www.metaskepsis.com'],
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
