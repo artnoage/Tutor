@@ -75,7 +75,7 @@ export default defineConfig({
     host: '0.0.0.0',
     cors: true,
     hmr: false, // Disable HMR completely
-    allowedHosts: 'all', // Allow all hosts
+    allowedHosts: ['www.metaskepsis.com', 'metaskepsis.com', 'all'], // Explicitly allow metaskepsis.com
     proxy: {
       // Proxy API requests to the backend server
       '/tutor/api': {
