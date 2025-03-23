@@ -19,7 +19,10 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    allowedHosts: ['www.metaskepsis.com']
+    allowedHosts: ['www.metaskepsis.com'],
+    watch: {
+      usePolling: true
+    }
   },
   resolve: {
     alias: {
@@ -27,5 +30,6 @@ export default defineConfig({
       '@js': resolve(__dirname, './js')
     }
   },
-  publicDir: 'public'
+  publicDir: 'public',
+  base: '/'
 });
