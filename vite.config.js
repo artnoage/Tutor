@@ -39,9 +39,22 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://0.0.0.0:8080', // Use 0.0.0.0 instead of localhost
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        configure: (proxy, options) => {
+          // Additional proxy configuration
+          proxy.on('error', (err, req, res) => {
+            console.log('Proxy error:', err);
+            res.writeHead(500, {
+              'Content-Type': 'text/plain'
+            });
+            res.end('Proxy error: ' + err.message);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Proxying request:', req.method, req.url);
+          });
+        }
       }
     }
   },

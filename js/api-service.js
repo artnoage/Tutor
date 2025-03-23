@@ -114,20 +114,25 @@ async function sendAudioToServer(audioBlob, formElements) {
         console.log(`Sending audio to ${API_URL}/process_audio`);
         console.time('serverProcessing');
         
-        // Check if the API URL is localhost or 127.0.0.1 and warn about potential ad blocker issues
-        if (API_URL.includes('127.0.0.1') || API_URL.includes('localhost')) {
-            console.warn('Using localhost API URL. If requests fail, check if any browser extensions (ad blockers) are blocking local requests.');
-        }
+        // Use a timestamp to bypass cache and potential ad blocker issues
+        const timestamp = Date.now();
+        const url = `${API_URL}/process_audio?t=${timestamp}`;
+        console.log(`Using URL with timestamp: ${url}`);
         
-        const response = await fetch(`${API_URL}/process_audio`, {
+        const response = await fetch(url, {
             method: 'POST',
             body: formData,
             // Add these headers to help prevent ad blocker interference
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
             },
             // Add credentials to handle any cookie-based auth
-            credentials: 'include'
+            credentials: 'include',
+            // Bypass cache
+            cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -184,14 +189,22 @@ async function sendHomeworkRequest(formElements) {
     };
 
     try {
-        const response = await fetch(`${API_URL}/generate_homework`, {
+        // Use a timestamp to bypass cache and potential ad blocker issues
+        const timestamp = Date.now();
+        const url = `${API_URL}/generate_homework?t=${timestamp}`;
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
             },
             credentials: 'include',
-            body: JSON.stringify(requestData)
+            body: JSON.stringify(requestData),
+            cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -230,14 +243,22 @@ async function generateChatName(formElements) {
 
         console.log('Sending request data:', requestData);
 
-        const response = await fetch(`${API_URL}/generate_chat_name`, {
+        // Use a timestamp to bypass cache and potential ad blocker issues
+        const timestamp = Date.now();
+        const url = `${API_URL}/generate_chat_name?t=${timestamp}`;
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
             },
             credentials: 'include',
-            body: JSON.stringify(requestData)
+            body: JSON.stringify(requestData),
+            cache: 'no-store'
         });
 
         if (!response.ok) {
