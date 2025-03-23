@@ -1,6 +1,6 @@
 const CURRENT_VERSION = '1.0.7';
 // Define API_URL directly to avoid circular dependencies
-const API_URL = '/api';
+const API_URL = '/tutor/api';
 
 class SettingsManager {
     constructor() {

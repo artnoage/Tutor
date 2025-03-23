@@ -18,9 +18,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 // Configure proxy middleware
-const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+const backendUrl = process.env.BACKEND_URL || '/tutor/api';
 const apiProxy = createProxyMiddleware({
-  target: backendUrl,
+  target: 'http://localhost:8080',
   changeOrigin: true,
   pathRewrite: {
     '^/api': ''
@@ -37,7 +37,7 @@ app.post('/api/process_audio', upload.single('audio'), async (req, res) => {
   
   try {
     // Forward the request to the backend
-    const forwardUrl = `${backendUrl}/process_audio`;
+    const forwardUrl = `http://localhost:8080/process_audio`;
     
     // Create a FormData-like object for node-fetch
     const FormData = require('form-data');
@@ -80,6 +80,19 @@ app.post('/api/process_audio', upload.single('audio'), async (req, res) => {
 
 // Use proxy for other API routes
 app.use('/api', apiProxy);
+
+// Also handle the /tutor/api route for direct access
+app.use('/tutor/api', createProxyMiddleware({
+  target: 'http://localhost:8080',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/tutor/api': ''
+  },
+  onError: (err, req, res) => {
+    console.error('Proxy error:', err);
+    res.status(500).json({ error: 'Backend server unavailable' });
+  }
+}));
 
 // Serve index.html for all other routes
 app.get('*', (req, res) => {

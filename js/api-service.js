@@ -5,7 +5,7 @@ import { tutorController } from './tutor-core.js';
 import { settingsManager } from './settings-manager.js';
 
 // Set a consistent API URL for our Express server
-const API_URL = '/api';
+const API_URL = '/tutor/api';
 
 console.log('API URL configured as:', API_URL);
 
