@@ -60,75 +60,31 @@ async function sendAudioToServer(audioBlob, formElements) {
         const url = `${API_URL}/process_audio?t=${timestamp}`;
         console.log(`Using URL with timestamp: ${url}`);
         
-        // Try to use fetch with POST first
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                },
-                credentials: 'include',
-                cache: 'no-store'
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.timeEnd('serverProcessing');
-            return {
-                audio_base64: result.audio_base64,
-                chatObject: result.chatObject
-            };
-        } catch (fetchError) {
-            console.warn('POST request failed, falling back to direct backend connection:', fetchError);
-            
-            // If POST fails, try to connect directly to the backend
-            const backendUrl = 'http://localhost:8080/process_audio';
-            console.log(`Trying direct connection to backend at: ${backendUrl}`);
-            
-            const backendResponse = await fetch(backendUrl, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                },
-                credentials: 'include',
-                cache: 'no-store'
-            });
-            
-            if (!backendResponse.ok) {
-                throw new Error(`Backend HTTP error! status: ${backendResponse.status}`);
-            }
-            
-            const result = await backendResponse.json();
-            console.timeEnd('serverProcessing');
-            return {
-                audio_base64: result.audio_base64,
-                chatObject: result.chatObject
-            };
-        }
-
+        // Try to use fetch with POST through our Express proxy
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            },
+            credentials: 'include',
+            cache: 'no-store'
+        });
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Server error response:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-
+        
         const result = await response.json();
         console.timeEnd('serverProcessing');
         return {
             audio_base64: result.audio_base64,
             chatObject: result.chatObject
         };
+
     } catch (error) {
         console.error('Error sending audio to server:', error);
         

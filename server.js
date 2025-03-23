@@ -32,41 +32,50 @@ const apiProxy = createProxyMiddleware({
 });
 
 // Handle audio processing specifically
-app.post('/api/process_audio', upload.single('audio'), (req, res) => {
+app.post('/api/process_audio', upload.single('audio'), async (req, res) => {
   console.log('Received audio processing request');
   
-  // Forward the request to the backend
-  const forwardUrl = `${backendUrl}/process_audio`;
-  
-  // Create a new FormData object to send to the backend
-  const formData = new FormData();
-  if (req.file) {
-    const audioBlob = new Blob([req.file.buffer], { type: 'audio/wav' });
-    formData.append('audio', audioBlob, 'recording.wav');
-  }
-  
-  if (req.body.data) {
-    formData.append('data', req.body.data);
-  }
-  
-  // Forward the request
-  fetch(forwardUrl, {
-    method: 'POST',
-    body: formData
-  })
-  .then(response => {
+  try {
+    // Forward the request to the backend
+    const forwardUrl = `${backendUrl}/process_audio`;
+    
+    // Create a FormData-like object for node-fetch
+    const FormData = require('form-data');
+    const form = new FormData();
+    
+    // Add the audio file if it exists
+    if (req.file) {
+      form.append('audio', req.file.buffer, {
+        filename: 'recording.wav',
+        contentType: 'audio/wav'
+      });
+    }
+    
+    // Add the data if it exists
+    if (req.body.data) {
+      form.append('data', req.body.data);
+    }
+    
+    // Forward the request
+    const fetch = require('node-fetch');
+    const response = await fetch(forwardUrl, {
+      method: 'POST',
+      body: form,
+      headers: form.getHeaders()
+    });
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Backend error: ${response.status} - ${errorText}`);
       throw new Error(`Backend responded with status: ${response.status}`);
     }
-    return response.json();
-  })
-  .then(data => {
+    
+    const data = await response.json();
     res.json(data);
-  })
-  .catch(error => {
+  } catch (error) {
     console.error('Error forwarding request to backend:', error);
     res.status(500).json({ error: 'Failed to process audio: ' + error.message });
-  });
+  }
 });
 
 // Use proxy for other API routes
