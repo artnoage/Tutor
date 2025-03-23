@@ -1,4 +1,15 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
+import fs from 'fs';
+
+// Ensure config.json exists
+const configPath = resolve(__dirname, 'config.json');
+if (!fs.existsSync(configPath)) {
+  fs.writeFileSync(configPath, JSON.stringify({
+    "API_URL": "http://localhost:8080"
+  }, null, 2));
+  console.log('Created default config.json file');
+}
 
 export default defineConfig({
   build: {
@@ -17,5 +28,7 @@ export default defineConfig({
     allowedHosts: ['www.metaskepsis.com']
   },
   base: './',
-  publicDir: './'
+  publicDir: './',
+  // Ensure config.json is properly served
+  assetsInclude: ['**/*.json']
 });

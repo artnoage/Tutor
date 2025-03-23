@@ -11,10 +11,21 @@ async function loadConfig() {
      * Updates the API_URL if found in the config.
      */
     try {
-        const response = await fetch('./config.json');
+        console.log('Attempting to load config from ./config.json');
+        const response = await fetch('./config.json', { 
+            headers: { 'Accept': 'application/json' },
+            cache: 'no-store'
+        });
+        
         if (!response.ok) {
             throw new Error(`Failed to load config: ${response.status} ${response.statusText}`);
         }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Invalid content type: ${contentType}`);
+        }
+        
         const config = await response.json();
         if (config.API_URL) {
             console.log(`Setting API_URL to ${config.API_URL} from config`);
@@ -26,8 +37,15 @@ async function loadConfig() {
     }
 }
 
-// Load config before exporting functions
-await loadConfig();
+// Initialize configuration
+(async function() {
+    try {
+        await loadConfig();
+        console.log('Configuration loaded successfully');
+    } catch (error) {
+        console.error('Error during configuration loading:', error);
+    }
+})();
 
 function getApiKey(model) {
     /**
