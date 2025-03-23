@@ -4,15 +4,14 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-export let API_URL = '/api'; // Default value for development - will be proxied through Vite server
+export let API_URL = window.location.pathname.startsWith('/tutor/') ? '/tutor/api' : '/api'; // Set based on current path
 
-async function loadConfig() {
+function loadConfig() {
     /**
-     * Loads the configuration from a JSON file.
-     * Updates the API_URL if found in the config.
+     * Sets the API URL based on the current hostname and path.
+     * No longer tries to load from config.json to avoid 404 errors.
      */
     try {
-        // Set API URL based on hostname
         const currentHost = window.location.hostname;
         const currentPath = window.location.pathname;
         
@@ -29,31 +28,17 @@ async function loadConfig() {
             console.log(`Running on local domain (${currentHost}), using development API_URL`);
             API_URL = '/api';
         }
-        return;
+        return API_URL;
     } catch (error) {
         console.warn('Error in loadConfig, using default API_URL:', API_URL);
+        return API_URL;
     }
 }
 
-// Initialize configuration immediately
-loadConfig().then(() => {
-    console.log('Configuration loaded successfully');
-    console.log('Final API_URL:', API_URL);
-}).catch(error => {
-    console.error('Error during configuration loading:', error);
-    // Set default API URL based on hostname and path
-    const currentHost = window.location.hostname;
-    const currentPath = window.location.pathname;
-    
-    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
-        API_URL = '/tutor/api';
-    } else if (currentPath.startsWith('/tutor/')) {
-        API_URL = '/tutor/api';
-    } else {
-        API_URL = '/api';
-    }
-    console.log('Using fallback API_URL:', API_URL);
-});
+// Initialize configuration immediately (synchronously now)
+API_URL = loadConfig();
+console.log('Configuration loaded successfully');
+console.log('Final API_URL:', API_URL);
 
 function getApiKey(model) {
     /**

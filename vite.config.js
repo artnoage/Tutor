@@ -2,16 +2,9 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import fs from 'fs';
 
-// Ensure config.json exists
-const configPath = resolve(__dirname, 'config.json');
+// No longer need config.json
 
-// Create or update the config file
-const configContent = JSON.stringify({
-  "API_URL": "/api"
-}, null, 2);
-
-fs.writeFileSync(configPath, configContent);
-console.log('Created/updated config.json file');
+// No longer need to create config.json since we're not using it
 
 export default defineConfig({
   build: {
