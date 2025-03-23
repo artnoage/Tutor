@@ -4,28 +4,28 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-// Set API URL based on the current hostname and path
-function setApiUrl() {
-    const currentHost = window.location.hostname;
-    const currentPath = window.location.pathname;
-    
-    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
-        // For production (external domain)
-        console.log(`Running on external domain (${currentHost}), using production API_URL`);
-        return '/tutor/api';
-    } else if (currentPath.startsWith('/tutor/')) {
-        // For local development when accessed via /tutor/ path
-        console.log(`Running on local path ${currentPath}, using /tutor/api endpoint`);
-        return '/tutor/api';
-    } else {
-        // For direct local development
-        console.log(`Running on local domain (${currentHost}), using development API_URL`);
-        return '/api';
-    }
+// Set API URL directly based on the current hostname and path
+const currentHost = window.location.hostname;
+const currentPath = window.location.pathname;
+
+// Determine API URL based on environment
+let apiUrl = '/api';
+if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
+    // For production (external domain)
+    console.log(`Running on external domain (${currentHost}), using production API_URL`);
+    apiUrl = '/tutor/api';
+} else if (currentPath.startsWith('/tutor/')) {
+    // For local development when accessed via /tutor/ path
+    console.log(`Running on local path ${currentPath}, using /tutor/api endpoint`);
+    apiUrl = '/tutor/api';
+} else {
+    // For direct local development
+    console.log(`Running on local domain (${currentHost}), using development API_URL`);
+    apiUrl = '/api';
 }
 
-// Set API URL immediately (no async operations that could trigger 404s)
-export let API_URL = setApiUrl();
+// Export the API URL
+export let API_URL = apiUrl;
 console.log('API URL configured:', API_URL);
 
 function getApiKey(model) {
