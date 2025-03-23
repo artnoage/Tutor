@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname)));
 
 // Proxy API requests to backend server
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
-const apiProxy = createProxyMiddleware('/api', {
+const apiProxy = createProxyMiddleware({
   target: backendUrl,
   changeOrigin: true,
   pathRewrite: {
