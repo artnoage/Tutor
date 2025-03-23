@@ -1,5 +1,5 @@
 import { tutorController } from './tutor-core.js';
-import { sendHomeworkRequest } from './api-service.js';
+import { sendHomeworkRequest, API_URL } from './api-service.js';
 import { settingsManager } from './settings-manager.js';
 import {
     updateChatList,

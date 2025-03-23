@@ -1,8 +1,8 @@
 // js/api-service.js
 
-// Use global variables instead of imports to avoid circular dependencies
-const tutorController = window.tutorController;
-const settingsManager = window.settingsManager;
+// Import dependencies
+import { tutorController } from './tutor-core.js';
+import { settingsManager } from './settings-manager.js';
 
 // Set a consistent API URL for our Express server
 const API_URL = '/api';
@@ -29,8 +29,8 @@ async function sendAudioToServer(audioBlob, formElements) {
      * @param {Object} formElements - Form elements containing user settings.
      * @returns {Object} The processed result from the server.
      */
-    // Get the current chat object
-    const currentChat = tutorController.getCurrentChat();
+    // Use the chat object provided in formElements
+    const chatObject = formElements.chatObject || {};
     
     const audioData = {
         tutoringLanguage: formElements.tutoringLanguageSelect.value,
@@ -38,7 +38,7 @@ async function sendAudioToServer(audioBlob, formElements) {
         tutorsVoice: formElements.tutorsVoiceSelect.value,
         partnersVoice: formElements.partnersVoiceSelect.value,
         interventionLevel: formElements.interventionLevelSelect.value,
-        chatObject: currentChat, // Use the current chat object
+        chatObject: chatObject, // Use the chat object from formElements
         disableTutor: formElements.disableTutorCheckbox.checked,
         accentignore: formElements.accentIgnoreCheckbox.checked,
         model: formElements.modelSelect.value,

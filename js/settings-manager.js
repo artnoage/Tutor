@@ -1,5 +1,6 @@
 const CURRENT_VERSION = '1.0.7';
-import { API_URL } from './api-service.js';
+// Define API_URL directly to avoid circular dependencies
+const API_URL = '/api';
 
 class SettingsManager {
     constructor() {
