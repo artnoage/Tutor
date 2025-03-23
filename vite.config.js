@@ -17,8 +17,26 @@ const configContent = JSON.stringify({
   "API_URL": "/tutor/api"
 }, null, 2);
 
+// Write config to both locations
 fs.writeFileSync(configPath, configContent);
 fs.writeFileSync(publicConfigPath, configContent);
+
+// Copy necessary files to public directory
+const filesToCopy = [
+  { src: 'index.html', dest: 'public/index.html' },
+  { src: 'styles.css', dest: 'public/styles.css' }
+];
+
+for (const file of filesToCopy) {
+  if (fs.existsSync(resolve(__dirname, file.src))) {
+    fs.copyFileSync(
+      resolve(__dirname, file.src),
+      resolve(__dirname, file.dest)
+    );
+    console.log(`Copied ${file.src} to ${file.dest}`);
+  }
+}
+
 console.log('Created/updated config.json files in root and public directories');
 
 export default defineConfig({
@@ -66,5 +84,5 @@ export default defineConfig({
     }
   },
   base: '/tutor/',
-  publicDir: './'
+  publicDir: 'public'
 });
