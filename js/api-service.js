@@ -3,7 +3,7 @@
 import { tutorController } from './tutor-core.js';
 import { settingsManager } from './settings-manager.js';
 
-export let API_URL = 'http://127.0.0.1:8080'; // Default value
+export let API_URL = 'http://localhost:8080'; // Default value
 
 async function loadConfig() {
     /**
@@ -11,12 +11,17 @@ async function loadConfig() {
      * Updates the API_URL if found in the config.
      */
     try {
-        // Adjust the path to go up one level from the js folder to the root
-        const response = await fetch('../config.json');
+        const response = await fetch('./config.json');
+        if (!response.ok) {
+            throw new Error(`Failed to load config: ${response.status} ${response.statusText}`);
+        }
         const config = await response.json();
-        API_URL = config.API_URL || API_URL;
+        if (config.API_URL) {
+            console.log(`Setting API_URL to ${config.API_URL} from config`);
+            API_URL = config.API_URL;
+        }
     } catch (error) {
-        console.error('Failed to load configuration:', error);
+        console.warn('Using default API_URL:', API_URL, 'Error:', error.message);
         // Fallback to default value already set
     }
 }
@@ -64,6 +69,7 @@ async function sendAudioToServer(audioBlob, formElements) {
     formData.append('data', JSON.stringify(audioData));
 
     try {
+        console.log(`Sending audio to ${API_URL}/process_audio`);
         console.time('serverProcessing');
         const response = await fetch(`${API_URL}/process_audio`, {
             method: 'POST',
