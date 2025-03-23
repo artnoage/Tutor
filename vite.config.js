@@ -1,8 +1,16 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   build: {
     target: 'esnext', // This enables top-level await support
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html')
+      }
+    }
   },
   esbuild: {
     target: 'esnext', // Ensure esbuild also targets modern browsers
@@ -12,5 +20,12 @@ export default defineConfig({
     host: '0.0.0.0',
     cors: true,
     allowedHosts: ['www.metaskepsis.com']
-  }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './'),
+      '@js': resolve(__dirname, './js')
+    }
+  },
+  publicDir: 'public'
 });
