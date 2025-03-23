@@ -27,6 +27,27 @@ const filesToCopy = [
   { src: 'styles.css', dest: 'public/styles.css' }
 ];
 
+// Create js directory in public if it doesn't exist
+if (!fs.existsSync(resolve(__dirname, 'public/js'))) {
+  fs.mkdirSync(resolve(__dirname, 'public/js'), { recursive: true });
+  console.log('Created public/js directory');
+}
+
+// Copy all JS files from js directory to public/js
+const jsDir = resolve(__dirname, 'js');
+if (fs.existsSync(jsDir)) {
+  const jsFiles = fs.readdirSync(jsDir);
+  jsFiles.forEach(file => {
+    if (file.endsWith('.js')) {
+      fs.copyFileSync(
+        resolve(jsDir, file),
+        resolve(__dirname, 'public/js', file)
+      );
+      console.log(`Copied js/${file} to public/js/${file}`);
+    }
+  });
+}
+
 for (const file of filesToCopy) {
   if (fs.existsSync(resolve(__dirname, file.src))) {
     fs.copyFileSync(
