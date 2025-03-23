@@ -8,7 +8,7 @@
     "build": "npx tailwindcss -i ./styles.css -o ./dist/output.css && vite build",
     "preview": "vite preview",
     "css": "npx tailwindcss -i ./styles.css -o ./dist/output.css --watch",
-    "static": "npx tailwindcss -i ./styles.css -o ./dist/output.css && python -m http.server 8002"
+    "serve": "vite --port 8002 --host 0.0.0.0"
   },
   "author": "Metaskepsis",
   "license": "ISC",

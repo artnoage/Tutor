@@ -35,22 +35,28 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    hmr: false, // Disable HMR completely when running behind Nginx
+    hmr: {
+      // Configure HMR to work with Nginx
+      clientPort: 443,
+      protocol: 'wss'
+    },
     allowedHosts: 'all', // Allow all hosts
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
-        target: 'http://0.0.0.0:8080', // Use 0.0.0.0 instead of localhost
+        target: 'http://127.0.0.1:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, options) => {
           // Additional proxy configuration
           proxy.on('error', (err, req, res) => {
             console.log('Proxy error:', err);
-            res.writeHead(500, {
-              'Content-Type': 'text/plain'
-            });
-            res.end('Proxy error: ' + err.message);
+            if (res.writeHead) {
+              res.writeHead(500, {
+                'Content-Type': 'text/plain'
+              });
+              res.end('Proxy error: ' + err.message);
+            }
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
             console.log('Proxying request:', req.method, req.url);
