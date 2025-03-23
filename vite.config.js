@@ -14,8 +14,17 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    allowedHosts: ['www.metaskepsis.com']
+    allowedHosts: ['www.metaskepsis.com'],
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['..']
+    }
+  },
+  optimizeDeps: {
+    include: []
   },
   base: './',
-  publicDir: 'public'
+  publicDir: 'public',
+  // Explicitly define the root directory
+  root: './'
 });
