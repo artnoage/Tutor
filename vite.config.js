@@ -7,7 +7,7 @@ const configPath = resolve(__dirname, 'config.json');
 
 // Create or update the config file
 const configContent = JSON.stringify({
-  "API_URL": "/tutor/api"
+  "API_URL": "/api"
 }, null, 2);
 
 fs.writeFileSync(configPath, configContent);
