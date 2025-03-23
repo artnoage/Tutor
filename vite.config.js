@@ -74,7 +74,7 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    hmr: false, // Disable HMR to avoid WebSocket issues
+    hmr: false, // Disable HMR completely
     allowedHosts: 'all', // Allow all hosts
     proxy: {
       // Proxy API requests to the backend server
