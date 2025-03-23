@@ -1,8 +1,24 @@
+# Environment variables
 .env
-node_modules
-__pycache__
 backend/.env
+
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Python
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+
+# Build files
+dist/
+
+# Development tools
 .aider*
-backend/__pycache__
+
+# Uncomment if needed
 #config.json
-dist

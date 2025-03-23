@@ -4,17 +4,8 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-// Determine API URL based on the current URL
-const currentPath = window.location.pathname;
-let API_URL;
-
-// If the path includes '/tutor/', use '/tutor/api'
-if (currentPath.includes('/tutor/')) {
-    API_URL = '/tutor/api';
-} else {
-    // Otherwise use '/api'
-    API_URL = '/api';
-}
+// Set a consistent API URL for our Express server
+const API_URL = '/api';
 
 console.log('API URL configured as:', API_URL);
 
