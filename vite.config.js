@@ -101,5 +101,7 @@ export default defineConfig({
     }
   },
   base: '/tutor/',
-  publicDir: 'public'
+  publicDir: 'public',
+  // Log more details for debugging
+  logLevel: 'info'
 });
