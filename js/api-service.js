@@ -4,7 +4,7 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-export let API_URL = '/api'; // Default value - will be proxied through Vite server
+export let API_URL = '/api'; // Default value for development - will be proxied through Vite server
 
 async function loadConfig() {
     /**
@@ -12,12 +12,20 @@ async function loadConfig() {
      * Updates the API_URL if found in the config.
      */
     try {
-        // Skip config loading entirely - use hardcoded values based on hostname
+        // Set API URL based on hostname
         const currentHost = window.location.hostname;
+        const currentPath = window.location.pathname;
+        
         if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
+            // For production (external domain)
             console.log(`Running on external domain (${currentHost}), using production API_URL`);
             API_URL = '/tutor/api';
+        } else if (currentPath.startsWith('/tutor/')) {
+            // For local development when accessed via /tutor/ path
+            console.log(`Running on local path ${currentPath}, using /tutor/api endpoint`);
+            API_URL = '/tutor/api';
         } else {
+            // For direct local development
             console.log(`Running on local domain (${currentHost}), using development API_URL`);
             API_URL = '/api';
         }
@@ -33,9 +41,13 @@ loadConfig().then(() => {
     console.log('Final API_URL:', API_URL);
 }).catch(error => {
     console.error('Error during configuration loading:', error);
-    // Set default API URL based on hostname
+    // Set default API URL based on hostname and path
     const currentHost = window.location.hostname;
+    const currentPath = window.location.pathname;
+    
     if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
+        API_URL = '/tutor/api';
+    } else if (currentPath.startsWith('/tutor/')) {
         API_URL = '/tutor/api';
     } else {
         API_URL = '/api';
