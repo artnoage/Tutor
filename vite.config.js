@@ -1,8 +1,18 @@
 import { defineConfig } from 'vite';
 
-
+// Custom plugin to prevent client injection
+const preventClientInjection = () => {
+  return {
+    name: 'prevent-client-injection',
+    transformIndexHtml(html) {
+      // Remove any Vite client script tags
+      return html.replace(/<script(\s+)type="module"(\s+)src="[^"]*\/@vite\/client[^"]*"><\/script>/g, '');
+    }
+  };
+};
 
 export default defineConfig({
+  plugins: [preventClientInjection()],
   build: {
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
@@ -53,5 +63,12 @@ export default defineConfig({
   // Explicitly disable client injection
   optimizeDeps: {
     exclude: ['@vite/client']
+  },
+  // Force production mode to disable development features
+  mode: 'production',
+  // Disable all dev-specific features
+  define: {
+    'process.env.NODE_ENV': '"production"',
+    '__VUE_PROD_DEVTOOLS__': 'false'
   }
 });
