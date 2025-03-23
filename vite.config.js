@@ -18,7 +18,16 @@ export default defineConfig({
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
     assetsDir: 'assets',
-    emptyOutDir: false // Prevent Vite from emptying the output directory
+    emptyOutDir: false, // Prevent Vite from emptying the output directory
+    rollupOptions: {
+      external: [
+        // Don't try to bundle these files
+        '/tutor/js/tutor-core.js',
+        '/tutor/js/tutor-ui-helpers.js',
+        '/tutor/js/tutor-ui.js',
+        '/tutor/js/sidebar-resize.js'
+      ]
+    }
   },
   esbuild: {
     target: 'esnext', // Ensure esbuild also targets modern browsers
