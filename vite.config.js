@@ -4,7 +4,8 @@ export default defineConfig({
   build: {
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    emptyOutDir: false // Prevent Vite from emptying the output directory
   },
   esbuild: {
     target: 'esnext', // Ensure esbuild also targets modern browsers
