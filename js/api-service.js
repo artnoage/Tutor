@@ -6,39 +6,29 @@ const settingsManager = window.settingsManager;
 
 export let API_URL = window.location.pathname.startsWith('/tutor/') ? '/tutor/api' : '/api'; // Set based on current path
 
-function loadConfig() {
-    /**
-     * Sets the API URL based on the current hostname and path.
-     * No longer tries to load from config.json to avoid 404 errors.
-     */
-    try {
-        const currentHost = window.location.hostname;
-        const currentPath = window.location.pathname;
-        
-        if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
-            // For production (external domain)
-            console.log(`Running on external domain (${currentHost}), using production API_URL`);
-            API_URL = '/tutor/api';
-        } else if (currentPath.startsWith('/tutor/')) {
-            // For local development when accessed via /tutor/ path
-            console.log(`Running on local path ${currentPath}, using /tutor/api endpoint`);
-            API_URL = '/tutor/api';
-        } else {
-            // For direct local development
-            console.log(`Running on local domain (${currentHost}), using development API_URL`);
-            API_URL = '/api';
-        }
-        return API_URL;
-    } catch (error) {
-        console.warn('Error in loadConfig, using default API_URL:', API_URL);
-        return API_URL;
+// Set API URL based on the current hostname and path
+function setApiUrl() {
+    const currentHost = window.location.hostname;
+    const currentPath = window.location.pathname;
+    
+    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
+        // For production (external domain)
+        console.log(`Running on external domain (${currentHost}), using production API_URL`);
+        return '/tutor/api';
+    } else if (currentPath.startsWith('/tutor/')) {
+        // For local development when accessed via /tutor/ path
+        console.log(`Running on local path ${currentPath}, using /tutor/api endpoint`);
+        return '/tutor/api';
+    } else {
+        // For direct local development
+        console.log(`Running on local domain (${currentHost}), using development API_URL`);
+        return '/api';
     }
 }
 
-// Initialize configuration immediately (synchronously now)
-API_URL = loadConfig();
-console.log('Configuration loaded successfully');
-console.log('Final API_URL:', API_URL);
+// Set API URL immediately (no async operations that could trigger 404s)
+API_URL = setApiUrl();
+console.log('API URL configured:', API_URL);
 
 function getApiKey(model) {
     /**
