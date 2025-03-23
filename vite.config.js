@@ -20,12 +20,17 @@ export default defineConfig({
     emptyOutDir: true, // Empty the output directory before building
     rollupOptions: {
       input: {
-        main: './index.html'
+        main: './index.html',
+        'tutor-core': './js/tutor-core.js',
+        'tutor-ui-helpers': './js/tutor-ui-helpers.js',
+        'tutor-ui': './js/tutor-ui.js',
+        'sidebar-resize': './js/sidebar-resize.js'
       },
       output: {
         entryFileNames: 'js/[name].js',
         chunkFileNames: 'js/[name]-[hash].js',
-        assetFileNames: 'assets/[name].[ext]'
+        assetFileNames: 'assets/[name].[ext]',
+        manualChunks: undefined
       }
     }
   },
