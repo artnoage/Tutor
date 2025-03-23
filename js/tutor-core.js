@@ -1,6 +1,5 @@
-// Use absolute paths for imports to ensure Vite can resolve them
-import { AudioManager } from '/js/audio-manager.js';
-import { sendAudioToServer, generateChatName } from '/js/api-service.js';
+import { AudioManager } from './audio-manager.js';
+import { sendAudioToServer, generateChatName } from './api-service.js';
 
 console.log('tutor-core.js loaded successfully');
 
