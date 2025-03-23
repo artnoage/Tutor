@@ -16,23 +16,16 @@ export default defineConfig({
   build: {
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
-    assetsDir: '', // Place assets directly in the output directory
-    emptyOutDir: false, // Prevent Vite from emptying the output directory
+    assetsDir: 'assets', // Place assets in an assets directory
+    emptyOutDir: true, // Empty the output directory before building
     rollupOptions: {
       input: {
-        main: './index.html',
-        'tutor-core': './js/tutor-core.js',
-        'tutor-ui-helpers': './js/tutor-ui-helpers.js',
-        'tutor-ui': './js/tutor-ui.js',
-        'sidebar-resize': './js/sidebar-resize.js',
-        'audio-manager': './js/audio-manager.js',
-        'api-service': './js/api-service.js'
+        main: './index.html'
       },
       output: {
-        entryFileNames: '[name].js',
-        chunkFileNames: '[name].js',
-        assetFileNames: '[name].[ext]',
-        manualChunks: undefined
+        entryFileNames: 'js/[name].js',
+        chunkFileNames: 'js/[name]-[hash].js',
+        assetFileNames: 'assets/[name].[ext]'
       }
     }
   },
@@ -71,7 +64,7 @@ export default defineConfig({
       }
     }
   },
-  base: './', // Use relative paths for production
+  base: '', // Use empty base for production
   publicDir: 'public', // Serve files from the public directory
   // Log more details for debugging
   logLevel: 'info',
