@@ -89,9 +89,21 @@ async function sendAudioToServer(audioBlob, formElements) {
     try {
         console.log(`Sending audio to ${API_URL}/process_audio`);
         console.time('serverProcessing');
+        
+        // Check if the API URL is localhost or 127.0.0.1 and warn about potential ad blocker issues
+        if (API_URL.includes('127.0.0.1') || API_URL.includes('localhost')) {
+            console.warn('Using localhost API URL. If requests fail, check if any browser extensions (ad blockers) are blocking local requests.');
+        }
+        
         const response = await fetch(`${API_URL}/process_audio`, {
             method: 'POST',
-            body: formData
+            body: formData,
+            // Add these headers to help prevent ad blocker interference
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            // Add credentials to handle any cookie-based auth
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -108,6 +120,20 @@ async function sendAudioToServer(audioBlob, formElements) {
         };
     } catch (error) {
         console.error('Error sending audio to server:', error);
+        
+        // Provide more helpful error messages based on the error type
+        if (error.message.includes('Failed to fetch')) {
+            if (API_URL.includes('127.0.0.1') || API_URL.includes('localhost')) {
+                console.error('Connection to local server failed. Possible causes:');
+                console.error('1. Server is not running at ' + API_URL);
+                console.error('2. Browser extension (ad blocker) is blocking the request');
+                console.error('3. CORS policy is preventing the request');
+                throw new Error('Connection to local server failed. Check console for details.');
+            } else {
+                throw new Error('Failed to connect to server. Check if the server is running and accessible.');
+            }
+        }
+        
         throw error;
     }
 }
@@ -138,7 +164,9 @@ async function sendHomeworkRequest(formElements) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             },
+            credentials: 'include',
             body: JSON.stringify(requestData)
         });
 
@@ -182,7 +210,9 @@ async function generateChatName(formElements) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             },
+            credentials: 'include',
             body: JSON.stringify(requestData)
         });
 
