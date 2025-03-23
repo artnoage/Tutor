@@ -2,63 +2,16 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import fs from 'fs';
 
-// Ensure config.json exists in both the root and public directories
+// Ensure config.json exists
 const configPath = resolve(__dirname, 'config.json');
-const publicConfigPath = resolve(__dirname, 'public', 'config.json');
 
-// Create the public directory if it doesn't exist
-if (!fs.existsSync(resolve(__dirname, 'public'))) {
-  fs.mkdirSync(resolve(__dirname, 'public'), { recursive: true });
-  console.log('Created public directory');
-}
-
-// Create or update the config files
+// Create or update the config file
 const configContent = JSON.stringify({
   "API_URL": "/tutor/api"
 }, null, 2);
 
-// Write config to both locations
 fs.writeFileSync(configPath, configContent);
-fs.writeFileSync(publicConfigPath, configContent);
-
-// Copy necessary files to public directory
-const filesToCopy = [
-  { src: 'index.html', dest: 'public/index.html' },
-  { src: 'styles.css', dest: 'public/styles.css' }
-];
-
-// Create js directory in public if it doesn't exist
-if (!fs.existsSync(resolve(__dirname, 'public/js'))) {
-  fs.mkdirSync(resolve(__dirname, 'public/js'), { recursive: true });
-  console.log('Created public/js directory');
-}
-
-// Copy all JS files from js directory to public/js
-const jsDir = resolve(__dirname, 'js');
-if (fs.existsSync(jsDir)) {
-  const jsFiles = fs.readdirSync(jsDir);
-  jsFiles.forEach(file => {
-    if (file.endsWith('.js')) {
-      fs.copyFileSync(
-        resolve(jsDir, file),
-        resolve(__dirname, 'public/js', file)
-      );
-      console.log(`Copied js/${file} to public/js/${file}`);
-    }
-  });
-}
-
-for (const file of filesToCopy) {
-  if (fs.existsSync(resolve(__dirname, file.src))) {
-    fs.copyFileSync(
-      resolve(__dirname, file.src),
-      resolve(__dirname, file.dest)
-    );
-    console.log(`Copied ${file.src} to ${file.dest}`);
-  }
-}
-
-console.log('Created/updated config.json files in root and public directories');
+console.log('Created/updated config.json file');
 
 export default defineConfig({
   build: {
@@ -102,7 +55,7 @@ export default defineConfig({
     }
   },
   base: '/tutor/',
-  publicDir: 'public',
+  publicDir: './', // Serve files directly from the root directory
   // Log more details for debugging
   logLevel: 'info'
 });

@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "css": "npx tailwindcss -i ./styles.css -o ./dist/output.css --watch",
     "serve": "vite --port 8002 --host 0.0.0.0",
-    "copy-js": "mkdir -p public/js && cp -r js/* public/js/",
     "debug": "vite --port 8002 --host 0.0.0.0 --debug"
   },
   "author": "Metaskepsis",
