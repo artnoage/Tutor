@@ -64,11 +64,11 @@ async function loadConfig() {
     const currentHost = window.location.hostname;
     if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
         // Use same-origin API endpoint when deployed
-        API_URL = '/api';
+        API_URL = '/tutor/api';
         console.log('Using same-origin API endpoint:', API_URL);
         
         // Special handling for metaskepsis.com
-        if (currentHost === 'www.metaskepsis.com') {
+        if (currentHost === 'www.metaskepsis.com' || currentHost === 'metaskepsis.com') {
             console.log('Detected metaskepsis.com domain, using proxy API endpoint');
         }
     }
