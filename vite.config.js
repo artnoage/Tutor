@@ -15,5 +15,6 @@ export default defineConfig({
     cors: true,
     allowedHosts: ['www.metaskepsis.com']
   },
-  base: ''
+  base: './',
+  publicDir: './'
 });
