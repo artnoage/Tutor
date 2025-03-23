@@ -7,19 +7,10 @@ export default defineConfig({
     target: 'esnext', // This enables top-level await support
     outDir: 'dist',
     assetsDir: 'assets',
-    emptyOutDir: false, // Prevent Vite from emptying the output directory
-    rollupOptions: {
-      external: [
-        // Don't try to bundle these files
-        './js/tutor-core.js',
-        './js/tutor-ui-helpers.js',
-        './js/tutor-ui.js',
-        './js/sidebar-resize.js'
-      ]
-    }
+    emptyOutDir: false // Prevent Vite from emptying the output directory
   },
   esbuild: {
-    target: 'esnext', // Ensure esbuild also targets modern browsers
+    target: 'esnext' // Ensure esbuild also targets modern browsers
   },
   server: {
     port: 8002,
@@ -53,7 +44,7 @@ export default defineConfig({
     }
   },
   base: '', // Use empty base for development
-  publicDir: null, // Disable the public directory feature
+  publicDir: './', // Serve files from the root directory
   // Log more details for debugging
   logLevel: 'info'
 });

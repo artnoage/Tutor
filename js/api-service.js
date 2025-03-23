@@ -4,8 +4,6 @@
 const tutorController = window.tutorController;
 const settingsManager = window.settingsManager;
 
-export let API_URL = window.location.pathname.startsWith('/tutor/') ? '/tutor/api' : '/api'; // Set based on current path
-
 // Set API URL based on the current hostname and path
 function setApiUrl() {
     const currentHost = window.location.hostname;
@@ -27,7 +25,7 @@ function setApiUrl() {
 }
 
 // Set API URL immediately (no async operations that could trigger 404s)
-API_URL = setApiUrl();
+export let API_URL = setApiUrl();
 console.log('API URL configured:', API_URL);
 
 function getApiKey(model) {
