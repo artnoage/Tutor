@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "css": "npx tailwindcss -i ./styles.css -o ./dist/output.css --watch",
     "serve": "vite --port 8002 --host 0.0.0.0",
+    "static": "python -m http.server 8002",
     "debug": "vite --port 8002 --host 0.0.0.0 --debug",
     "clean": "rm -rf dist && mkdir -p dist"
   },

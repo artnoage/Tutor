@@ -39,7 +39,6 @@ export default defineConfig({
     hmr: false, // Disable HMR completely
     allowedHosts: ['www.metaskepsis.com', 'metaskepsis.com', 'all'], // Explicitly allow metaskepsis.com
     strictPort: true, // Don't try another port if 8002 is in use
-    middlewareMode: true, // Use true instead of 'html' (deprecated)
     proxy: {
       // Proxy API requests to your backend server
       '/api': {
