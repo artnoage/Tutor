@@ -67,5 +67,11 @@ export default defineConfig({
   base: '', // Use empty base for development
   publicDir: null, // Disable the public directory feature
   // Log more details for debugging
-  logLevel: 'info'
+  logLevel: 'info',
+  // Disable client injection
+  cacheDir: null,
+  clearScreen: false,
+  optimizeDeps: {
+    disabled: true
+  }
 });

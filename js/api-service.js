@@ -11,73 +11,36 @@ async function loadConfig() {
      * Updates the API_URL if found in the config.
      */
     try {
-        // Skip config loading when running on external domains
+        // Skip config loading entirely - use hardcoded values based on hostname
         const currentHost = window.location.hostname;
         if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
-            console.log(`Running on external domain (${currentHost}), using default API_URL: ${API_URL}`);
-            return;
+            console.log(`Running on external domain (${currentHost}), using production API_URL`);
+            API_URL = '/tutor/api';
+        } else {
+            console.log(`Running on local domain (${currentHost}), using development API_URL`);
+            API_URL = '/api';
         }
-        
-        // Only try to load config locally
-        try {
-            console.log('Attempting to load config from ./config.json');
-            const response = await fetch('./config.json', { 
-                headers: { 'Accept': 'application/json' },
-                cache: 'no-store'
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Config not found: ${response.status}`);
-            }
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const config = await response.json();
-                if (config.API_URL) {
-                    console.log(`Setting API_URL to ${config.API_URL} from config`);
-                    API_URL = config.API_URL;
-                }
-            }
-        } catch (e) {
-            console.warn('Error loading config, using default API_URL:', e.message);
-        }
+        return;
     } catch (error) {
-        console.warn('Using default API_URL:', API_URL);
+        console.warn('Error in loadConfig, using default API_URL:', API_URL);
     }
 }
 
-// Initialize configuration
-(async function() {
-    try {
-        await loadConfig();
-        console.log('Configuration loaded successfully');
-    } catch (error) {
-        console.error('Error during configuration loading:', error);
-    }
-    
-    // Ensure we have a valid API URL
-    if (!API_URL || API_URL === '') {
-        API_URL = '/api';
-    }
-    
-    // If we're on an external domain, adjust the API URL to use the same origin
+// Initialize configuration immediately
+loadConfig().then(() => {
+    console.log('Configuration loaded successfully');
+    console.log('Final API_URL:', API_URL);
+}).catch(error => {
+    console.error('Error during configuration loading:', error);
+    // Set default API URL based on hostname
     const currentHost = window.location.hostname;
     if (currentHost !== 'localhost' && currentHost !== '127.0.0.1' && currentHost !== '0.0.0.0') {
-        // Use same-origin API endpoint when deployed
         API_URL = '/tutor/api';
-        console.log('Using same-origin API endpoint:', API_URL);
-        
-        // Special handling for metaskepsis.com
-        if (currentHost === 'www.metaskepsis.com' || currentHost === 'metaskepsis.com') {
-            console.log('Detected metaskepsis.com domain, using proxy API endpoint');
-        }
     } else {
-        // For local development, use the Vite proxy
-        console.log('Using local development API endpoint:', API_URL);
+        API_URL = '/api';
     }
-    
-    console.log('Final API_URL:', API_URL);
-})();
+    console.log('Using fallback API_URL:', API_URL);
+});
 
 function getApiKey(model) {
     /**
