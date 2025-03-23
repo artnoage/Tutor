@@ -74,18 +74,14 @@ export default defineConfig({
     port: 8002,
     host: '0.0.0.0',
     cors: true,
-    hmr: {
-      // Configure HMR to work with Nginx
-      clientPort: 443,
-      protocol: 'wss'
-    },
+    hmr: false, // Disable HMR to avoid WebSocket issues
     allowedHosts: 'all', // Allow all hosts
     proxy: {
       // Proxy API requests to the backend server
-      '/api': {
+      '/tutor/api': {
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/tutor\/api/, ''),
         configure: (proxy, options) => {
           // Additional proxy configuration
           proxy.on('error', (err, req, res) => {

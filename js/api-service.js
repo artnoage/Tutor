@@ -3,7 +3,7 @@
 import { tutorController } from './tutor-core.js';
 import { settingsManager } from './settings-manager.js';
 
-export let API_URL = '/api'; // Default value - will be proxied through Vite server
+export let API_URL = '/tutor/api'; // Default value - will be proxied through Vite server
 
 async function loadConfig() {
     /**
@@ -57,7 +57,7 @@ async function loadConfig() {
     
     // Ensure we have a valid API URL
     if (!API_URL || API_URL === '') {
-        API_URL = '/api';
+        API_URL = '/tutor/api';
     }
     
     // If we're on an external domain, adjust the API URL to use the same origin
